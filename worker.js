@@ -1,4 +1,4 @@
-// Настройки безопасности CORS для работы с любого устройства
+// Настройки CORS для бесперебойной работы с любого устройства
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
@@ -25,12 +25,12 @@ export default {
     try {
       return await env.ASSETS.fetch(request);
     } catch (assetsError) {
-      return new Response("Файл не найден на сервере", { status: 404 });
+      return new Response("Файл не найден", { status: 404 });
     }
   },
 };
 
-// Универсальный парсер, который превращает любой ответ ИИ в понятный для сайта формат
+// Функция-трансформер: превращает любой ответ ИИ в формат, понятный твоему сайту
 function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
   let aiText = "";
   let cleanBody = responseBody.trim();
@@ -38,6 +38,8 @@ function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
   if (cleanBody.startsWith("{")) {
     try {
       const json = JSON.parse(cleanBody);
+      
+      // Вытягиваем текст из всех возможных форматов API (OpenAI, Anthropic и др.)
       if (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) {
         aiText = json.choices[0].message.content;
       } else if (json.content && Array.isArray(json.content) && json.content[0] && json.content[0].text) {
@@ -50,8 +52,6 @@ function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
         aiText = json.reply;
       } else if (json.response) {
         aiText = json.response;
-      } else if (json.error) {
-        aiText = `Ошибка ИИ: ${typeof json.error === 'object' ? JSON.stringify(json.error) : json.error}`;
       } else {
         aiText = cleanBody;
       }
@@ -59,7 +59,7 @@ function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
       aiText = cleanBody;
     }
   } else {
-    // Если прилетел поток (stream), склеиваем его по строчкам
+    // Если прилетел потоковый ответ (stream), собираем его по строкам
     let extracted = [];
     const lines = cleanBody.split('\n');
     for (const line of lines) {
@@ -71,29 +71,19 @@ function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
           const dataJson = JSON.parse(dataStr);
           if (dataJson.choices && dataJson.choices[0] && dataJson.choices[0].delta && dataJson.choices[0].delta.content) {
             extracted.push(dataJson.choices[0].delta.content);
-          } else if (dataJson.text) {
-            extracted.push(dataJson.text);
-          } else if (dataJson.content) {
-            extracted.push(dataJson.content);
           }
-        } catch(err) { }
+        } catch(err) {}
       }
     }
-    if (extracted.length > 0) {
-      aiText = extracted.join('');
-    } else {
-      aiText = cleanBody.replace(/^event:\s*\w+\s*/i, '').replace(/^data:\s*/i, '');
-    }
+    aiText = extracted.length > 0 ? extracted.join('') : cleanBody;
   }
 
-  // Упаковываем текст во ВСЕ известные форматы одновременно
+  // Дублируем чистый текст во все поля, которые может запрашивать твой фронтенд
   const universalResponse = {
     text: aiText,
     reply: aiText,
     response: aiText,
     content: aiText,
-    message: aiText,
-    messages: [{ text: aiText, content: aiText, role: "assistant" }],
     choices: [{ message: { content: aiText }, delta: { content: aiText } }]
   };
 
@@ -129,7 +119,7 @@ async function handleProxyRequest(request) {
     if (requestData.body) {
       let parsedBody = typeof requestData.body === "string" ? JSON.parse(requestData.body) : requestData.body;
       if (targetUrl.includes("smartapi.shop") && !parsedBody.model) {
-        parsedBody.model = "deepseek-v4-flash";
+        parsedBody.model = "deepseek-v4-flash"; // Модель по умолчанию, если не передана
       }
       bodyStr = JSON.stringify(parsedBody);
     }
@@ -158,7 +148,6 @@ async function handleIndexApiRequest(request) {
   try {
     const bodyText = await request.text();
     let parsedBody = JSON.parse(bodyText);
-
     const targetUrl = "https://smartapi.shop/backend/v1/messages";
 
     const headers = new Headers();
