@@ -1,9 +1,18 @@
-// Настройки CORS для бесперебойной работы с любого устройства
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
   "Access-Control-Allow-Headers": "*",
   "Access-Control-Max-Age": "86400",
+};
+
+// Словарь автоисправления моделей. Если сайт шлет левое имя, меняем на то, что ждет SmartAPI
+const modelMapping = {
+  "claude-sonnet": "claude-3-5-sonnet-20241022",
+  "claude-3-5-sonnet": "claude-3-5-sonnet-20241022",
+  "gpt-4": "gpt-4o",
+  "gpt-4o-mini": "gpt-4o-mini",
+  "deepseek": "deepseek-chat",
+  "deepseek-chat": "deepseek-chat"
 };
 
 export default {
@@ -30,69 +39,6 @@ export default {
   },
 };
 
-// Функция-трансформер: превращает любой ответ ИИ в формат, понятный твоему сайту
-function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
-  let aiText = "";
-  let cleanBody = responseBody.trim();
-
-  if (cleanBody.startsWith("{")) {
-    try {
-      const json = JSON.parse(cleanBody);
-      
-      // Вытягиваем текст из всех возможных форматов API (OpenAI, Anthropic и др.)
-      if (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) {
-        aiText = json.choices[0].message.content;
-      } else if (json.content && Array.isArray(json.content) && json.content[0] && json.content[0].text) {
-        aiText = json.content[0].text;
-      } else if (json.content && typeof json.content === 'string') {
-        aiText = json.content;
-      } else if (json.text) {
-        aiText = json.text;
-      } else if (json.reply) {
-        aiText = json.reply;
-      } else if (json.response) {
-        aiText = json.response;
-      } else {
-        aiText = cleanBody;
-      }
-    } catch (e) {
-      aiText = cleanBody;
-    }
-  } else {
-    // Если прилетел потоковый ответ (stream), собираем его по строкам
-    let extracted = [];
-    const lines = cleanBody.split('\n');
-    for (const line of lines) {
-      let trimmedLine = line.trim();
-      if (trimmedLine.startsWith('data:')) {
-        const dataStr = trimmedLine.slice(5).trim();
-        if (dataStr === '[DONE]') continue;
-        try {
-          const dataJson = JSON.parse(dataStr);
-          if (dataJson.choices && dataJson.choices[0] && dataJson.choices[0].delta && dataJson.choices[0].delta.content) {
-            extracted.push(dataJson.choices[0].delta.content);
-          }
-        } catch(err) {}
-      }
-    }
-    aiText = extracted.length > 0 ? extracted.join('') : cleanBody;
-  }
-
-  // Дублируем чистый текст во все поля, которые может запрашивать твой фронтенд
-  const universalResponse = {
-    text: aiText,
-    reply: aiText,
-    response: aiText,
-    content: aiText,
-    choices: [{ message: { content: aiText }, delta: { content: aiText } }]
-  };
-
-  return new Response(JSON.stringify(universalResponse), {
-    status: responseStatus,
-    headers: responseHeaders,
-  });
-}
-
 async function handleProxyRequest(request) {
   try {
     const requestData = await request.json();
@@ -118,23 +64,35 @@ async function handleProxyRequest(request) {
     let bodyStr = null;
     if (requestData.body) {
       let parsedBody = typeof requestData.body === "string" ? JSON.parse(requestData.body) : requestData.body;
-      if (targetUrl.includes("smartapi.shop") && !parsedBody.model) {
-        parsedBody.model = "deepseek-v4-flash"; // Модель по умолчанию, если не передана
+      
+      // КРИТИЧЕСКИЙ БЛОК: Исправляем имя модели из интерфейса сайта под стандарты API
+      if (parsedBody.model) {
+        const modelKey = parsedBody.model.toLowerCase().trim();
+        if (modelMapping[modelKey]) {
+          parsedBody.model = modelMapping[modelKey];
+        }
+      } else {
+        parsedBody.model = "deepseek-chat"; // Модель по умолчанию, если сайт ничего не передал
       }
+      
       bodyStr = JSON.stringify(parsedBody);
     }
 
+    // Отправляем запрос на SmartAPI
     const response = await fetch(targetUrl, { method, headers, body: bodyStr });
-    const responseBody = await response.text();
     
+    // Копируем заголовки ответа и добавляем CORS-разрешения
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
-    responseHeaders.delete("content-encoding");
-    responseHeaders.set("content-type", "application/json");
+    responseHeaders.delete("content-encoding"); // Отключаем принудительное сжатие Cloudflare
 
-    return buildUniversalResponse(responseBody, response.status, responseHeaders);
+    // Возвращаем оригинальный поток (stream) напрямую в браузер без искажения структуры JSON
+    return new Response(response.body, {
+      status: response.status,
+      headers: responseHeaders,
+    });
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -147,7 +105,6 @@ async function handleProxyRequest(request) {
 async function handleIndexApiRequest(request) {
   try {
     const bodyText = await request.text();
-    let parsedBody = JSON.parse(bodyText);
     const targetUrl = "https://smartapi.shop/backend/v1/messages";
 
     const headers = new Headers();
@@ -166,22 +123,34 @@ async function handleIndexApiRequest(request) {
       headers.set("content-type", "application/json");
     }
 
+    let modifiedBodyText = bodyText;
+    try {
+      let parsedBody = JSON.parse(bodyText);
+      if (parsedBody.model) {
+        const modelKey = parsedBody.model.toLowerCase().trim();
+        if (modelMapping[modelKey]) {
+          parsedBody.model = modelMapping[modelKey];
+        }
+      }
+      modifiedBodyText = JSON.stringify(parsedBody);
+    } catch(e) {}
+
     const response = await fetch(targetUrl, {
       method: "POST",
       headers: headers,
-      body: JSON.stringify(parsedBody),
+      body: modifiedBodyText,
     });
 
-    const responseBody = await response.text();
-    
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
     responseHeaders.delete("content-encoding");
-    responseHeaders.set("content-type", "application/json");
 
-    return buildUniversalResponse(responseBody, response.status, responseHeaders);
+    return new Response(response.body, {
+      status: response.status,
+      headers: responseHeaders,
+    });
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
