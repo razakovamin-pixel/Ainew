@@ -5335,7 +5335,6 @@ async function sendAiChatMessage(userText) {
     noKeyBubble.style.color = 'var(--rose)';
     return;
   }
-
   const wrap = $('aiChatMessages');
   const sendBtn = $('aiChatSend');
   const input = $('aiChatInput');
@@ -5347,14 +5346,12 @@ async function sendAiChatMessage(userText) {
 
   const thinkingBubble = renderChatMessage('assistant', '…');
   thinkingBubble.classList.add('ai-thinking');
-
   sendBtn.disabled = true;
   input.disabled = true;
   sendBtn.textContent = '…';
 
   try {
     const messages = history.slice(-18); // последние 18 сообщений
-
     const resp = await fetch('/api/v1/messages', {
       method: 'POST',
       headers: aiRequestHeaders(),
@@ -5376,14 +5373,14 @@ async function sendAiChatMessage(userText) {
     }
 
     const data = await resp.json();
-    const reply = data?.content?.[0]?.text || '(пустой ответ)';
+
+    // ИСПРАВЛЕНО: Читаем ответ в формате OpenAI / SmartAPI вместо Anthropic
+    const reply = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '(пустой ответ)';
 
     thinkingBubble.textContent = reply;
     thinkingBubble.classList.remove('ai-thinking');
-
     history.push({ role: 'assistant', content: reply });
     saveChatHistory(history);
-
   } catch (err) {
     thinkingBubble.textContent = `✗ Сетевая ошибка: ${err.message}`;
     thinkingBubble.style.color = 'var(--rose)';
@@ -5396,6 +5393,7 @@ async function sendAiChatMessage(userText) {
     input.focus();
   }
 }
+
 
 function openAiChat() {
   openPanelEl('aiChatPanel');
