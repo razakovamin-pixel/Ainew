@@ -1,5 +1,4 @@
-// CORS (Cross-Origin Resource Sharing) — это настройки безопасности. 
-// Они разрешают твоему сайту свободно общаться с сервером Cloudflare с любого устройства.
+// Настройки безопасности CORS для работы с любого устройства
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
@@ -11,24 +10,18 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // 1. Обработка OPTIONS-запросов. Браузеры всегда сначала отправляют такой пустой запрос, 
-    // чтобы проверить разрешения безопасности (CORS). Мы сразу одобряем его.
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // 2. Универсальный прокси-маршрут по твоему ТЗ
     if (url.pathname === "/proxy" && request.method === "POST") {
       return await handleProxyRequest(request);
     }
 
-    // 3. Автоматический перехват старых запросов от твоего index.html
     if (url.pathname === "/api/v1/messages" && request.method === "POST") {
       return await handleIndexApiRequest(request);
     }
 
-    // 4. Если это обычный запрос (открытие сайта, загрузка файлов .json), 
-    // отдаем файлы из папки public через системную привязку ASSETS
     try {
       return await env.ASSETS.fetch(request);
     } catch (assetsError) {
@@ -37,13 +30,84 @@ export default {
   },
 };
 
-// Функция для универсального прокси (/proxy)
+// Универсальный парсер, который превращает любой ответ ИИ в понятный для сайта формат
+function buildUniversalResponse(responseBody, responseStatus, responseHeaders) {
+  let aiText = "";
+  let cleanBody = responseBody.trim();
+
+  if (cleanBody.startsWith("{")) {
+    try {
+      const json = JSON.parse(cleanBody);
+      if (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) {
+        aiText = json.choices[0].message.content;
+      } else if (json.content && Array.isArray(json.content) && json.content[0] && json.content[0].text) {
+        aiText = json.content[0].text;
+      } else if (json.content && typeof json.content === 'string') {
+        aiText = json.content;
+      } else if (json.text) {
+        aiText = json.text;
+      } else if (json.reply) {
+        aiText = json.reply;
+      } else if (json.response) {
+        aiText = json.response;
+      } else if (json.error) {
+        aiText = `Ошибка ИИ: ${typeof json.error === 'object' ? JSON.stringify(json.error) : json.error}`;
+      } else {
+        aiText = cleanBody;
+      }
+    } catch (e) {
+      aiText = cleanBody;
+    }
+  } else {
+    // Если прилетел поток (stream), склеиваем его по строчкам
+    let extracted = [];
+    const lines = cleanBody.split('\n');
+    for (const line of lines) {
+      let trimmedLine = line.trim();
+      if (trimmedLine.startsWith('data:')) {
+        const dataStr = trimmedLine.slice(5).trim();
+        if (dataStr === '[DONE]') continue;
+        try {
+          const dataJson = JSON.parse(dataStr);
+          if (dataJson.choices && dataJson.choices[0] && dataJson.choices[0].delta && dataJson.choices[0].delta.content) {
+            extracted.push(dataJson.choices[0].delta.content);
+          } else if (dataJson.text) {
+            extracted.push(dataJson.text);
+          } else if (dataJson.content) {
+            extracted.push(dataJson.content);
+          }
+        } catch(err) { }
+      }
+    }
+    if (extracted.length > 0) {
+      aiText = extracted.join('');
+    } else {
+      aiText = cleanBody.replace(/^event:\s*\w+\s*/i, '').replace(/^data:\s*/i, '');
+    }
+  }
+
+  // Упаковываем текст во ВСЕ известные форматы одновременно
+  const universalResponse = {
+    text: aiText,
+    reply: aiText,
+    response: aiText,
+    content: aiText,
+    message: aiText,
+    messages: [{ text: aiText, content: aiText, role: "assistant" }],
+    choices: [{ message: { content: aiText }, delta: { content: aiText } }]
+  };
+
+  return new Response(JSON.stringify(universalResponse), {
+    status: responseStatus,
+    headers: responseHeaders,
+  });
+}
+
 async function handleProxyRequest(request) {
   try {
     const requestData = await request.json();
     let targetUrl = requestData.target_url;
     
-    // Если адрес назначения не передан, направляем по умолчанию на SmartAPI
     if (!targetUrl || targetUrl.startsWith("/")) {
       const cleanPath = targetUrl ? targetUrl : "/chat/completions";
       targetUrl = `https://smartapi.shop/backend/v1${cleanPath}`;
@@ -64,37 +128,23 @@ async function handleProxyRequest(request) {
     let bodyStr = null;
     if (requestData.body) {
       let parsedBody = typeof requestData.body === "string" ? JSON.parse(requestData.body) : requestData.body;
-      
-      // Если запрос идет к SmartAPI и модель пустая — ставим дефолтную deepseek-v4-flash
       if (targetUrl.includes("smartapi.shop") && !parsedBody.model) {
         parsedBody.model = "deepseek-v4-flash";
       }
-      
-      // ВЫКЛЮЧАЕМ СТРИМИНГ ЖЕСТКО
-      parsedBody.stream = false;
-      
       bodyStr = JSON.stringify(parsedBody);
     }
 
-    const response = await fetch(targetUrl, {
-      method: method,
-      headers: headers,
-      body: bodyStr,
-    });
-
+    const response = await fetch(targetUrl, { method, headers, body: bodyStr });
     const responseBody = await response.text();
+    
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
-    // Удаляем заголовок сжатия, чтобы Cloudflare сам заново оптимизировал текст без ошибок
     responseHeaders.delete("content-encoding");
+    responseHeaders.set("content-type", "application/json");
 
-    return new Response(responseBody, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: responseHeaders,
-    });
+    return buildUniversalResponse(responseBody, response.status, responseHeaders);
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -104,30 +154,22 @@ async function handleProxyRequest(request) {
   }
 }
 
-// Функция для незаметной поддержки текущего index.html (/api/v1/messages)
 async function handleIndexApiRequest(request) {
   try {
     const bodyText = await request.text();
     let parsedBody = JSON.parse(bodyText);
 
-    // ВЫКЛЮЧАЕМ СТРИМИНГ ЖЕСТКО ДЛЯ СТАРОГО ИНТЕРФЕЙСА
-    parsedBody.stream = false;
-
-    // Перенаправляем на официальный шлюз SmartAPI для обработки структуры сообщений
     const targetUrl = "https://smartapi.shop/backend/v1/messages";
 
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
-      // Пропускаем служебные заголовки самой платформы Cloudflare, чтобы не путать SmartAPI
       if (!["host", "cf-connecting-ip", "cf-ray", "x-forwarded-for"].includes(key.toLowerCase())) {
         headers.set(key, value);
       }
     }
 
-    // Берем секретный ключ, который отправляет твой сайт
     const xApiKey = request.headers.get("x-api-key");
     if (xApiKey && !headers.has("authorization")) {
-      // Дублируем его стандартным методом Bearer на случай жестких проверок в SmartAPI
       headers.set("authorization", `Bearer ${xApiKey}`);
     }
 
@@ -142,16 +184,15 @@ async function handleIndexApiRequest(request) {
     });
 
     const responseBody = await response.text();
+    
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
     responseHeaders.delete("content-encoding");
+    responseHeaders.set("content-type", "application/json");
 
-    return new Response(responseBody, {
-      status: response.status,
-      headers: responseHeaders,
-    });
+    return buildUniversalResponse(responseBody, response.status, responseHeaders);
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
