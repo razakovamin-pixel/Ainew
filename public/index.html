@@ -2203,6 +2203,27 @@ html[lang="fa"] .det-arabic { direction: ltr; }
 html[lang="fa"] .det-top { flex-direction: row-reverse; }
 
 /* ═══════════════════════════════════════
+   AI QUICK PROMPT BUTTONS
+═══════════════════════════════════════ */
+.ai-qbtn {
+  background: var(--ink-2);
+  border: 1px solid var(--border-bright);
+  border-radius: 20px;
+  color: var(--text-2);
+  font-size: 11.5px;
+  font-family: var(--font-body);
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.ai-qbtn:hover {
+  background: var(--teal-glow);
+  border-color: var(--teal);
+  color: var(--teal-light);
+}
+
+/* ═══════════════════════════════════════
    DONATION MODAL
 ═══════════════════════════════════════ */
 .donate-overlay {
@@ -3411,15 +3432,24 @@ document.addEventListener("DOMContentLoaded",()=>{
       <div class="panel-title">💬 ИИ-ассистент — Риджаль</div>
       <button class="panel-close" id="aiChatClose">✕</button>
     </div>
-    <div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;min-height:200px;max-height:52vh"></div>
-    <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--border);padding-top:12px">
-      <textarea id="aiChatInput" rows="1" placeholder="Спросите про передатчика, риджаль, иснад…"
+    <div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;min-height:200px;max-height:46vh"></div>
+    <!-- Быстрые запросы -->
+    <div id="aiQuickBtns" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 6px;border-top:1px solid var(--border)">
+      <button class="ai-qbtn" data-q="Найди хадисы с иснадом через этого передатчика в аль-Кафи и укажи степень достоверности">📖 Хадисы в аль-Кафи</button>
+      <button class="ai-qbtn" data-q="Какова оценка этого передатчика в Муджам Рияль аль-Хадис аль-Хуи? Приведи дословно.">🔍 Оценка аль-Хуи</button>
+      <button class="ai-qbtn" data-q="Какие хадисы этого передатчика есть в Тахзиб аль-Ахкам и Истибсар? Укажи тему и иснад.">📜 Тахзиб / Истибсар</button>
+      <button class="ai-qbtn" data-q="Есть ли упоминание этого передатчика у аль-Кашши? Какие предания о нём?">⚡ аль-Кашши</button>
+      <button class="ai-qbtn" data-q="Сравни оценку этого передатчика в шиитском и суннитском риджале. В чём причина расхождений?">⚖️ Шиа vs Сунна</button>
+      <button class="ai-qbtn" data-q="На каких шиитских сайтах можно найти больше информации об этом передатчике? Дай конкретные ссылки.">🌐 Где искать онлайн</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end;padding-top:8px">
+      <textarea id="aiChatInput" rows="1" placeholder="Спросите: хадисы с иснадом, оценки аль-Хуи, источники в аль-Кафи, сравнение шиа/сунна…"
         style="flex:1;resize:none;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;max-height:120px;outline:none"></textarea>
       <button id="aiChatSend" class="cmp-btn" style="white-space:nowrap;margin:0">Отправить</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
       <button id="aiChatClear" style="background:none;border:none;color:var(--text-3);font-size:12px;cursor:pointer;text-decoration:underline">Очистить чат</button>
-      <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)">claude-sonnet · риджаль-режим</span>
+      <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)" id="aiChatModelLabel">claude-sonnet · риджаль-режим</span>
     </div>
   </div>
 </div>
@@ -3457,19 +3487,33 @@ document.addEventListener("DOMContentLoaded",()=>{
       id="settingsModelSelect"
       style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-bottom:8px"
     >
-      <option value="deepseek-v4-flash">DeepSeek V4 Flash — быстрая (рекомендуется)</option>
-      <option value="deepseek-v4-pro">DeepSeek V4 Pro — мощная</option>
-      <option value="sonnet-4.6">Claude Sonnet 4.6</option>
-      <option value="opus-4.6">Claude Opus 4.6</option>
-      <option value="opus-4.7">Claude Opus 4.7</option>
-      <option value="opus-4.8">Claude Opus 4.8</option>
-      <option value="gpt-5.4">GPT 5.4</option>
-      <option value="gpt-5.5">GPT 5.5</option>
-      <option value="mimo-v2.5">Mimo V2.5</option>
-      <option value="mimo-v2.5-pro">Mimo V2.5 Pro</option>
-      <option value="glm-5.1">GLM 5.1</option>
-      <option value="minimax-m3">MiniMax M3</option>
-      <option value="__custom__">Другая модель (указать вручную)…</option>
+      <optgroup label="─── Anthropic Claude ───────────────">
+        <option value="claude-opus-4-8">Claude Opus 4.8 — топовая, самая мощная</option>
+        <option value="claude-opus-4-7">Claude Opus 4.7</option>
+        <option value="claude-opus-4-6">Claude Opus 4.6</option>
+        <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 — баланс скорости и качества ✓</option>
+      </optgroup>
+      <optgroup label="─── DeepSeek ───────────────────────">
+        <option value="deepseek-v4-flash">DeepSeek V4 Flash — быстрая</option>
+        <option value="deepseek-v4-pro">DeepSeek V4 Pro — более точная</option>
+      </optgroup>
+      <optgroup label="─── GLM (Zhipu AI) ─────────────────">
+        <option value="glm-5.1">GLM-5.1</option>
+      </optgroup>
+      <optgroup label="─── OpenAI GPT ─────────────────────">
+        <option value="gpt-5.4">GPT-5.4</option>
+        <option value="gpt-5.5">GPT-5.5 — последняя</option>
+      </optgroup>
+      <optgroup label="─── Mimo ───────────────────────────">
+        <option value="mimo-v2.5">Mimo V2.5</option>
+        <option value="mimo-v2.5-pro">Mimo V2.5 Pro</option>
+      </optgroup>
+      <optgroup label="─── MiniMax ────────────────────────">
+        <option value="minimax-m3">MiniMax M3</option>
+      </optgroup>
+      <optgroup label="─── Другое ─────────────────────────">
+        <option value="__custom__">Указать вручную…</option>
+      </optgroup>
     </select>
     <input
       type="text"
@@ -4723,8 +4767,7 @@ Yalnız etibarlı JSON ilə cavab verin, xaricdə heç bir mətn olmadan, dəqiq
 
   if (!res.ok) throw new Error('API ' + res.status);
   const data = await res.json();
-  // SmartAPI возвращает OpenAI-формат choices, с фолбеком на Anthropic content
-  const raw = data?.choices?.[0]?.message?.content || data?.content?.map(c => c.text || '').join('') || '';
+  const raw = data.content.map(c => c.text || '').join('');
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleaned);
 
@@ -5331,11 +5374,67 @@ function buildSystemPrompt() {
   const active = state.activeId !== null ? state.data.find(d => d.id === state.activeId) : null;
   let ctx = '';
   if (active) {
-    ctx = `\n\nСейчас открыта карточка передатчика: «${active.name}» (${active.arabicName || ''}).` +
-      ` Шиитская оценка: ${active.shiaStatus || '—'}. Суннитская оценка: ${active.sunniStatus || '—'}.` +
-      (active.bio ? ` Биография: ${active.bio.slice(0, 400)}` : '');
+    ctx = `\n\n═══ АКТИВНАЯ КАРТОЧКА ═══\nПередатчик: «${active.name}» (${active.arabicName || ''})` +
+      `\nШиитская оценка (джафаритский риджаль): ${active.shiaStatus || '—'}` +
+      `\nСуннитская оценка (улум аль-хадис): ${active.sunniStatus || '—'}` +
+      (active.bio ? `\nБиография: ${active.bio.slice(0, 600)}` : '') +
+      (active.analysis ? `\nАнализ: ${(active.analysis||'').replace(/<[^>]+>/g,'').slice(0,400)}` : '') +
+      (active.sources && active.sources.length ? `\nИсточники: ${active.sources.slice(0,6).join('; ')}` : '');
   }
-  return `Ты — экспертный ассистент проекта "Ильм ар-Риджаль" (علم الرجال). База содержит ${total} передатчиков хадисов с биографиями, статусами надёжности (тика/даиф/спорный) по шиитским и суннитским источникам. Отвечай на русском языке. Будь точен в фактах о риджале, иснадах, передатчиках и методологии. Если не уверен — говори об этом прямо.${ctx}`;
+
+  return `Ты — глубокий эксперт-мухаддис по шиитскому и суннитскому ильм ар-риджалю (علم الرجال), специализирующийся на критике передатчиков хадисов. Проект "Ильм ар-Риджаль" содержит ${total} передатчиков хадисов с биографиями, статусами надёжности (тика/даиф/спорный/муваттак/садук) по шиитским и суннитским источникам.
+
+═══ ТВОИ КОМПЕТЕНЦИИ ═══
+
+1. ШИИТСКИЙ РИДЖАЛЬ — первичные источники:
+   • Рияль аш-Шейх аль-Туси (رجال الطوسي) — классификация сахабов Имамов
+   • Аль-Фихрист аш-Шейха аль-Туси — каталог шиитских авторов и их цепочек
+   • Рияль аль-Кашши (اختيار معرفة الرجال) — оценки сподвижников Имамов, т.н. "Икхтияр"
+   • Рияль аль-Наджаши (رجال النجاشي) — самый авторитетный шиитский риджальский словарь
+   • Рияль Абу Гhaliba ар-Раззаза (رجال أبي غالب الرزاز)
+   • Аль-Мафид в Муджам Рияль аль-Хадис (معجم رجال الحديث) — аль-Хуи, 23 тома, наиболее полный современный свод
+   • Тасхих аль-Иснад (تصحيح الإسناد) — методология проверки цепочек
+   • Иснад-и-Тавсик (توثيقات إسنادية) — шиитский анализ достоверности
+
+2. ШИИТСКИЕ СБОРНИКИ ХАДИСОВ (Kutub al-Arba'a / Четыре книги):
+   • Аль-Кафи (الكافي) — аль-Кулайни, ~16 000 хадисов; разделы: Усуль, Фуру', Равда
+   • Ман ля Яхдуруху аль-Факих (من لا يحضره الفقيه) — аш-Шейх ас-Садук
+   • Тахзиб аль-Ахкам (تهذيب الأحكام) — аш-Шейх аль-Туси
+   • Аль-Истибсар (الاستبصار) — аш-Шейх аль-Туси
+   Расширенные источники: Васаиль аш-Шиа (وسائل الشيعة), Бихар аль-Анвар (بحار الأنوار), Мустадрак аль-Васаиль
+
+3. ПОИСК ХАДИСОВ С ИСНАДАМИ — когда тебя просят найти хадис или иснад конкретного передатчика:
+   а) Укажи в каком сборнике (аль-Кафи, Тахзиб, Факих, Истибсар и т.д.) встречается хадис
+   б) Приведи полную цепочку передачи (иснад) если известна: Имам → сподвижник → следующий передатчик → ...
+   в) Укажи достоверность: сахих (صحيح), хасан (حسن), муваттак (موثق), ка-ас-сахих (كالصحيح), да'иф (ضعيف), мурсаль (مرسل)
+   г) При наличии — дай раздел и номер хадиса в сборнике
+   д) Объясни разногласия в оценке иснада между риджалистами (аль-Хуи vs. аль-Мамакани, Бахбахани vs. Туси)
+
+4. МЕТОДОЛОГИЯ КРИТИКИ ПЕРЕДАТЧИКОВ:
+   • Метод аль-Хилли (Аллама Хилли) — критерии тасхих в "Хуляса"
+   • Метод аль-Хуи — строгий, только явные тавсики
+   • Метод Бахбахани — расширенный, вклюсчая косвенные показатели надёжности
+   • Суннитская джарх ва та'диль — сравнительный анализ
+   • Понятия: тика (ثقة), садук (صدوق), муваттак (موثق), маджхуль (مجهول), матрук (متروك), каззаб (كذاب), мудаллис (مدلس), мутавватир, ахад, мурсаль, муттасиль
+
+5. ИЗВЕСТНЫЕ ШИИТСКИЕ САЙТЫ И РЕСУРСЫ (упоминай при ответах об источниках):
+   • lib.eshia.ir — крупнейшая цифровая библиотека шиитских текстов (иранская)
+   • noorlib.ir — Нур Дигитал Лайбрери, полнотекстовые источники
+   • al-Islam.org — исламские тексты на English/Arabic/Russian
+   • shiaonlinelibrary.com — английские переводы шиитских источников
+   • imamsadiq.com — база хадисов Имама Садыка (ع)
+   • wikishia.net — шиитская энциклопедия
+   • hadith.net — поиск по хадисам
+   Для арабских текстов первоисточников: shamela.ws (суннитская, но содержит и классические тексты), waqfeya.com
+
+═══ ПРАВИЛА ОТВЕТОВ ═══
+• Отвечай ВСЕГДА на русском языке
+• Арабские термины и имена пиши с транслитерацией: аль-Кулайни (الكليني)
+• Для иснадов используй формат: X ← Y ← Z ← Имам (ع)
+• Чётко разграничивай шиитскую и суннитскую оценку одного передатчика
+• Если данные противоречат — объясни причину разногласия (мазхаб, эпоха, источник)
+• При неуверенности — прямо скажи об этом и укажи где можно проверить
+• Когда упоминаешь конкретные ресурсы/сайты — давай прямые подсказки по поиску${ctx}`;
 }
 
 async function sendAiChatMessage(userText) {
@@ -5413,7 +5512,7 @@ function openAiChat() {
     history.forEach(m => renderChatMessage(m.role, m.content));
     if (history.length === 0) {
       // Приветственное сообщение
-      renderChatMessage('assistant', 'Ас-саляму алейкум! Я ИИ-ассистент проекта Ильм ар-Риджаль. Могу помочь с вопросами о передатчиках хадисов, иснадах, методологии критики хадисов и оценках надёжности. Спрашивайте!');
+      renderChatMessage('assistant', 'Ас-саляму алейкум ва рахматуллахи ва баракатух! \n\nЯ — ИИ-ассистент проекта «Ильм ар-Риджаль». Специализируюсь на:\n\n📖 Шиитский риджаль — аль-Кашши, аль-Наджаши, аль-Туси, Муджам Рияль аль-Хадис (аль-Хуи)\n📚 Четыре книги шиитских хадисов — аль-Кафи, Тахзиб, Факих, Истибсар + расширенные источники\n🔗 Поиск хадисов с иснадами — по конкретному передатчику, Имаму, теме\n⚖️ Методология — тавсик, методы аль-Хуи и Бахбахани vs суннитский джарх ва та\'диль\n🌐 Шиитские ресурсы — lib.eshia.ir, noorlib.ir, wikishia.net и другие\n\nМогу открыть карточку передатчика — и сразу дам контекст его иснадов. Спрашивайте!');
     }
     wrap.dataset.rendered = '1';
   }
@@ -5449,6 +5548,22 @@ function initAiChatPanel() {
     delete wrap.dataset.rendered;
     renderChatMessage('assistant', 'Чат очищен. Чем могу помочь?');
     wrap.dataset.rendered = '1';
+  });
+
+  // Quick-prompt buttons
+  document.querySelectorAll('.ai-qbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const active = state.activeId !== null ? state.data.find(d => d.id === state.activeId) : null;
+      let q = btn.dataset.q;
+      if (active) {
+        q = `[Передатчик: «${active.name}» (${active.arabicName || ''}), шиитская оценка: ${active.shiaStatus || '—'}, суннитская: ${active.sunniStatus || '—'}]\n\n${q}`;
+      }
+      const input = $('aiChatInput');
+      input.value = q;
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+      input.focus();
+    });
   });
 }
 
@@ -5560,7 +5675,7 @@ function renderSettingsKeyStatus(text, ok) {
 // ── Личный API-ключ пользователя для smartapi.shop ──────────────
 const API_KEY_STORAGE = 'rijal_smartapi_key';
 const MODEL_STORAGE = 'rijal_smartapi_model';
-const DEFAULT_MODEL = 'deepseek-v4-flash';
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
 function getModel() {
   try { return (localStorage.getItem(MODEL_STORAGE) || '').trim() || DEFAULT_MODEL; } catch (e) { return DEFAULT_MODEL; }
