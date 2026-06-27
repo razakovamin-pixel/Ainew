@@ -70,6 +70,9 @@ async function handleProxyRequest(request) {
         parsedBody.model = "deepseek-v4-flash";
       }
       
+      // ВЫКЛЮЧАЕМ СТРИМИНГ ЖЕСТКО
+      parsedBody.stream = false;
+      
       bodyStr = JSON.stringify(parsedBody);
     }
 
@@ -106,6 +109,9 @@ async function handleIndexApiRequest(request) {
   try {
     const bodyText = await request.text();
     let parsedBody = JSON.parse(bodyText);
+
+    // ВЫКЛЮЧАЕМ СТРИМИНГ ЖЕСТКО ДЛЯ СТАРОГО ИНТЕРФЕЙСА
+    parsedBody.stream = false;
 
     // Перенаправляем на официальный шлюз SmartAPI для обработки структуры сообщений
     const targetUrl = "https://smartapi.shop/backend/v1/messages";
@@ -154,4 +160,3 @@ async function handleIndexApiRequest(request) {
     });
   }
 }
-
