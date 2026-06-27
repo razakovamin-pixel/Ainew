@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-// Новый точный список поддерживаемых моделей SmartAPI
+// Список поддерживаемых моделей SmartAPI
 const modelMapping = {
   "opus-4.6": "opus-4.6",
   "opus-4.7": "opus-4.7",
@@ -27,7 +27,7 @@ const modelMapping = {
   "minimax-m3": "minimax-m3"
 };
 
-// Модель по умолчанию, если модель не передана или неизвестна
+// Модель по умолчанию
 const DEFAULT_MODEL = "deepseek-v4-flash";
 
 export default {
@@ -80,10 +80,9 @@ async function handleProxyRequest(request) {
     if (requestData.body) {
       let parsedBody = typeof requestData.body === "string" ? JSON.parse(requestData.body) : requestData.body;
       
-      // Валидация и подстановка модели
+      // Настройка модели
       if (parsedBody.model) {
         const modelKey = parsedBody.model.trim();
-        // Если модель есть в списке разрешенных — оставляем, иначе ставим по умолчанию
         if (modelMapping[modelKey]) {
           parsedBody.model = modelMapping[modelKey];
         } else {
@@ -93,18 +92,23 @@ async function handleProxyRequest(request) {
         parsedBody.model = DEFAULT_MODEL;
       }
       
+      // КРИТИЧЕСКИЙ ФИКС: Жестко запрещаем стриминг для этого эндпоинта
+      parsedBody.stream = false;
+      
       bodyStr = JSON.stringify(parsedBody);
     }
 
     const response = await fetch(targetUrl, { method, headers, body: bodyStr });
+    const responseBody = await response.text();
     
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
     responseHeaders.delete("content-encoding");
+    responseHeaders.set("content-type", "application/json");
 
-    return new Response(response.body, {
+    return new Response(responseBody, {
       status: response.status,
       headers: responseHeaders,
     });
@@ -120,7 +124,7 @@ async function handleProxyRequest(request) {
 async function handleIndexApiRequest(request) {
   try {
     const bodyText = await request.text();
-    const targetUrl = "https://smartapi.shop/backend/v1/messages";
+    const targetUrl = "https://smartapi.shop/backend/v1/chat/completions"; // Перенаправляем на стандартный чат-эндпоинт OpenAI
 
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
@@ -142,19 +146,33 @@ async function handleIndexApiRequest(request) {
     try {
       let parsedBody = JSON.parse(bodyText);
       
+      // Приводим структуру Anthropic (system отдельно) к стандарту OpenAI/SmartAPI
+      let openAiMessages = [];
+      if (parsedBody.system) {
+        openAiMessages.push({ role: "system", content: parsedBody.system });
+      }
+      if (parsedBody.messages && Array.isArray(parsedBody.messages)) {
+        openAiMessages.push(...parsedBody.messages);
+      }
+
+      let newBody = {
+        messages: openAiMessages,
+        max_tokens: parsedBody.max_tokens || 1000,
+        stream: false // КРИТИЧЕСКИЙ ФИКС: Принудительно отключаем стриминг
+      };
+
       if (parsedBody.model) {
         const modelKey = parsedBody.model.trim();
-        // Проверка модели для эндпоинта сообщений сайта
         if (modelMapping[modelKey]) {
-          parsedBody.model = modelMapping[modelKey];
+          newBody.model = modelMapping[modelKey];
         } else {
-          parsedBody.model = DEFAULT_MODEL;
+          newBody.model = DEFAULT_MODEL;
         }
       } else {
-        parsedBody.model = DEFAULT_MODEL;
+        newBody.model = DEFAULT_MODEL;
       }
       
-      modifiedBodyText = JSON.stringify(parsedBody);
+      modifiedBodyText = JSON.stringify(newBody);
     } catch(e) {}
 
     const response = await fetch(targetUrl, {
@@ -163,13 +181,16 @@ async function handleIndexApiRequest(request) {
       body: modifiedBodyText,
     });
 
+    const responseBody = await response.text();
+    
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
     responseHeaders.delete("content-encoding");
+    responseHeaders.set("content-type", "application/json");
 
-    return new Response(response.body, {
+    return new Response(responseBody, {
       status: response.status,
       headers: responseHeaders,
     });
