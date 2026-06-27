@@ -3449,7 +3449,12 @@ document.addEventListener("DOMContentLoaded",()=>{
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
       <button id="aiChatClear" style="background:none;border:none;color:var(--text-3);font-size:12px;cursor:pointer;text-decoration:underline">Очистить чат</button>
-      <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)" id="aiChatModelLabel">claude-sonnet · риджаль-режим</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="btnDetailedMode" title="Подробный режим — более длинные ответы, но медленнее" style="background:var(--ink-3);border:1px solid var(--border-bright);border-radius:6px;color:var(--text-3);font-size:10px;font-family:var(--font-mono);padding:3px 8px;cursor:pointer;transition:all .15s">
+          📝 Подробно
+        </button>
+        <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)" id="aiChatModelLabel">claude-sonnet · быстрый</span>
+      </div>
     </div>
   </div>
 </div>
@@ -4760,7 +4765,7 @@ Yalnız etibarlı JSON ilə cavab verin, xaricdə heç bir mətn olmadan, dəqiq
     headers: aiRequestHeaders(),
     body: JSON.stringify({
       model: getModel(),
-      max_tokens: 16000,
+      max_tokens: 3000,
       messages: [{ role: 'user', content: prompt }]
     })
   });
@@ -5507,14 +5512,28 @@ async function sendAiChatMessage(userText) {
   input.disabled = true;
   sendBtn.textContent = '…';
 
+  // ── Умный лимит токенов ──────────────────────────────────────
+  // Cloudflare таймаут ~25 сек → нельзя ставить 16000
+  // Определяем по содержанию вопроса нужный лимит
+  const txt = userText.toLowerCase();
+  const isDetailed = window._aiDetailedMode === true;
+  let maxTokens = 2000; // базовый — быстрый ответ
+  if (isDetailed) {
+    maxTokens = 6000; // подробный режим
+  } else if (/иснад|цепочк|хадис.*полн|все.*хадис|список.*хадис|перечисл|биограф.*полн|подробн|развёрн|детальн|объясни подробно|расскажи подробно/.test(txt)) {
+    maxTokens = 4000; // средний — анализ
+  } else if (/сравни.*всех|все передатчик|весь список|полный анализ|диссертац|исследован/.test(txt)) {
+    maxTokens = 6000; // большой — объёмные запросы
+  }
+
   try {
-    const messages = history.slice(-50); // последние 50 сообщений
+    const messages = history.slice(-20); // 20 — баланс контекста и скорости
     const resp = await fetch('/api/v1/messages', {
       method: 'POST',
       headers: aiRequestHeaders(),
       body: JSON.stringify({
         model: getModel(),
-        max_tokens: 16000,
+        max_tokens: maxTokens,
         system: buildSystemPrompt(),
         messages,
         tools: [
@@ -5631,6 +5650,33 @@ function initAiChatPanel() {
     renderChatMessage('assistant', 'Чат очищен. Чем могу помочь?');
     wrap.dataset.rendered = '1';
   });
+
+  // ── Подробный режим ──────────────────────────────────────────
+  window._aiDetailedMode = false;
+  const detBtn = $('btnDetailedMode');
+  const modelLabel = $('aiChatModelLabel');
+  function updateModeLabel() {
+    const model = getModel() || 'claude-sonnet';
+    const short = model.replace('claude-','').replace('-20251001','');
+    if (window._aiDetailedMode) {
+      detBtn.style.background = 'var(--teal-glow)';
+      detBtn.style.borderColor = 'var(--teal)';
+      detBtn.style.color = 'var(--teal-light)';
+      detBtn.textContent = '📝 Подробно ✓';
+      if (modelLabel) modelLabel.textContent = short + ' · подробный (~15 сек)';
+    } else {
+      detBtn.style.background = 'var(--ink-3)';
+      detBtn.style.borderColor = 'var(--border-bright)';
+      detBtn.style.color = 'var(--text-3)';
+      detBtn.textContent = '📝 Подробно';
+      if (modelLabel) modelLabel.textContent = short + ' · быстрый (~5 сек)';
+    }
+  }
+  if (detBtn) detBtn.addEventListener('click', () => {
+    window._aiDetailedMode = !window._aiDetailedMode;
+    updateModeLabel();
+  });
+  updateModeLabel();
 
   // Quick-prompt buttons
   document.querySelectorAll('.ai-qbtn').forEach(btn => {
