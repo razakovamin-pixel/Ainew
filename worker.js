@@ -1,3 +1,4 @@
+// Настройки CORS для бесперебойной работы с любого устройства
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
@@ -5,15 +6,29 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-// Словарь автоисправления моделей. Если сайт шлет левое имя, меняем на то, что ждет SmartAPI
+// Новый точный список поддерживаемых моделей SmartAPI
 const modelMapping = {
-  "claude-sonnet": "claude-3-5-sonnet-20241022",
-  "claude-3-5-sonnet": "claude-3-5-sonnet-20241022",
-  "gpt-4": "gpt-4o",
-  "gpt-4o-mini": "gpt-4o-mini",
-  "deepseek": "deepseek-chat",
-  "deepseek-chat": "deepseek-chat"
+  "opus-4.6": "opus-4.6",
+  "opus-4.7": "opus-4.7",
+  "opus-4.8": "opus-4.8",
+  "sonnet-4.6": "sonnet-4.6",
+
+  "deepseek-v4-flash": "deepseek-v4-flash",
+  "deepseek-v4-pro": "deepseek-v4-pro",
+
+  "glm-5.1": "glm-5.1",
+
+  "gpt-5.4": "gpt-5.4",
+  "gpt-5.5": "gpt-5.5",
+
+  "mimo-v2.5": "mimo-v2.5",
+  "mimo-v2.5-pro": "mimo-v2.5-pro",
+
+  "minimax-m3": "minimax-m3"
 };
+
+// Модель по умолчанию, если модель не передана или неизвестна
+const DEFAULT_MODEL = "deepseek-v4-flash";
 
 export default {
   async fetch(request, env, ctx) {
@@ -65,30 +80,30 @@ async function handleProxyRequest(request) {
     if (requestData.body) {
       let parsedBody = typeof requestData.body === "string" ? JSON.parse(requestData.body) : requestData.body;
       
-      // КРИТИЧЕСКИЙ БЛОК: Исправляем имя модели из интерфейса сайта под стандарты API
+      // Валидация и подстановка модели
       if (parsedBody.model) {
-        const modelKey = parsedBody.model.toLowerCase().trim();
+        const modelKey = parsedBody.model.trim();
+        // Если модель есть в списке разрешенных — оставляем, иначе ставим по умолчанию
         if (modelMapping[modelKey]) {
           parsedBody.model = modelMapping[modelKey];
+        } else {
+          parsedBody.model = DEFAULT_MODEL;
         }
       } else {
-        parsedBody.model = "deepseek-chat"; // Модель по умолчанию, если сайт ничего не передал
+        parsedBody.model = DEFAULT_MODEL;
       }
       
       bodyStr = JSON.stringify(parsedBody);
     }
 
-    // Отправляем запрос на SmartAPI
     const response = await fetch(targetUrl, { method, headers, body: bodyStr });
     
-    // Копируем заголовки ответа и добавляем CORS-разрешения
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
-    responseHeaders.delete("content-encoding"); // Отключаем принудительное сжатие Cloudflare
+    responseHeaders.delete("content-encoding");
 
-    // Возвращаем оригинальный поток (stream) напрямую в браузер без искажения структуры JSON
     return new Response(response.body, {
       status: response.status,
       headers: responseHeaders,
@@ -126,12 +141,19 @@ async function handleIndexApiRequest(request) {
     let modifiedBodyText = bodyText;
     try {
       let parsedBody = JSON.parse(bodyText);
+      
       if (parsedBody.model) {
-        const modelKey = parsedBody.model.toLowerCase().trim();
+        const modelKey = parsedBody.model.trim();
+        // Проверка модели для эндпоинта сообщений сайта
         if (modelMapping[modelKey]) {
           parsedBody.model = modelMapping[modelKey];
+        } else {
+          parsedBody.model = DEFAULT_MODEL;
         }
+      } else {
+        parsedBody.model = DEFAULT_MODEL;
       }
+      
       modifiedBodyText = JSON.stringify(parsedBody);
     } catch(e) {}
 
