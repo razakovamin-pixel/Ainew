@@ -1,0 +1,11 @@
+{
+  "name": "rijal-site-worker",
+  "main": "worker.js",
+  "compatibility_date": "2024-04-03",
+  "assets": {
+    "directory": "./public"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
