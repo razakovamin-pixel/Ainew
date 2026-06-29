@@ -4241,8 +4241,8 @@ function buildTxItem(tx) {
     displayName = tx.arabicName || tx.name;
     displaySub  = tx.name;
   } else if (isAzLang) {
-    const azCached = arCache[`az_${tx.id}`];
-    displayName = (azCached && azCached.name) ? azCached.name : tx.name;
+    const azNameCached = arCache[`az_name_${tx.id}`] || (arCache[`az_${tx.id}`] ? arCache[`az_${tx.id}`].name : null);
+    displayName = azNameCached ? azNameCached : tx.name;
     displaySub  = tx.arabicName || '';
   } else {
     displayName = tx.name;
@@ -4366,6 +4366,8 @@ function loadNextPage() {
   } else {
     list.appendChild(frag);
   }
+  // Переводим имена новой страницы если язык AZ
+  if (state.lang === 'az') setTimeout(() => { _azNameBatchRunning = false; batchTranslateAzNames(); }, 100);
 }
 
 // Заглушка — renderVisibleSlice больше не нужен, но оставляем чтобы не ломать вызовы
@@ -4618,9 +4620,12 @@ function translateStatusForLang(s, lang) {
 async function fetchArabicData(tx) {
   const lang = state.lang;
   const cacheKey = `${lang}_${tx.id}`;
-  if (arCache[cacheKey]) return arCache[cacheKey];
 
-  // If bio is empty, no need for API call — just translate statuses
+  // ЖЁСТКАЯ ПРОВЕРКА: кэш считается валидным только если есть поле bio
+  if (arCache[cacheKey] && arCache[cacheKey].bio !== undefined) {
+    return arCache[cacheKey];
+  }
+
   if (!tx.bio && !tx.analysis) {
     const result = {
       bio: '',
@@ -4650,7 +4655,7 @@ ${(tx.sources || []).join('\n')}
 أجب بـ JSON صالح فقط، بدون أي نص خارجه، بهذا الشكل الدقيق:
 {"bio":"النص المترجم","analysis":"التحليل المترجم","sources":["المصدر1","المصدر2"]}`;
   } else if (lang === 'en') {
-    prompt = `You are a specialist scholar in Ilm al-Rijal (hadith narrator criticism). Translate the following Russian text into precise academic Русский appropriate for Islamic hadith sciences.
+    prompt = `You are a specialist scholar in Ilm al-Rijal. Translate the following Russian text into precise academic English appropriate for Islamic hadith sciences.
 
 Biographical note for narrator «${tx.arabicName || tx.name}»:
 ${tx.bio || '—'}
@@ -4661,7 +4666,7 @@ ${(tx.analysis || '').replace(/<[^>]+>/g, '')}
 Sources:
 ${(tx.sources || []).join('\n')}
 
-Reply with valid JSON only, no text outside it, in exactly this format:
+Reply with valid JSON only, no text outside it:
 {"bio":"translated bio","analysis":"translated analysis","sources":["Source 1","Source 2"]}`;
   } else if (lang === 'fa') {
     prompt = `شما یک محقق متخصص در علم الرجال هستید. متن زیر را از روسی به فارسی روان و دقیق مناسب برای علم حدیث ترجمه کنید.
@@ -4675,17 +4680,16 @@ ${(tx.analysis || '').replace(/<[^>]+>/g, '')}
 منابع:
 ${(tx.sources || []).join('\n')}
 
-فقط با JSON معتبر پاسخ دهید، بدون هیچ متنی در خارج از آن، دقیقاً به این شکل:
+فقط با JSON معتبر پاسخ دهید:
 {"bio":"متن ترجمه‌شده","analysis":"تحلیل ترجمه‌شده","sources":["منبع۱","منبع۲"]}`;
   } else if (lang === 'az') {
-    prompt = `Siz hədis ravilərinin tənqidi elmi olan "Elm ər-Rical" sahəsində mütəxəssis alimsiniz. Aşağıdakı mətni Rusca dilindən Azərbaycan dilinə — İslam hədis elminə uyğun dəqiq akademik üslubda — tərcümə edin.
+    prompt = `Siz hədis ravilərinin tənqidi elmi olan "Elm ər-Rical" sahəsində mütəxəssis alimsiniz. Aşağıdakı mətni Rusca dilindən Azərbaycan dilinə — İslam hədis elminə uyğun dəqiq akademik üslubda tərcümə edin.
 
 Ravinin Rusca adı: «${tx.name}»
 Ravinin ərəbcə adı: «${tx.arabicName || ''}»
-
 Bu ravinin adını Azərbaycan dilinin fonetik qaydalarına uyğun transkripsiya edin (məs: Мухаммад аль-Кулайни → Muhəmməd əl-Kuleyni).
 
-Ravi «${tx.arabicName || tx.name}» haqqında bioqrafik məlumat:
+Ravi haqqında bioqrafik məlumat:
 ${tx.bio || '—'}
 
 Təhlil:
@@ -4694,75 +4698,84 @@ ${(tx.analysis || '').replace(/<[^>]+>/g, '')}
 Mənbələr:
 ${(tx.sources || []).join('\n')}
 
-Yalnız etibarlı JSON ilə cavab verin, xaricdə heç bir mətn olmadan, dəqiq bu formatda:
+Yalnız etibarlı JSON ilə cavab verin:
 {"name":"Azərbaycan dilində ravi adı","bio":"tərcümə olunmuş mətn","analysis":"tərcümə olunmuş təhlil","sources":["Mənbə 1","Mənbə 2"]}`;
   }
 
-  if (!getApiKey()) {
-    throw new Error('NO_API_KEY');
-  }
+  if (!getApiKey()) throw new Error('NO_API_KEY');
 
   const res = await fetch('/api/v1/messages', {
     method: 'POST',
     headers: aiRequestHeaders(),
     body: JSON.stringify({
       model: getModel(),
-      max_tokens: 1200,
+      max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }]
     })
   });
 
   if (!res.ok) throw new Error('API ' + res.status);
   const data = await res.json();
-  let raw = '';
-  if (data.choices && data.choices[0]) {
-    raw = data.choices[0].message?.content || '';
-  } else if (data.content) {
-    raw = data.content.map(c => c.text || '').join('');
-  }
+  let raw = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '';
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleaned);
 
   parsed.shiaStatus = translateStatusForLang(tx.shiaStatus, lang);
   parsed.sunniStatus = translateStatusForLang(tx.sunniStatus, lang);
 
+  // Если AZ — сохраняем имя и в раздельный кэш имён
+  if (lang === 'az' && parsed.name) {
+    arCache[`az_name_${tx.id}`] = parsed.name;
+  }
+
   arCache[cacheKey] = parsed;
   saveArCache();
   return parsed;
 }
 
-// ── Batch translate AZ names ───────────────────────────────────
+// ── Batch translate AZ names (только видимые, раздельный кэш) ──
 let _azNameBatchRunning = false;
 
 async function batchTranslateAzNames() {
   if (_azNameBatchRunning) return;
   if (state.lang !== 'az') return;
 
-  const toTranslate = state.data.filter(tx => {
-    const c = arCache['az_' + tx.id];
-    return !c || !c.name;
+  const list = $('txСписок');
+  if (!list) return;
+
+  // Только элементы, реально отрендеренные на экране
+  const items = Array.from(list.querySelectorAll('.tx-item'));
+  const idsToTranslate = [];
+
+  items.forEach(item => {
+    const id = parseInt(item.dataset.id);
+    const hasOldCache = arCache['az_' + id] && arCache['az_' + id].name;
+    const hasNewCache = arCache['az_name_' + id];
+    if (!hasOldCache && !hasNewCache) idsToTranslate.push(id);
   });
 
-  if (toTranslate.length === 0) return;
+  if (idsToTranslate.length === 0) return;
   _azNameBatchRunning = true;
-  const BATCH = 20;
 
-  for (let i = 0; i < toTranslate.length; i += BATCH) {
+  const BATCH = 20;
+  for (let i = 0; i < idsToTranslate.length; i += BATCH) {
     if (state.lang !== 'az') break;
 
-    const batch = toTranslate.slice(i, i + BATCH);
+    const batchIds = idsToTranslate.slice(i, i + BATCH);
+    const batch = batchIds.map(id => state.data[id]).filter(Boolean);
+
     const nameList = batch.map((tx, idx) =>
       (idx + 1) + '. ru="' + tx.name + '" | ar="' + (tx.arabicName || '') + '"'
     ).join('\n');
 
-    const prompt = 'Transkribe these Islamic hadith transmitter names from Russian/Arabic into Azerbaijani (Latin-based). Apply Azerbaijani phonetic rules (Мухаммад→Muhəmməd, Али→Əli, Хусейн→Hüseyn, аль→əl, ибн→ibn).\n\nNames:\n' + nameList + '\n\nReply ONLY with valid JSON array, no other text:\n[{"id":1,"name":"Az name"},...]';
+    const prompt = 'Transkribe these Islamic hadith transmitter names from Russian/Arabic into Azerbaijani (Latin-based). Phonetic rules: Мухаммад→Muhəmməd, Али→Əli, Хусейн→Hüseyn, аль→əl, ибн→ibn, Джафар→Cəfər, Хасан→Həsən, Аббас→Abbas. Reply ONLY with valid JSON array:\n[{"id":1,"name":"Az name"},...]\n\nNames:\n' + nameList;
 
     try {
       const res = await fetch('/api/v1/messages', {
         method: 'POST',
         headers: aiRequestHeaders(),
         body: JSON.stringify({
-          model: 'deepseek-v4-flash',
+          model: getModel(),
           max_tokens: 800,
           messages: [{ role: 'user', content: prompt }]
         })
@@ -4770,29 +4783,34 @@ async function batchTranslateAzNames() {
 
       if (!res.ok) continue;
       const data = await res.json();
-      let rawText = '';
-      if (data.choices && data.choices[0]) {
-        rawText = data.choices[0].message?.content || '';
-      } else if (data.content) {
-        rawText = data.content.map(c => c.text || '').join('');
-      }
+      let rawText = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '';
       const cleanedText = rawText.replace(/```json|```/g, '').trim();
       const parsedNames = JSON.parse(cleanedText);
 
       parsedNames.forEach(item => {
         const tx = batch[item.id - 1];
-        if (!tx) return;
-        const key = 'az_' + tx.id;
-        arCache[key] = Object.assign({}, arCache[key] || {}, { name: item.name });
+        if (!tx || !item.name) return;
+        // Сохраняем в РАЗДЕЛЬНЫЙ кэш имён — не трогаем кэш карточек
+        arCache['az_name_' + tx.id] = item.name;
       });
       saveArCache();
 
       if (state.lang === 'az') {
-        renderСписок();
+        // Обновляем только имена в списке без полного перерендера
+        parsedNames.forEach(item => {
+          const tx = batch[item.id - 1];
+          if (!tx || !item.name) return;
+          const li = list.querySelector('.tx-item[data-id="' + tx.id + '"]');
+          if (li) {
+            const nameEl = li.querySelector('.tx-name');
+            if (nameEl) nameEl.textContent = item.name;
+          }
+        });
+        // Обновить имя в открытой карточке если совпадает
         if (state.activeId !== null) {
           const inBatch = batch.find(tx => tx.id === state.activeId);
           if (inBatch) {
-            const azName = (arCache['az_' + state.activeId] || {}).name;
+            const azName = arCache['az_name_' + state.activeId];
             if (azName) $('detName').textContent = azName;
           }
         }
@@ -5060,7 +5078,7 @@ function initEvents() {
       state.lang = btn.dataset.lang;
       saveНастройки();
       applyLang();
-      if (state.lang === 'az') batchTranslateAzNames();
+      if (state.lang === 'az') setTimeout(() => batchTranslateAzNames(), 300);
     });
   });
 
@@ -5238,7 +5256,6 @@ async function init() {
   initNewPanelEvents();
   initExtras();
 
-  // Если язык AZ — запустить батч-перевод имён
   if (state.lang === 'az') setTimeout(() => batchTranslateAzNames(), 600);
 
   // Виртуальный скроллинг: перерисовываем видимое окно при скролле и resize
