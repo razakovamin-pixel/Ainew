@@ -4241,8 +4241,7 @@ function buildTxItem(tx) {
     displayName = tx.arabicName || tx.name;
     displaySub  = tx.name;
   } else if (isAzLang) {
-    const azNameCached = arCache[`az_name_${tx.id}`] || (arCache[`az_${tx.id}`] ? arCache[`az_${tx.id}`].name : null);
-    displayName = azNameCached ? azNameCached : tx.name;
+    displayName = getDisplayNameForLang(tx);
     displaySub  = tx.arabicName || '';
   } else {
     displayName = tx.name;
@@ -4433,6 +4432,43 @@ let arCache = {};
 try { arCache = JSON.parse(localStorage.getItem(TX_CACHE_KEY) || '{}'); } catch(e) {}
 function saveArCache() {
   try { localStorage.setItem(TX_CACHE_KEY, JSON.stringify(arCache)); } catch(e) {}
+}
+
+// ── Translation helpers ────────────────────────────────────────
+function getCachedAzName(id) {
+  const key = `az_name_${id}`;
+  const legacy = arCache[`az_${id}`];
+  const fromNewCache = arCache[key];
+  const fromLegacy = legacy && typeof legacy === 'object'
+    ? (legacy.name || legacy.displayName || legacy.translatedName || '')
+    : '';
+  const fromNew = typeof fromNewCache === 'string'
+    ? fromNewCache
+    : (fromNewCache && typeof fromNewCache === 'object'
+      ? (fromNewCache.name || fromNewCache.displayName || fromNewCache.translatedName || '')
+      : '');
+  return String(fromNew || fromLegacy || '').trim();
+}
+
+function rememberAzName(id, name) {
+  const clean = String(name || '').trim();
+  if (!clean) return '';
+  arCache[`az_name_${id}`] = clean;
+  const legacy = arCache[`az_${id}`];
+  if (legacy && typeof legacy === 'object') {
+    legacy.name = clean;
+    legacy.displayName = clean;
+    legacy.translatedName = clean;
+  }
+  saveArCache();
+  return clean;
+}
+
+function getDisplayNameForLang(tx) {
+  if (!tx) return '';
+  if (state.lang === 'ar' || state.lang === 'fa') return tx.arabicName || tx.name || '';
+  if (state.lang === 'az') return getCachedAzName(tx.id) || tx.name || '';
+  return tx.name || '';
 }
 
 // ── Status translations (instant, no API needed) ────────────────
@@ -4636,7 +4672,12 @@ async function fetchArabicData(tx) {
 
   // ЖЁСТКАЯ ПРОВЕРКА: кэш считается валидным только если есть поле bio
   if (arCache[cacheKey] && arCache[cacheKey].bio !== undefined) {
-    return arCache[cacheKey];
+    const cached = arCache[cacheKey];
+    if (lang === 'az') {
+      cached.name = cached.name || cached.displayName || cached.translatedName || getCachedAzName(tx.id) || tx.name || '';
+      if (cached.name) rememberAzName(tx.id, cached.name);
+    }
+    return cached;
   }
 
   if (!tx.bio && !tx.analysis) {
@@ -4647,6 +4688,10 @@ async function fetchArabicData(tx) {
       analysis: '',
       sources: tx.sources || []
     };
+    if (lang === 'az') {
+      result.name = getCachedAzName(tx.id) || tx.name || '';
+      if (result.name) rememberAzName(tx.id, result.name);
+    }
     arCache[cacheKey] = result;
     saveArCache();
     return result;
@@ -4747,10 +4792,10 @@ Yalnız etibarlı JSON ilə cavab verin:
 
   // Если AZ — сохраняем имя и в раздельный кэш имён
   if (lang === 'az') {
-    const translatedName = String(parsed.name || parsed.displayName || parsed.translatedName || tx.name || '').trim();
+    const translatedName = String(parsed.name || parsed.displayName || parsed.translatedName || getCachedAzName(tx.id) || tx.name || '').trim();
     if (translatedName) {
       parsed.name = translatedName;
-      arCache[`az_name_${tx.id}`] = translatedName;
+      rememberAzName(tx.id, translatedName);
     }
   }
 
@@ -4817,9 +4862,8 @@ async function batchTranslateAzNames() {
         const tx = batch[item.id - 1];
         if (!tx || !item.name) return;
         // Сохраняем в РАЗДЕЛЬНЫЙ кэш имён — не трогаем кэш карточек
-        arCache['az_name_' + tx.id] = item.name;
+        rememberAzName(tx.id, item.name);
       });
-      saveArCache();
 
       if (state.lang === 'az') {
         // Обновляем только имена в списке без полного перерендера
@@ -4836,7 +4880,7 @@ async function batchTranslateAzNames() {
         if (state.activeId !== null) {
           const inBatch = batch.find(tx => tx.id === state.activeId);
           if (inBatch) {
-            const azName = arCache['az_name_' + state.activeId];
+            const azName = getCachedAzName(state.activeId);
             if (azName) $('detName').textContent = azName;
           }
         }
@@ -4921,8 +4965,9 @@ function fillDetail(tx, arData) {
   $('scSunniText').textContent = sunniStatus;
 
   // If AZ and translated name available — update the name display
-  if (isAz && arData?.name) {
-    $('detName').textContent = arData.name;
+  if (isAz) {
+    const translatedName = (arData?.name || getCachedAzName(tx.id) || tx.name || '').trim();
+    if (translatedName) $('detName').textContent = translatedName;
   }
 
   // Bio
@@ -4982,11 +5027,10 @@ async function renderDetail(id) {
   // Name display
   const isRTLdet = isAr || state.lang === 'fa';
   const isAzDet  = state.lang === 'az';
-  const azNameCached = isAzDet && arCache[`az_${tx.id}`];
   const detDisplayName = isRTLdet
     ? (tx.arabicName || tx.name)
     : isAzDet
-      ? ((azNameCached && azNameCached.name) ? azNameCached.name : tx.name)
+      ? getDisplayNameForLang(tx)
       : tx.name;
   $('detName').textContent = detDisplayName;
   $('detArabic').textContent = isRTLdet ? tx.name : (tx.arabicName || '');
@@ -5021,8 +5065,15 @@ async function renderDetail(id) {
     const cacheKey = `${state.lang}_${tx.id}`;
     const cached = arCache[cacheKey];
     if (cached) {
+      if (state.lang === 'az' && !cached.name) {
+        cached.name = getCachedAzName(tx.id) || tx.name || '';
+      }
       fillDetail(tx, cached);
       refreshTxItemInList(tx.id);
+      if (state.lang === 'az') {
+        const azName = getCachedAzName(tx.id) || cached.name || tx.name || '';
+        if (azName) $('detName').textContent = azName;
+      }
       return;
     }
 
@@ -5032,6 +5083,9 @@ async function renderDetail(id) {
 
     try {
       const transData = await fetchArabicData(tx);
+      if (state.lang === 'az' && !transData.name) {
+        transData.name = getCachedAzName(tx.id) || tx.name || '';
+      }
       fillDetail(tx, transData);
       refreshTxItemInList(tx.id);
     } catch(err) {
