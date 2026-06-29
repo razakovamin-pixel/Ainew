@@ -2442,7 +2442,7 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 /* ═══════════════════════════════════════
    RUSSIAN-ONLY UI + EXTRA ANIMATIONS
 ═══════════════════════════════════════ */
-/* Language toggle visible */
+/* .lang-toggle visible */
 
 body {
   background:
@@ -3882,7 +3882,7 @@ function saveНастройки() {
 function loadНастройки() {
   try {
     const lang = localStorage.getItem('rijal_lang');
-    state.lang = ['ru', 'ar', 'fa', 'en', 'az'].includes(lang) ? lang : 'ru';
+    state.lang = ['ru','ar','fa','en','az'].includes(lang) ? lang : 'ru';
     const favs = JSON.parse(localStorage.getItem('rijal_favorites') || '[]');
     state.favorites = new Set(favs);
   } catch(e) {}
@@ -4714,7 +4714,12 @@ Yalnız etibarlı JSON ilə cavab verin, xaricdə heç bir mətn olmadan, dəqiq
 
   if (!res.ok) throw new Error('API ' + res.status);
   const data = await res.json();
-  const raw = data.content.map(c => c.text || '').join('');
+  let raw = '';
+  if (data.choices && data.choices[0]) {
+    raw = data.choices[0].message?.content || '';
+  } else if (data.content) {
+    raw = data.content.map(c => c.text || '').join('');
+  }
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleaned);
 
@@ -4726,47 +4731,38 @@ Yalnız etibarlı JSON ilə cavab verin, xaricdə heç bir mətn olmadan, dəqiq
   return parsed;
 }
 
-// ── Batch translate names for AZ list ──────────────────────────
-// Переводим имена батчами по 20 штук, обновляем список по мере прихода
+// ── Batch translate AZ names ───────────────────────────────────
 let _azNameBatchRunning = false;
 
 async function batchTranslateAzNames() {
   if (_azNameBatchRunning) return;
   if (state.lang !== 'az') return;
 
-  // Собираем только те, у которых нет кэша имени
   const toTranslate = state.data.filter(tx => {
-    const c = arCache[`az_${tx.id}`];
+    const c = arCache['az_' + tx.id];
     return !c || !c.name;
   });
 
   if (toTranslate.length === 0) return;
-
   _azNameBatchRunning = true;
-  const BATCH = 20; // по 20 имён за раз
+  const BATCH = 20;
 
   for (let i = 0; i < toTranslate.length; i += BATCH) {
-    if (state.lang !== 'az') break; // пользователь переключился
+    if (state.lang !== 'az') break;
 
     const batch = toTranslate.slice(i, i + BATCH);
     const nameList = batch.map((tx, idx) =>
-      `${idx + 1}. ru="${tx.name}" | ar="${tx.arabicName || ''}"`
+      (idx + 1) + '. ru="' + tx.name + '" | ar="' + (tx.arabicName || '') + '"'
     ).join('\n');
 
-    const prompt = `Transkribe these Islamic hadith transmitter names from Russian/Arabic into Azerbaijani (Latin-based Azerbaijan script). Apply Azerbaijani phonetic rules (e.g. Мухаммад аль-Кулайни → Muhəmməd əl-Kuleyni, Али → Əli, Хусейн → Hüseyn).
-
-Names:
-${nameList}
-
-Reply ONLY with valid JSON array, no text outside:
-[{"id":1,"name":"Az name"},{"id":2,"name":"Az name"},...]`;
+    const prompt = 'Transkribe these Islamic hadith transmitter names from Russian/Arabic into Azerbaijani (Latin-based). Apply Azerbaijani phonetic rules (Мухаммад→Muhəmməd, Али→Əli, Хусейн→Hüseyn, аль→əl, ибн→ibn).\n\nNames:\n' + nameList + '\n\nReply ONLY with valid JSON array, no other text:\n[{"id":1,"name":"Az name"},...]';
 
     try {
       const res = await fetch('/api/v1/messages', {
         method: 'POST',
         headers: aiRequestHeaders(),
         body: JSON.stringify({
-          model: 'deepseek-v4-flash', // самая быстрая/дешёвая для простой транскрипции
+          model: 'deepseek-v4-flash',
           max_tokens: 800,
           messages: [{ role: 'user', content: prompt }]
         })
@@ -4774,37 +4770,38 @@ Reply ONLY with valid JSON array, no text outside:
 
       if (!res.ok) continue;
       const data = await res.json();
-      const raw = (data.content || []).map(c => c.text || '').join('');
-      const cleaned = raw.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
+      let rawText = '';
+      if (data.choices && data.choices[0]) {
+        rawText = data.choices[0].message?.content || '';
+      } else if (data.content) {
+        rawText = data.content.map(c => c.text || '').join('');
+      }
+      const cleanedText = rawText.replace(/```json|```/g, '').trim();
+      const parsedNames = JSON.parse(cleanedText);
 
-      // Записываем в кэш и обновляем список
-      parsed.forEach(item => {
+      parsedNames.forEach(item => {
         const tx = batch[item.id - 1];
         if (!tx) return;
-        const key = `az_${tx.id}`;
-        arCache[key] = { ...(arCache[key] || {}), name: item.name };
+        const key = 'az_' + tx.id;
+        arCache[key] = Object.assign({}, arCache[key] || {}, { name: item.name });
       });
       saveArCache();
 
-      // Перерисовываем только если всё ещё AZ
       if (state.lang === 'az') {
         renderСписок();
-        // Если карточка открыта — обновить имя
         if (state.activeId !== null) {
-          const updatedInBatch = batch.find(tx => tx.id === state.activeId);
-          if (updatedInBatch) {
-            const azName = arCache[`az_${state.activeId}`]?.name;
+          const inBatch = batch.find(tx => tx.id === state.activeId);
+          if (inBatch) {
+            const azName = (arCache['az_' + state.activeId] || {}).name;
             if (azName) $('detName').textContent = azName;
           }
         }
       }
     } catch(e) {
-      console.warn('AZ batch name translate error:', e);
+      console.warn('AZ batch error:', e);
     }
 
-    // Небольшая пауза между батчами чтобы не спамить API
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 400));
   }
 
   _azNameBatchRunning = false;
@@ -5063,10 +5060,7 @@ function initEvents() {
       state.lang = btn.dataset.lang;
       saveНастройки();
       applyLang();
-      // При выборе AZ — фоново переводим все имена
-      if (state.lang === 'az') {
-        batchTranslateAzNames();
-      }
+      if (state.lang === 'az') batchTranslateAzNames();
     });
   });
 
@@ -5244,10 +5238,8 @@ async function init() {
   initNewPanelEvents();
   initExtras();
 
-  // Если язык уже AZ (восстановлен из localStorage) — запускаем батч-перевод имён
-  if (state.lang === 'az') {
-    setTimeout(() => batchTranslateAzNames(), 500);
-  }
+  // Если язык AZ — запустить батч-перевод имён
+  if (state.lang === 'az') setTimeout(() => batchTranslateAzNames(), 600);
 
   // Виртуальный скроллинг: перерисовываем видимое окно при скролле и resize
   const txViewport = $('txListViewport');
@@ -5644,8 +5636,6 @@ function renderSettingsKeyStatus(text, ok) {
 const API_KEY_STORAGE = 'rijal_smartapi_key';
 const MODEL_STORAGE = 'rijal_smartapi_model';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
-
-// Встроенный ключ (используется если пользователь не задал свой)
 const _BUILT_IN_KEY = 'sk-smart-_eU79oohpMMo6XIlwWe0CJEh4CHIfCgQ4o3GiCBImRU';
 
 function getModel() {
@@ -5676,7 +5666,7 @@ function aiRequestHeaders() {
   return headers;
 }
 
-function updateAiChatModelLabel() {}
+function updateAiChatModelLabel() {} // больше не нужна, оставляем заглушку
 function loadAiConfig() { return {}; }
 function saveAiConfig() {}
 function aiConfigIsSet() { return true; }
@@ -6867,7 +6857,7 @@ function fallbackCopy(text) {
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    // lang управляется через loadНастройки — не перезаписываем
+    // lang управляется через loadНастройки
 
     // Subtle pointer-driven glow
     const setPointer = (e) => {
