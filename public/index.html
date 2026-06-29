@@ -4269,6 +4269,19 @@ function buildTxItem(tx) {
   return li;
 }
 
+function refreshTxItemInList(id) {
+  const tx = state.data[id];
+  if (!tx) return;
+  const list = $('txСписок');
+  if (!list) return;
+  const oldItem = list.querySelector(`.tx-item[data-id="${id}"]`);
+  if (!oldItem) return;
+  const fresh = buildTxItem(tx);
+  fresh.classList.toggle('active', tx.id === state.activeId);
+  fresh.setAttribute('aria-selected', tx.id === state.activeId);
+  oldItem.replaceWith(fresh);
+}
+
 // ═══════════════════════════════════════
 // ПРОСТАЯ ПАГИНАЦИЯ (вместо виртуального скроллинга)
 // — рендерим по 40 элементов, подгружаем при достижении конца
@@ -4688,6 +4701,7 @@ ${(tx.sources || []).join('\n')}
 Ravinin Rusca adı: «${tx.name}»
 Ravinin ərəbcə adı: «${tx.arabicName || ''}»
 Bu ravinin adını Azərbaycan dilinin fonetik qaydalarına uyğun transkripsiya edin (məs: Мухаммад аль-Кулайни → Muhəmməd əl-Kuleyni).
+Ad mütləq "name" sahəsində qaytarılmalıdır.
 
 Ravi haqqında bioqrafik məlumat:
 ${tx.bio || '—'}
@@ -4720,12 +4734,24 @@ Yalnız etibarlı JSON ilə cavab verin:
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleaned);
 
+  // Нормализуем структуру ответа, чтобы UI не зависел от того, как модель
+  // оформила JSON.
+  if (typeof parsed.bio !== 'string') parsed.bio = parsed.bio?.text ?? parsed.bio?.bio ?? '';
+  if (typeof parsed.analysis !== 'string') parsed.analysis = parsed.analysis?.text ?? parsed.analysis?.analysis ?? '';
+  if (!Array.isArray(parsed.sources)) {
+    parsed.sources = Array.isArray(parsed.sources?.items) ? parsed.sources.items : [];
+  }
+
   parsed.shiaStatus = translateStatusForLang(tx.shiaStatus, lang);
   parsed.sunniStatus = translateStatusForLang(tx.sunniStatus, lang);
 
   // Если AZ — сохраняем имя и в раздельный кэш имён
-  if (lang === 'az' && parsed.name) {
-    arCache[`az_name_${tx.id}`] = parsed.name;
+  if (lang === 'az') {
+    const translatedName = String(parsed.name || parsed.displayName || parsed.translatedName || tx.name || '').trim();
+    if (translatedName) {
+      parsed.name = translatedName;
+      arCache[`az_name_${tx.id}`] = translatedName;
+    }
   }
 
   arCache[cacheKey] = parsed;
@@ -4883,8 +4909,12 @@ function fillDetail(tx, arData) {
   const sunniStatus = needsTrans
     ? (arData?.sunniStatus || translateStatusForLang(tx.sunniStatus, state.lang) || tx.sunniStatus || '')
     : (tx.sunniStatus || '');
-  const bio = (needsTrans && arData?.bio) ? arData.bio : (tx.bio || '');
-  const analysis = (needsTrans && arData?.analysis) ? arData.analysis : (tx.analysis || '');
+  const bio = (needsTrans && typeof arData?.bio === 'string' && arData.bio.trim())
+    ? arData.bio
+    : (tx.bio || '');
+  const analysis = (needsTrans && typeof arData?.analysis === 'string' && arData.analysis.trim())
+    ? arData.analysis
+    : (tx.analysis || '');
   const sources = (needsTrans && arData?.sources?.length) ? arData.sources : (tx.sources || []);
 
   $('scShiaText').textContent = shiaStatus;
@@ -4992,6 +5022,7 @@ async function renderDetail(id) {
     const cached = arCache[cacheKey];
     if (cached) {
       fillDetail(tx, cached);
+      refreshTxItemInList(tx.id);
       return;
     }
 
@@ -5002,6 +5033,7 @@ async function renderDetail(id) {
     try {
       const transData = await fetchArabicData(tx);
       fillDetail(tx, transData);
+      refreshTxItemInList(tx.id);
     } catch(err) {
       console.warn('Translation failed:', err);
       fillDetail(tx, {
