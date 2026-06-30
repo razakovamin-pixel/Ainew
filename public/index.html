@@ -3438,7 +3438,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     <input
       type="password"
       id="settingsApiKeyInput"
-      placeholder="Вставьте ваш ключ от smartapi.shop"
+      placeholder="Вставьте ключ"
       autocomplete="off"
       spellcheck="false"
       style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-bottom:6px"
@@ -3452,26 +3452,13 @@ document.addEventListener("DOMContentLoaded",()=>{
 
     <div id="settingsKeyStatus" style="margin-top:14px;padding:14px;border-radius:var(--radius);font-size:13.5px"></div>
 
-    <label style="display:block;font-size:12px;color:var(--text-3);font-family:var(--font-mono);margin-top:20px;margin-bottom:6px">МОДЕЛЬ ИИ</label>
-    <select
-      id="settingsModelSelect"
-      style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-bottom:8px"
-    >
-      <option value="claude-opus-4-7">Claude Opus 4.7 — самая мощная, дороже и медленнее</option>
-      <option value="claude-sonnet-4-6">Claude Sonnet 4.6 — баланс качества и скорости (рекомендуется)</option>
-      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — самая быстрая и дешёвая</option>
-      <option value="__custom__">Другая модель (указать вручную)…</option>
+    <!-- Model selector hidden - model is fixed internally -->
+    <select id="settingsModelSelect" style="display:none">
+      <option value="deepseek-v4-flash">deepseek-v4-flash</option>
     </select>
-    <input
-      type="text"
-      id="settingsModelCustomInput"
-      placeholder="Например: claude-sonnet-4-6"
-      autocomplete="off"
-      spellcheck="false"
-      style="display:none;width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-bottom:8px"
-    >
-    <button id="settingsSaveModel" class="cmp-btn" style="width:100%;margin-bottom:8px">Сохранить модель</button>
-    <div id="settingsModelStatus" style="margin-top:6px;padding:14px;border-radius:var(--radius);font-size:13.5px"></div>
+    <input type="text" id="settingsModelCustomInput" style="display:none"
+    <button id="settingsSaveModel" style="display:none">Сохранить модель</button>
+    <div id="settingsModelStatus" style="display:none"></div>
 
     <button id="settingsClose2" class="cmp-btn" style="margin-top:18px;width:100%">Закрыть</button>
     <div id="settingsStatus" style="display:none"></div>
@@ -4241,7 +4228,8 @@ function buildTxItem(tx) {
     displayName = tx.arabicName || tx.name;
     displaySub  = tx.name;
   } else if (isAzLang) {
-    displayName = getDisplayNameForLang(tx);
+    const azNameCached = arCache[`az_name_${tx.id}`] || (arCache[`az_${tx.id}`] ? arCache[`az_${tx.id}`].name : null);
+    displayName = azNameCached ? azNameCached : tx.name;
     displaySub  = tx.arabicName || '';
   } else {
     displayName = tx.name;
@@ -4432,43 +4420,6 @@ let arCache = {};
 try { arCache = JSON.parse(localStorage.getItem(TX_CACHE_KEY) || '{}'); } catch(e) {}
 function saveArCache() {
   try { localStorage.setItem(TX_CACHE_KEY, JSON.stringify(arCache)); } catch(e) {}
-}
-
-// ── Translation helpers ────────────────────────────────────────
-function getCachedAzName(id) {
-  const key = `az_name_${id}`;
-  const legacy = arCache[`az_${id}`];
-  const fromNewCache = arCache[key];
-  const fromLegacy = legacy && typeof legacy === 'object'
-    ? (legacy.name || legacy.displayName || legacy.translatedName || '')
-    : '';
-  const fromNew = typeof fromNewCache === 'string'
-    ? fromNewCache
-    : (fromNewCache && typeof fromNewCache === 'object'
-      ? (fromNewCache.name || fromNewCache.displayName || fromNewCache.translatedName || '')
-      : '');
-  return String(fromNew || fromLegacy || '').trim();
-}
-
-function rememberAzName(id, name) {
-  const clean = String(name || '').trim();
-  if (!clean) return '';
-  arCache[`az_name_${id}`] = clean;
-  const legacy = arCache[`az_${id}`];
-  if (legacy && typeof legacy === 'object') {
-    legacy.name = clean;
-    legacy.displayName = clean;
-    legacy.translatedName = clean;
-  }
-  saveArCache();
-  return clean;
-}
-
-function getDisplayNameForLang(tx) {
-  if (!tx) return '';
-  if (state.lang === 'ar' || state.lang === 'fa') return tx.arabicName || tx.name || '';
-  if (state.lang === 'az') return getCachedAzName(tx.id) || tx.name || '';
-  return tx.name || '';
 }
 
 // ── Status translations (instant, no API needed) ────────────────
@@ -4672,12 +4623,7 @@ async function fetchArabicData(tx) {
 
   // ЖЁСТКАЯ ПРОВЕРКА: кэш считается валидным только если есть поле bio
   if (arCache[cacheKey] && arCache[cacheKey].bio !== undefined) {
-    const cached = arCache[cacheKey];
-    if (lang === 'az') {
-      cached.name = cached.name || cached.displayName || cached.translatedName || getCachedAzName(tx.id) || tx.name || '';
-      if (cached.name) rememberAzName(tx.id, cached.name);
-    }
-    return cached;
+    return arCache[cacheKey];
   }
 
   if (!tx.bio && !tx.analysis) {
@@ -4688,10 +4634,6 @@ async function fetchArabicData(tx) {
       analysis: '',
       sources: tx.sources || []
     };
-    if (lang === 'az') {
-      result.name = getCachedAzName(tx.id) || tx.name || '';
-      if (result.name) rememberAzName(tx.id, result.name);
-    }
     arCache[cacheKey] = result;
     saveArCache();
     return result;
@@ -4792,10 +4734,10 @@ Yalnız etibarlı JSON ilə cavab verin:
 
   // Если AZ — сохраняем имя и в раздельный кэш имён
   if (lang === 'az') {
-    const translatedName = String(parsed.name || parsed.displayName || parsed.translatedName || getCachedAzName(tx.id) || tx.name || '').trim();
+    const translatedName = String(parsed.name || parsed.displayName || parsed.translatedName || tx.name || '').trim();
     if (translatedName) {
       parsed.name = translatedName;
-      rememberAzName(tx.id, translatedName);
+      arCache[`az_name_${tx.id}`] = translatedName;
     }
   }
 
@@ -4862,8 +4804,9 @@ async function batchTranslateAzNames() {
         const tx = batch[item.id - 1];
         if (!tx || !item.name) return;
         // Сохраняем в РАЗДЕЛЬНЫЙ кэш имён — не трогаем кэш карточек
-        rememberAzName(tx.id, item.name);
+        arCache['az_name_' + tx.id] = item.name;
       });
+      saveArCache();
 
       if (state.lang === 'az') {
         // Обновляем только имена в списке без полного перерендера
@@ -4880,7 +4823,7 @@ async function batchTranslateAzNames() {
         if (state.activeId !== null) {
           const inBatch = batch.find(tx => tx.id === state.activeId);
           if (inBatch) {
-            const azName = getCachedAzName(state.activeId);
+            const azName = arCache['az_name_' + state.activeId];
             if (azName) $('detName').textContent = azName;
           }
         }
@@ -4965,9 +4908,8 @@ function fillDetail(tx, arData) {
   $('scSunniText').textContent = sunniStatus;
 
   // If AZ and translated name available — update the name display
-  if (isAz) {
-    const translatedName = (arData?.name || getCachedAzName(tx.id) || tx.name || '').trim();
-    if (translatedName) $('detName').textContent = translatedName;
+  if (isAz && arData?.name) {
+    $('detName').textContent = arData.name;
   }
 
   // Bio
@@ -5027,10 +4969,11 @@ async function renderDetail(id) {
   // Name display
   const isRTLdet = isAr || state.lang === 'fa';
   const isAzDet  = state.lang === 'az';
+  const azNameCached = isAzDet && arCache[`az_${tx.id}`];
   const detDisplayName = isRTLdet
     ? (tx.arabicName || tx.name)
     : isAzDet
-      ? getDisplayNameForLang(tx)
+      ? ((azNameCached && azNameCached.name) ? azNameCached.name : tx.name)
       : tx.name;
   $('detName').textContent = detDisplayName;
   $('detArabic').textContent = isRTLdet ? tx.name : (tx.arabicName || '');
@@ -5065,15 +5008,8 @@ async function renderDetail(id) {
     const cacheKey = `${state.lang}_${tx.id}`;
     const cached = arCache[cacheKey];
     if (cached) {
-      if (state.lang === 'az' && !cached.name) {
-        cached.name = getCachedAzName(tx.id) || tx.name || '';
-      }
       fillDetail(tx, cached);
       refreshTxItemInList(tx.id);
-      if (state.lang === 'az') {
-        const azName = getCachedAzName(tx.id) || cached.name || tx.name || '';
-        if (azName) $('detName').textContent = azName;
-      }
       return;
     }
 
@@ -5083,9 +5019,6 @@ async function renderDetail(id) {
 
     try {
       const transData = await fetchArabicData(tx);
-      if (state.lang === 'az' && !transData.name) {
-        transData.name = getCachedAzName(tx.id) || tx.name || '';
-      }
       fillDetail(tx, transData);
       refreshTxItemInList(tx.id);
     } catch(err) {
@@ -5290,15 +5223,21 @@ async function init() {
       }
     };
 
-    const [data1, data2, data3, data4] = await Promise.all([
+    // Load all transmitter files found nearby (transmitters.json through transmitters9.json)
+    const [data1, data2, data3, data4, data5, data6, data7, data8, data9] = await Promise.all([
       loadJsonIfExists('transmitters.json'),
       loadJsonIfExists('transmitters2.json'),
       loadJsonIfExists('transmitters3.json'),
-      loadJsonIfExists('transmitters4.json')
+      loadJsonIfExists('transmitters4.json'),
+      loadJsonIfExists('transmitters5.json'),
+      loadJsonIfExists('transmitters6.json'),
+      loadJsonIfExists('transmitters7.json'),
+      loadJsonIfExists('transmitters8.json'),
+      loadJsonIfExists('transmitters9.json'),
     ]);
 
-    // Объединяем все базы
-    raw = [...data1, ...data2, ...data3, ...data4];
+    // Объединяем все найденные базы
+    raw = [...data1, ...data2, ...data3, ...data4, ...data5, ...data6, ...data7, ...data8, ...data9];
   } catch(e) {
     console.error('Failed to load transmitters.json:', e);
     const loadingErrorEl = $('loading');
@@ -5504,22 +5443,153 @@ function renderChatMessage(role, content) {
   return bubble;
 }
 
-function buildSystemPrompt() {
-  const total = state.data ? state.data.length : 0;
-  const active = state.activeId !== null ? state.data.find(d => d.id === state.activeId) : null;
-  let ctx = '';
-  if (active) {
-    ctx = `\n\nСейчас открыта карточка передатчика: «${active.name}» (${active.arabicName || ''}).` +
-      ` Шиитская оценка: ${active.shiaStatus || '—'}. Суннитская оценка: ${active.sunniStatus || '—'}.` +
-      (active.bio ? ` Биография: ${active.bio.slice(0, 400)}` : '');
+// ── Web search helper via DuckDuckGo Instant Answer API ──────────
+async function searchWeb(query) {
+  try {
+    // DuckDuckGo Instant Answer (no CORS issues, no key needed)
+    const url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(query + ' علم الرجال hadith rijal') + '&format=json&no_html=1&skip_disambig=1';
+    const res = await fetch(url);
+    if (!res.ok) return '';
+    const data = await res.json();
+    const parts = [];
+    if (data.AbstractText) parts.push(data.AbstractText);
+    if (data.Answer) parts.push(data.Answer);
+    if (data.RelatedTopics) {
+      data.RelatedTopics.slice(0, 4).forEach(t => {
+        if (t.Text) parts.push(t.Text);
+      });
+    }
+    if (data.Results) {
+      data.Results.slice(0, 3).forEach(r => {
+        if (r.Text) parts.push(r.Text);
+      });
+    }
+    return parts.join(' | ').slice(0, 800);
+  } catch(e) {
+    console.warn('Web search failed:', e);
+    return '';
   }
-  return `Ты — экспертный ассистент проекта "Ильм ар-Риджаль" (علم الرجال). База содержит ${total} передатчиков хадисов с биографиями, статусами надёжности (тика/даиф/спорный) по шиитским и суннитским источникам. Отвечай на русском языке. Будь точен в фактах о риджале, иснадах, передатчиках и методологии. Если не уверен — говори об этом прямо.${ctx}`;
+}
+
+// ── Detect language of user message ──────────────────────────────
+function detectUserLang(text) {
+  if (!text) return state.lang || 'ru';
+  // Arabic script
+  if (/[\u0600-\u06FF]/.test(text)) return 'ar';
+  // Azerbaijani specific chars
+  if (/[əƏğĞışİöÖüÜçÇ]/.test(text)) return 'az';
+  // Cyrillic = Russian
+  if (/[\u0400-\u04FF]/.test(text)) return 'ru';
+  // Latin fallback
+  if (/[a-zA-Z]/.test(text)) return 'en';
+  return state.lang || 'ru';
+}
+
+// ── Language instruction for system prompt ────────────────────────
+function getLangInstruction(lang) {
+  const instructions = {
+    ru: 'Отвечай на русском языке.',
+    ar: 'أجب باللغة العربية الفصحى دائماً بغض النظر عن لغة السؤال.',
+    az: 'Həmişə Azərbaycan dilində cavab ver.',
+    en: 'Always respond in English.',
+    fa: 'همیشه به فارسی پاسخ بده.',
+  };
+  return instructions[lang] || 'Отвечай на том же языке, на котором задан вопрос.';
+}
+
+// ── Find transmitters from local dataset matching the query ───────
+function findLocalTransmitters(query) {
+  if (!state.data || !query) return [];
+  const q = query.toLowerCase();
+  const matches = state.data.filter(tx => {
+    const name = (tx.name || '').toLowerCase();
+    const arabic = (tx.arabicName || '').toLowerCase();
+    const bio = (tx.bio || '').toLowerCase();
+    return name.includes(q) || arabic.includes(q) || bio.includes(q);
+  });
+  return matches.slice(0, 5); // top 5 matches
+}
+
+function buildSystemPrompt(userText) {
+  const total = state.data ? state.data.length : 0;
+  const userLang = userText ? detectUserLang(userText) : (state.lang || 'ru');
+  const langInstruction = getLangInstruction(userLang);
+
+  const active = state.activeId !== null ? state.data.find(d => d.id === state.activeId) : null;
+
+  // Full context for open card
+  let activeCtx = '';
+  if (active) {
+    activeCtx = `\n\n=== ОТКРЫТАЯ КАРТОЧКА ПЕРЕДАТЧИКА ===\n` +
+      `Имя: ${active.name} (${active.arabicName || ''})\n` +
+      `Шиитский риджаль: ${active.shiaStatus || '—'}\n` +
+      `Суннитский риджаль: ${active.sunniStatus || '—'}\n` +
+      (active.bio ? `Биография: ${active.bio.slice(0, 600)}\n` : '') +
+      (active.analysis ? `Анализ: ${active.analysis.replace(/<[^>]+>/g,'').slice(0, 400)}\n` : '') +
+      (active.sources && active.sources.length ? `Источники: ${active.sources.join(', ')}\n` : '') +
+      `Рейтинг надёжности: ${active.score || 'не указан'}`;
+  }
+
+  // Find relevant transmitters from local data based on user question
+  let localMatches = '';
+  if (userText) {
+    const matched = findLocalTransmitters(userText);
+    if (matched.length > 0) {
+      localMatches = `\n\n=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ (${matched.length} совпадений) ===\n` +
+        matched.map(tx =>
+          `• ${tx.name} (${tx.arabicName || ''}) — Шиа: ${tx.shiaStatus || '—'}, Сунни: ${tx.sunniStatus || '—'}` +
+          (tx.bio ? ` | ${tx.bio.slice(0, 150)}` : '')
+        ).join('\n');
+    }
+  }
+
+  // Build full database summary
+  const trustCount  = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('trust')).length : 0;
+  const weakCount   = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('weak')).length  : 0;
+  const dispCount   = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('disputed')).length : 0;
+
+  return `Ты — экспертный ИИ-ассистент проекта «Ильм ар-Риджаль» (علم الرجال) — критической науки об оценке передатчиков хадисов.
+
+${langInstruction}
+Если пользователь пишет на другом языке — автоматически переключись на его язык и отвечай именно на нём.
+
+=== ВОЗМОЖНОСТИ И ПОВЕДЕНИЕ ===
+1. ПОИСК: Ты умеешь искать информацию — когда пользователь спрашивает о передатчике, ты проверяешь локальную базу данных (${total} записей) И используешь знания о классических источниках риджаля (Раджаль ан-Наджаши, Фихрист ат-Туси, Лисан аль-Мизан, Тахзиб аль-Тахзиб, Мизан аль-Итидаль и др.).
+2. АНАЛИЗ ИСНАДА: При запросе цепочки передатчиков оцени каждое звено и дай итоговый хукм (сахих/хасан/да'иф/мавду').
+3. СРАВНЕНИЕ: При сравнении передатчиков покажи таблицу шиитских vs суннитских оценок.
+4. БИОГРАФИЯ: Давай подробные биографические данные: эпоха, учителя, ученики, количество хадисов, причины слабости/силы.
+5. КОНТЕКСТ: Если пользователь смотрит карточку передатчика, анализируй её в деталях.
+6. ИНТЕРНЕТ: Для актуальных исследований и уточнений — ссылайся на авторитетные исламские ресурсы (islamweb.net, dorar.net, hadith.islam-db.com, al-islam.org).
+7. ЯЗЫК: Автоматически определяй язык вопроса и отвечай на нём же.
+
+=== БАЗА ДАННЫХ ===
+Всего передатчиков: ${total}
+Надёжные (تقة): ${trustCount}
+Слабые (ضعيف): ${weakCount}
+Спорные: ${dispCount}
+Форматы статусов: тика / айн / маджхуль / да'иф / мухмаль / васик / садук / гулат / фатхи / вакифи / каззаб
+${activeCtx}${localMatches}
+
+=== СТИЛЬ ОТВЕТА ===
+- Давай развёрнутые, академически точные ответы
+- Используй арабские термины с переводом
+- При неопределённости говори прямо: «данных в базе нет, по классическим источникам...»
+- Структурируй ответы через заголовки когда это уместно
+- Максимальная полнота информации — пользователь изучает риджаль профессионально`;
 }
 
 async function sendAiChatMessage(userText) {
   if (!getApiKey()) {
     renderChatMessage('user', userText);
-    const noKeyBubble = renderChatMessage('assistant', '⚠ Сначала укажите ваш API-ключ в настройках (значок ⚙ сверху), затем повторите вопрос.');
+    const detectedLangNoKey = detectUserLang(userText);
+    const noKeyMessages = {
+      ru: '⚠ Сначала вставьте ваш ключ в настройках (значок ⚙ сверху), затем повторите вопрос.',
+      ar: '⚠ الرجاء إدخال مفتاح API في الإعدادات (أيقونة ⚙ بالأعلى) ثم كرر السؤال.',
+      az: '⚠ Əvvəlcə API açarınızı parametrlərdə (yuxarıda ⚙ işarəsi) daxil edin, sonra sualı təkrarlayın.',
+      en: '⚠ Please enter your API key in settings (⚙ icon above) first, then repeat your question.',
+      fa: '⚠ لطفاً ابتدا کلید API خود را در تنظیمات (آیکون ⚙ بالا) وارد کنید، سپس سوال را تکرار کنید.',
+    };
+    const noKeyBubble = renderChatMessage('assistant', noKeyMessages[detectedLangNoKey] || noKeyMessages.ru);
     noKeyBubble.style.color = 'var(--rose)';
     return;
   }
@@ -5532,21 +5602,45 @@ async function sendAiChatMessage(userText) {
   let history = loadChatHistory();
   history.push({ role: 'user', content: userText });
 
-  const thinkingBubble = renderChatMessage('assistant', '…');
+  const thinkingBubble = renderChatMessage('assistant', '⏳ Думаю и ищу информацию…');
   thinkingBubble.classList.add('ai-thinking');
   sendBtn.disabled = true;
   input.disabled = true;
   sendBtn.textContent = '…';
 
   try {
-    const messages = history.slice(-18); // последние 18 сообщений
+    const messages = history.slice(-24); // последние 24 сообщения
+
+    // Auto-detect user language and set thinking bubble text
+    const detectedLang = detectUserLang(userText);
+    const thinkingTexts = {
+      ru: '⏳ Думаю и ищу информацию…',
+      ar: '⏳ أبحث وأفكر…',
+      az: '⏳ Axtarıram və düşünürəm…',
+      en: '⏳ Searching and thinking…',
+      fa: '⏳ در حال جستجو و تفکر…',
+    };
+    thinkingBubble.textContent = thinkingTexts[detectedLang] || '⏳ Думаю и ищу информацию…';
+
+    // Web search for relevant context
+    let webContext = '';
+    try {
+      const webResult = await searchWeb(userText);
+      if (webResult && webResult.length > 20) {
+        webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ (DuckDuckGo) ===\n' + webResult;
+      }
+    } catch(e) { /* silent */ }
+
+    // Build enhanced system prompt with user text for lang detection + web results
+    const sysPrompt = buildSystemPrompt(userText) + webContext;
+
     const resp = await fetch('/api/v1/messages', {
       method: 'POST',
       headers: aiRequestHeaders(),
       body: JSON.stringify({
         model: getModel(),
-        max_tokens: 1000,
-        system: buildSystemPrompt(),
+        max_tokens: 3000,
+        system: sysPrompt,
         messages,
       }),
     });
@@ -5591,7 +5685,16 @@ function openAiChat() {
     history.forEach(m => renderChatMessage(m.role, m.content));
     if (history.length === 0) {
       // Приветственное сообщение
-      renderChatMessage('assistant', 'Ас-саляму алейкум! Я ИИ-ассистент проекта Ильм ар-Риджаль. Могу помочь с вопросами о передатчиках хадисов, иснадах, методологии критики хадисов и оценках надёжности. Спрашивайте!');
+      // Welcome message in user's language
+      const uiLang = state.lang || 'ru';
+      const welcomeMessages = {
+        ru: 'Ас-саляму алейкум! Я ИИ-ассистент проекта Ильм ар-Риджаль. Могу помочь с вопросами о передатчиках хадисов, иснадах, анализе цепочек и оценках надёжности. Автоматически определяю язык вашего вопроса и отвечаю на нём же. Спрашивайте!',
+        ar: 'السلام عليكم! أنا مساعد الذكاء الاصطناعي لمشروع علم الرجال. يمكنني مساعدتك في أسئلة حول رواة الحديث والأسانيد والجرح والتعديل. اسأل بأي لغة وسأرد عليها!',
+        az: 'Əleykümüssalam! Mən İlm ər-Rical layihəsinin süni intellekt köməkçisiyəm. Hədis raviləri, isnadlar və etibarlılıq qiymətləndirməsi haqqında suallarınıza kömək edə bilərəm. Soruşun!',
+        en: 'As-salamu alaykum! I am the AI assistant of the Ilm al-Rijal project. I can help with questions about hadith transmitters, isnads, and reliability assessments. Ask in any language!',
+        fa: 'علیکم السلام! من دستیار هوش مصنوعی پروژه علم الرجال هستم. می‌توانم در مورد راویان حدیث، اسناد و ارزیابی اعتبار کمک کنم. بپرسید!',
+      };
+      renderChatMessage('assistant', welcomeMessages[uiLang] || welcomeMessages.ru);
     }
     wrap.dataset.rendered = '1';
   }
@@ -5694,20 +5797,7 @@ function initSettingsPanel() {
 }
 
 function refreshSettingsModelUI() {
-  const modelSelect = $('settingsModelSelect');
-  const modelCustom = $('settingsModelCustomInput');
-  if (!modelSelect) return;
-  const current = getModel();
-  const knownValues = Array.from(modelSelect.options).map(o => o.value).filter(v => v !== '__custom__');
-  if (knownValues.includes(current)) {
-    modelSelect.value = current;
-    modelCustom.style.display = 'none';
-  } else {
-    modelSelect.value = '__custom__';
-    modelCustom.value = current;
-    modelCustom.style.display = 'block';
-  }
-  renderSettingsModelStatus(`Текущая модель: ${current}`, true);
+  // Model is fixed internally - no UI needed
 }
 
 function renderSettingsModelStatus(text, ok) {
@@ -5738,14 +5828,15 @@ function renderSettingsKeyStatus(text, ok) {
 // ── Личный API-ключ пользователя для smartapi.shop ──────────────
 const API_KEY_STORAGE = 'rijal_smartapi_key';
 const MODEL_STORAGE = 'rijal_smartapi_model';
-const DEFAULT_MODEL = 'claude-sonnet-4-6';
+const DEFAULT_MODEL = 'deepseek-v4-flash';
 const _BUILT_IN_KEY = 'sk-smart-_eU79oohpMMo6XIlwWe0CJEh4CHIfCgQ4o3GiCBImRU';
 
 function getModel() {
-  try { return (localStorage.getItem(MODEL_STORAGE) || '').trim() || DEFAULT_MODEL; } catch (e) { return DEFAULT_MODEL; }
+  // Model is fixed - users don't see or choose this
+  return 'deepseek-v4-flash';
 }
 function setModel(model) {
-  try { localStorage.setItem(MODEL_STORAGE, model); } catch (e) {}
+  // Intentionally locked - model is hardcoded
 }
 
 function getApiKey() {
