@@ -3115,14 +3115,6 @@ document.addEventListener("DOMContentLoaded",()=>{
       </div>
       <span class="action-label">ИИ-чат</span>
     </button>
-    <button class="action-btn" id="btnSettings" title="Настройки ИИ">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </div>
-      <span class="action-label">Настройки</span>
-    </button>
   </nav>
   <div class="action-bar-title">Инструменты анализа риджаля</div>
 </div>
@@ -3438,7 +3430,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     <input
       type="password"
       id="settingsApiKeyInput"
-      placeholder="Вставьте ключ"
+      placeholder="sk-smart-3WT4wAKrsLLApXN7IUji_rlX3Dlb50MTKtj070qyyXQ"
       autocomplete="off"
       spellcheck="false"
       style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-bottom:6px"
@@ -5807,7 +5799,8 @@ function initAiChatPanel() {
 }
 
 function initSettingsPanel() {
-  $('btnSettings').addEventListener('click', () => { openPanelEl('settingsPanel'); refreshSettingsKeyUI(); refreshSettingsModelUI(); });
+  const btnSettings = $('btnSettings');
+  if (btnSettings) btnSettings.addEventListener('click', () => { openPanelEl('settingsPanel'); refreshSettingsKeyUI(); refreshSettingsModelUI(); });
   $('settingsClose').addEventListener('click', () => closePanel('settingsPanel'));
   const close2 = $('settingsClose2');
   if (close2) close2.addEventListener('click', () => closePanel('settingsPanel'));
