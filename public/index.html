@@ -5444,27 +5444,48 @@ function renderChatMessage(role, content) {
 }
 
 // ── Web search helper via DuckDuckGo Instant Answer API ──────────
+
 async function searchWeb(query) {
   try {
-    // DuckDuckGo Instant Answer (no CORS issues, no key needed)
-    const url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(query + ' علم الرجال hadith rijal') + '&format=json&no_html=1&skip_disambig=1';
-    const res = await fetch(url);
-    if (!res.ok) return '';
-    const data = await res.json();
-    const parts = [];
-    if (data.AbstractText) parts.push(data.AbstractText);
-    if (data.Answer) parts.push(data.Answer);
-    if (data.RelatedTopics) {
-      data.RelatedTopics.slice(0, 4).forEach(t => {
-        if (t.Text) parts.push(t.Text);
-      });
+    const baseQuery = (query || '').trim();
+    if (!baseQuery) return '';
+
+    // Public web search via DuckDuckGo Instant Answer API.
+    // We try two variants to improve coverage and keep the answer fast.
+    const variants = [
+      baseQuery,
+      baseQuery + ' islamic scholarship hadith rijal',
+    ];
+
+    const snippets = [];
+    for (const q of variants) {
+      const url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(q) + '&format=json&no_html=1&skip_disambig=1';
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+
+      const parts = [];
+      if (data.AbstractText) parts.push(data.AbstractText);
+      if (data.Answer) parts.push(data.Answer);
+      if (data.Definition) parts.push(data.Definition);
+      if (data.RelatedTopics) {
+        data.RelatedTopics.slice(0, 4).forEach(t => {
+          if (t.Text) parts.push(t.Text);
+        });
+      }
+      if (data.Results) {
+        data.Results.slice(0, 3).forEach(r => {
+          if (r.Text) parts.push(r.Text);
+        });
+      }
+      for (const part of parts) {
+        const clean = String(part || '').trim();
+        if (clean && !snippets.includes(clean)) snippets.push(clean);
+      }
+      if (snippets.length >= 6) break;
     }
-    if (data.Results) {
-      data.Results.slice(0, 3).forEach(r => {
-        if (r.Text) parts.push(r.Text);
-      });
-    }
-    return parts.join(' | ').slice(0, 800);
+
+    return snippets.join(' | ').slice(0, 1000);
   } catch(e) {
     console.warn('Web search failed:', e);
     return '';
@@ -5510,6 +5531,7 @@ function findLocalTransmitters(query) {
   return matches.slice(0, 5); // top 5 matches
 }
 
+
 function buildSystemPrompt(userText) {
   const total = state.data ? state.data.length : 0;
   const userLang = userText ? detectUserLang(userText) : (state.lang || 'ru');
@@ -5548,21 +5570,28 @@ function buildSystemPrompt(userText) {
   const weakCount   = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('weak')).length  : 0;
   const dispCount   = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('disputed')).length : 0;
 
-  return `Ты — экспертный ИИ-ассистент проекта «Ильм ар-Риджаль» (علم الرجال) — критической науки об оценке передатчиков хадисов.
+  return `Ты — экспертный ИИ-ассистент проекта «Ильм ар-Риджаль» (علم الرجال).
 
 ${langInstruction}
-Если пользователь пишет на другом языке — автоматически переключись на его язык и отвечай именно на нём.
 
-=== ВОЗМОЖНОСТИ И ПОВЕДЕНИЕ ===
-1. ПОИСК: Ты умеешь искать информацию — когда пользователь спрашивает о передатчике, ты проверяешь локальную базу данных (${total} записей) И используешь знания о классических источниках риджаля (Раджаль ан-Наджаши, Фихрист ат-Туси, Лисан аль-Мизан, Тахзиб аль-Тахзиб, Мизан аль-Итидаль и др.).
-2. АНАЛИЗ ИСНАДА: При запросе цепочки передатчиков оцени каждое звено и дай итоговый хукм (сахих/хасан/да'иф/мавду').
-3. СРАВНЕНИЕ: При сравнении передатчиков покажи таблицу шиитских vs суннитских оценок.
-4. БИОГРАФИЯ: Давай подробные биографические данные: эпоха, учителя, ученики, количество хадисов, причины слабости/силы.
-5. КОНТЕКСТ: Если пользователь смотрит карточку передатчика, анализируй её в деталях.
-6. ИНТЕРНЕТ: Для актуальных исследований и уточнений — ссылайся на авторитетные исламские ресурсы (islamweb.net, dorar.net, hadith.islam-db.com, al-islam.org).
-7. ЯЗЫК: Автоматически определяй язык вопроса и отвечай на нём же.
+=== ГЛАВНЫЕ ПРАВИЛА ===
+1) Никогда не возвращай пустой ответ, заглушку или молчание. Если данных недостаточно, прямо скажи об этом и дай самый полезный краткий вывод.
+2) Отвечай на языке пользователя. Если вопрос смешанный, выбирай язык вопроса по смыслу.
+3) Держи ответ коротким и плотным по смыслу: обычно 4–10 предложений или 3–6 пунктов. Очень длинные ответы давай только если пользователь явно просит.
+4) Не выдумывай источники, имена, даты и оценки. Если данных нет, так и напиши.
+5) Если в подсказке ниже есть блок открытых источников, используй его как публичный веб-поиск и опирайся на него в первую очередь.
+6) Если вопрос про современную или спорную тему, а открытых данных нет, честно скажи, что подтверждения недостаточно.
 
-=== БАЗА ДАННЫХ ===
+=== КАК ОТВЕЧАТЬ ===
+- Сначала дай прямой ответ.
+- Затем, при необходимости, кратко поясни.
+- Для передатчиков указывай: имя, статус, ключевую причину оценки, и если уместно — ссылки на классические труды риджаля.
+- Для иснада давай итоговый хукм (сахих / хасан / да'иф / мавду') и короткое объяснение по звеньям.
+- Для сравнения передатчиков используй компактную таблицу только если она реально помогает.
+- Для перевода передавай смысл точно, без воды.
+- Если пользователь открыл карточку передатчика, анализируй именно её.
+
+=== ЛОКАЛЬНАЯ БАЗА ===
 Всего передатчиков: ${total}
 Надёжные (تقة): ${trustCount}
 Слабые (ضعيف): ${weakCount}
@@ -5570,13 +5599,27 @@ ${langInstruction}
 Форматы статусов: тика / айн / маджхуль / да'иф / мухмаль / васик / садук / гулат / фатхи / вакифи / каззаб
 ${activeCtx}${localMatches}
 
-=== СТИЛЬ ОТВЕТА ===
-- Давай развёрнутые, академически точные ответы
-- Используй арабские термины с переводом
-- При неопределённости говори прямо: «данных в базе нет, по классическим источникам...»
-- Структурируй ответы через заголовки когда это уместно
-- Максимальная полнота информации — пользователь изучает риджаль профессионально`;
+=== ПРАВИЛО ПРОВЕРКИ ===
+- Если видишь блок «РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ», трактуй его как public search context.
+- Если этого блока нет, не утверждай, что ты что-то проверил в интернете.
+- Не завершай ответ пустотой: либо содержательный ответ, либо короткое честное сообщение о нехватке данных.`;
 }
+
+
+function extractAiReply(data) {
+  const candidates = [
+    data?.choices?.[0]?.message?.content,
+    data?.content?.[0]?.text,
+    data?.output_text,
+    data?.reply,
+    data?.response,
+  ];
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
 
 async function sendAiChatMessage(userText) {
   if (!getApiKey()) {
@@ -5593,7 +5636,7 @@ async function sendAiChatMessage(userText) {
     noKeyBubble.style.color = 'var(--rose)';
     return;
   }
-  const wrap = $('aiChatMessages');
+
   const sendBtn = $('aiChatSend');
   const input = $('aiChatInput');
 
@@ -5609,9 +5652,6 @@ async function sendAiChatMessage(userText) {
   sendBtn.textContent = '…';
 
   try {
-    const messages = history.slice(-24); // последние 24 сообщения
-
-    // Auto-detect user language and set thinking bubble text
     const detectedLang = detectUserLang(userText);
     const thinkingTexts = {
       ru: '⏳ Думаю и ищу информацию…',
@@ -5622,28 +5662,41 @@ async function sendAiChatMessage(userText) {
     };
     thinkingBubble.textContent = thinkingTexts[detectedLang] || '⏳ Думаю и ищу информацию…';
 
-    // Web search for relevant context
+    // More compact context for speed
+    const messages = history.slice(-16); // последние 16 сообщений
+
+    // Public search context (DuckDuckGo)
     let webContext = '';
     try {
       const webResult = await searchWeb(userText);
       if (webResult && webResult.length > 20) {
-        webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ (DuckDuckGo) ===\n' + webResult;
+        webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ (PUBLIC SEARCH) ===\n' + webResult;
       }
     } catch(e) { /* silent */ }
 
     // Build enhanced system prompt with user text for lang detection + web results
     const sysPrompt = buildSystemPrompt(userText) + webContext;
 
-    const resp = await fetch('/api/v1/messages', {
-      method: 'POST',
-      headers: aiRequestHeaders(),
-      body: JSON.stringify({
-        model: getModel(),
-        max_tokens: 3000,
-        system: sysPrompt,
-        messages,
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35000);
+
+    const makeRequest = async (systemText, maxTokens) => {
+      const resp = await fetch('/api/v1/messages', {
+        method: 'POST',
+        headers: aiRequestHeaders(),
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: getModel(),
+          max_tokens: maxTokens,
+          temperature: 0.2,
+          system: systemText,
+          messages,
+        }),
+      });
+      return resp;
+    };
+
+    let resp = await makeRequest(sysPrompt, 1200);
 
     if (!resp.ok) {
       const errText = await resp.text().catch(() => '');
@@ -5651,20 +5704,41 @@ async function sendAiChatMessage(userText) {
       thinkingBubble.style.color = 'var(--rose)';
       history.pop(); // убираем незавершённый запрос
       saveChatHistory(history);
+      clearTimeout(timeout);
       return;
     }
 
-    const data = await resp.json();
+    let data = await resp.json();
+    let reply = extractAiReply(data);
 
-    // ИСПРАВЛЕНО: Читаем ответ в формате OpenAI / SmartAPI вместо Anthropic
-    const reply = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '(пустой ответ)';
+    // Retry once if the model returned an empty answer
+    if (!reply) {
+      const strongerPrompt = sysPrompt + '\n\nВАЖНО: предыдущий ответ был пустым. Верни только содержательный ответ минимум из 3 предложений. Не используй заглушки, не молчи и не возвращай пустую строку. Если данных недостаточно, прямо так и скажи, а затем кратко объясни почему.';
+      resp = await makeRequest(strongerPrompt, 900);
+      if (resp.ok) {
+        data = await resp.json().catch(() => ({}));
+        reply = extractAiReply(data);
+      }
+    }
+
+    clearTimeout(timeout);
+
+    if (!reply) {
+      reply = 'Не удалось получить содержательный ответ. Повтори вопрос чуть иначе или открой настройки поиска и ключа.';
+      thinkingBubble.style.color = 'var(--rose)';
+    } else {
+      thinkingBubble.classList.remove('ai-thinking');
+    }
 
     thinkingBubble.textContent = reply;
-    thinkingBubble.classList.remove('ai-thinking');
     history.push({ role: 'assistant', content: reply });
     saveChatHistory(history);
   } catch (err) {
-    thinkingBubble.textContent = `✗ Сетевая ошибка: ${err.message}`;
+    if (err && err.name === 'AbortError') {
+      thinkingBubble.textContent = '✗ Таймаут ответа: модель отвечает слишком долго. Попробуйте более короткий вопрос.';
+    } else {
+      thinkingBubble.textContent = `✗ Сетевая ошибка: ${err.message}`;
+    }
     thinkingBubble.style.color = 'var(--rose)';
     history.pop();
     saveChatHistory(history);
@@ -5675,7 +5749,6 @@ async function sendAiChatMessage(userText) {
     input.focus();
   }
 }
-
 
 function openAiChat() {
   openPanelEl('aiChatPanel');
