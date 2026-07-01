@@ -4637,7 +4637,22 @@ async function parseAiResponse(res) {
 }
 
 // ── Fetch translation from Claude API ────────────────────────
+// Обёртка с защитой от дублей: если для той же карточки+языка запрос уже
+// летит, второй клик не запускает новый запрос, а просто ждёт первый.
+const _inFlightTranslations = {};
 async function fetchArabicData(tx) {
+  const cacheKey = `${state.lang}_${tx.id}`;
+  if (_inFlightTranslations[cacheKey]) {
+    return _inFlightTranslations[cacheKey];
+  }
+  const promise = _fetchArabicDataImpl(tx).finally(() => {
+    delete _inFlightTranslations[cacheKey];
+  });
+  _inFlightTranslations[cacheKey] = promise;
+  return promise;
+}
+
+async function _fetchArabicDataImpl(tx) {
   const lang = state.lang;
   const cacheKey = `${lang}_${tx.id}`;
 
