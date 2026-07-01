@@ -5054,7 +5054,8 @@ async function renderDetail(id) {
       fillDetail(tx, transData);
       refreshTxItemInList(tx.id);
     } catch(err) {
-      console.warn('Translation failed:', err);
+      const errMsg = (err && err.message) ? err.message : (typeof err === 'string' ? err : 'unknown error');
+      console.warn('Translation failed:', errMsg, err);
       fillDetail(tx, {
         shiaStatus: translateStatusForLang(tx.shiaStatus, state.lang),
         sunniStatus: translateStatusForLang(tx.sunniStatus, state.lang),
@@ -5062,12 +5063,12 @@ async function renderDetail(id) {
         analysis: tx.analysis,
         sources: tx.sources
       });
-      if (err && err.message === 'NO_API_KEY') {
+      if (errMsg === 'NO_API_KEY') {
         toast('⚠ Укажите API-ключ в настройках (⚙), чтобы включить перевод');
-      } else if (err && err.message === 'TIMEOUT') {
+      } else if (errMsg === 'TIMEOUT') {
         toast('⏱ Сервер перевода не ответил за 40 сек — попробуйте ещё раз');
       } else {
-        toast(failMsg[state.lang] || '⚠ Translation failed');
+        toast((failMsg[state.lang] || '⚠ Translation failed') + ' (' + errMsg + ')');
       }
     }
   } else {
