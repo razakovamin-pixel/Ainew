@@ -1611,6 +1611,38 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
 .isnad-verdict-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
 .isnad-verdict-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
 
+/* ── Компактный граф иснада внутри чата ── */
+.chat-isnad-chain { margin: 0 0 10px; gap: 4px; }
+.chat-isnad-chain .isnad-link { padding: 6px 10px; border-radius: 8px; }
+.chat-isnad-chain .isnad-connector { font-size: 13px; margin: -4px 0; }
+.chat-isnad-chain .isnad-link-name { font-size: 12.5px; }
+.chat-isnad-chain .isnad-link-status { font-size: 10px; padding: 1px 6px; }
+
+/* ── Бейджи хукма хадиса (сахих/хасан/да'иф/...) ── */
+.hukm-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.hukm-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .3px; white-space: nowrap; }
+.hukm-sahih { background: rgba(52,211,153,.15); color: #34d399; }
+.hukm-hasan { background: rgba(96,165,250,.15); color: #60a5fa; }
+.hukm-daif { background: rgba(251,113,133,.15); color: #fb7185; }
+.hukm-mursal { background: rgba(251,191,36,.15); color: #fbbf24; }
+.hukm-mawdu { background: rgba(248,113,113,.2); color: #f87171; }
+
+/* ── Кнопки под сообщением: избранное / другая марджа ── */
+.msg-extras { align-self: flex-start; max-width: 88%; display: flex; flex-wrap: wrap; gap: 6px; margin-top: -2px; }
+.msg-bookmark-btn, .msg-marja-btn {
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-body);
+}
+.msg-bookmark-btn:hover, .msg-marja-btn:hover { border-color: var(--teal); color: var(--teal-light); }
+.msg-bookmark-btn.active { border-color: #fbbf24; color: #fbbf24; }
+
 /* ═══════════════════════════════════════
    QUIZ
 ═══════════════════════════════════════ */
@@ -2982,8 +3014,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     </button>
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="ru" title="Русский язык">РУ</button>
-      <button class="lang-btn" data-lang="ar" title="اللغة العربية">عربي</button>
-      <button class="lang-btn" data-lang="az" title="Azərbaycan dili">АЗ</button>
     </div>
   </div>
 </header>
@@ -3402,7 +3432,10 @@ document.addEventListener("DOMContentLoaded",()=>{
   <div class="panel-box" style="width:min(560px,96vw);display:flex;flex-direction:column;max-height:min(85dvh,720px)">
     <div class="panel-head">
       <div class="panel-title">💬 ИИ-ассистент — Риджаль</div>
-      <button class="panel-close" id="aiChatClose">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="panel-close" id="btnBookmarks" title="Избранное" style="font-size:16px">⭐</button>
+        <button class="panel-close" id="aiChatClose">✕</button>
+      </div>
     </div>
     <div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;min-height:200px;max-height:52vh"></div>
     <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--border);padding-top:12px">
@@ -3469,6 +3502,17 @@ document.addEventListener("DOMContentLoaded",()=>{
 
     <button id="settingsClose2" class="cmp-btn" style="margin-top:18px;width:100%">Закрыть</button>
     <div id="settingsStatus" style="display:none"></div>
+  </div>
+</div>
+
+<!-- BOOKMARKS / ИЗБРАННОЕ PANEL -->
+<div class="panel-overlay" id="bookmarksPanel">
+  <div class="panel-box" style="width:min(560px,96vw);max-height:min(85dvh,720px);display:flex;flex-direction:column">
+    <div class="panel-head">
+      <div class="panel-title">⭐ Избранное</div>
+      <button class="panel-close" id="bookmarksClose">✕</button>
+    </div>
+    <div id="bookmarksList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px"></div>
   </div>
 </div>
 
