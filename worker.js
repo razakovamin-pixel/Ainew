@@ -1,4 +1,5 @@
-// Настройки CORS для бесперебойной работы с любого устройства
+// CORS (Cross-Origin Resource Sharing) — это настройки безопасности. 
+// Они разрешают твоему сайту свободно общаться с сервером Cloudflare с любого устройства.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
@@ -6,59 +7,43 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-// Список поддерживаемых моделей SmartAPI
-const modelMapping = {
-  "opus-4.6": "opus-4.6",
-  "opus-4.7": "opus-4.7",
-  "opus-4.8": "opus-4.8",
-  "sonnet-4.6": "sonnet-4.6",
-
-  "deepseek-v4-flash": "deepseek-v4-flash",
-  "deepseek-v4-pro": "deepseek-v4-pro",
-
-  "glm-5.1": "glm-5.1",
-
-  "gpt-5.4": "gpt-5.4",
-  "gpt-5.5": "gpt-5.5",
-
-  "mimo-v2.5": "mimo-v2.5",
-  "mimo-v2.5-pro": "mimo-v2.5-pro",
-
-  "minimax-m3": "minimax-m3"
-};
-
-// Модель по умолчанию
-const DEFAULT_MODEL = "deepseek-v4-flash";
-
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // 1. Обработка OPTIONS-запросов. Браузеры всегда сначала отправляют такой пустой запрос, 
+    // чтобы проверить разрешения безопасности (CORS). Мы сразу одобряем его.
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
 
+    // 2. Универсальный прокси-маршрут по твоему ТЗ
     if (url.pathname === "/proxy" && request.method === "POST") {
       return await handleProxyRequest(request);
     }
 
+    // 3. Автоматический перехват старых запросов от твоего index.html
     if (url.pathname === "/api/v1/messages" && request.method === "POST") {
       return await handleIndexApiRequest(request);
     }
 
+    // 4. Если это обычный запрос (открытие сайта, загрузка файлов .json), 
+    // отдаем файлы из папки public через системную привязку ASSETS
     try {
       return await env.ASSETS.fetch(request);
     } catch (assetsError) {
-      return new Response("Файл не найден", { status: 404 });
+      return new Response("Файл не найден на сервере", { status: 404 });
     }
   },
 };
 
+// Функция для универсального прокси (/proxy)
 async function handleProxyRequest(request) {
   try {
     const requestData = await request.json();
     let targetUrl = requestData.target_url;
     
+    // Если адрес назначения не передан, направляем по умолчанию на SmartAPI
     if (!targetUrl || targetUrl.startsWith("/")) {
       const cleanPath = targetUrl ? targetUrl : "/chat/completions";
       targetUrl = `https://smartapi.shop/backend/v1${cleanPath}`;
@@ -80,36 +65,31 @@ async function handleProxyRequest(request) {
     if (requestData.body) {
       let parsedBody = typeof requestData.body === "string" ? JSON.parse(requestData.body) : requestData.body;
       
-      // Настройка модели
-      if (parsedBody.model) {
-        const modelKey = parsedBody.model.trim();
-        if (modelMapping[modelKey]) {
-          parsedBody.model = modelMapping[modelKey];
-        } else {
-          parsedBody.model = DEFAULT_MODEL;
-        }
-      } else {
-        parsedBody.model = DEFAULT_MODEL;
+      // Если запрос идет к SmartAPI и модель пустая — ставим дефолтную deepseek-v4-flash
+      if (targetUrl.includes("smartapi.shop") && !parsedBody.model) {
+        parsedBody.model = "deepseek-v4-flash";
       }
-      
-      // КРИТИЧЕСКИЙ ФИКС: Жестко запрещаем стриминг для этого эндпоинта
-      parsedBody.stream = false;
       
       bodyStr = JSON.stringify(parsedBody);
     }
 
-    const response = await fetch(targetUrl, { method, headers, body: bodyStr });
+    const response = await fetch(targetUrl, {
+      method: method,
+      headers: headers,
+      body: bodyStr,
+    });
+
     const responseBody = await response.text();
-    
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
+    // Удаляем заголовок сжатия, чтобы Cloudflare сам заново оптимизировал текст без ошибок
     responseHeaders.delete("content-encoding");
-    responseHeaders.set("content-type", "application/json");
 
     return new Response(responseBody, {
       status: response.status,
+      statusText: response.statusText,
       headers: responseHeaders,
     });
 
@@ -121,20 +101,27 @@ async function handleProxyRequest(request) {
   }
 }
 
+// Функция для незаметной поддержки текущего index.html (/api/v1/messages)
 async function handleIndexApiRequest(request) {
   try {
     const bodyText = await request.text();
-    const targetUrl = "https://smartapi.shop/backend/v1/chat/completions"; // Перенаправляем на стандартный чат-эндпоинт OpenAI
+    let parsedBody = JSON.parse(bodyText);
+
+    // SmartAPI — OpenAI-совместимый, нужен /chat/completions, а не /messages
+    const targetUrl = "https://smartapi.shop/backend/v1/chat/completions";
 
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
+      // Пропускаем служебные заголовки самой платформы Cloudflare, чтобы не путать SmartAPI
       if (!["host", "cf-connecting-ip", "cf-ray", "x-forwarded-for"].includes(key.toLowerCase())) {
         headers.set(key, value);
       }
     }
 
+    // Берем секретный ключ, который отправляет твой сайт
     const xApiKey = request.headers.get("x-api-key");
     if (xApiKey && !headers.has("authorization")) {
+      // Дублируем его стандартным методом Bearer на случай жестких проверок в SmartAPI
       headers.set("authorization", `Bearer ${xApiKey}`);
     }
 
@@ -142,53 +129,18 @@ async function handleIndexApiRequest(request) {
       headers.set("content-type", "application/json");
     }
 
-    let modifiedBodyText = bodyText;
-    try {
-      let parsedBody = JSON.parse(bodyText);
-      
-      // Приводим структуру Anthropic (system отдельно) к стандарту OpenAI/SmartAPI
-      let openAiMessages = [];
-      if (parsedBody.system) {
-        openAiMessages.push({ role: "system", content: parsedBody.system });
-      }
-      if (parsedBody.messages && Array.isArray(parsedBody.messages)) {
-        openAiMessages.push(...parsedBody.messages);
-      }
-
-      let newBody = {
-        messages: openAiMessages,
-        max_tokens: parsedBody.max_tokens || 1000,
-        stream: false // КРИТИЧЕСКИЙ ФИКС: Принудительно отключаем стриминг
-      };
-
-      if (parsedBody.model) {
-        const modelKey = parsedBody.model.trim();
-        if (modelMapping[modelKey]) {
-          newBody.model = modelMapping[modelKey];
-        } else {
-          newBody.model = DEFAULT_MODEL;
-        }
-      } else {
-        newBody.model = DEFAULT_MODEL;
-      }
-      
-      modifiedBodyText = JSON.stringify(newBody);
-    } catch(e) {}
-
     const response = await fetch(targetUrl, {
       method: "POST",
       headers: headers,
-      body: modifiedBodyText,
+      body: JSON.stringify(parsedBody),
     });
 
     const responseBody = await response.text();
-    
     const responseHeaders = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders)) {
       responseHeaders.set(key, value);
     }
     responseHeaders.delete("content-encoding");
-    responseHeaders.set("content-type", "application/json");
 
     return new Response(responseBody, {
       status: response.status,
@@ -202,3 +154,4 @@ async function handleIndexApiRequest(request) {
     });
   }
 }
+
