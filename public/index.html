@@ -5533,53 +5533,196 @@ function renderChatMessage(role, content) {
   return bubble;
 }
 
-// ── Web search helper via DuckDuckGo Instant Answer API ──────────
+// ── Web search helper — специализированный по шиитским и суннитским источникам ──
+
+// Определяем направление запроса
+// ════════════════════════════════════════════════════════════════
+// WEB SEARCH ENGINE — расширенный, с шиитскими и суннитскими сайтами
+// ════════════════════════════════════════════════════════════════
+
+// Полные списки шиитских и суннитских сайтов/ключевых слов
+const SHIA_SITES = [
+  'lib.eshia.ir',        // главная шиитская библиотека
+  'al-shia.org',         // шиитский портал
+  'imamreza.net',        // портал Имама Ризы
+  'erfan.ir',            // иранский исламский портал
+  'tebyan.net',          // иранская исламская энциклопедия
+  'hawzah.net',          // хауза ильмийя
+  'ahl-ul-bayt.ir',      // Ахль аль-Байт
+  'shiaonlinelibrary.com', // шиитская онлайн-библиотека
+  'alkafi.net',          // сайт по аль-Кафи
+  'alseraj.net',         // шиитский научный портал
+  'valiasr-aj.com',      // портал о Имаме Махди
+  'ghbook.ir',           // иранская исламская библиотека
+  'rasekhoon.net',       // иранский исламский форум
+  'islamquest.net',      // шиитские фатвы и вопросы
+  'sistani.org',         // официальный сайт ас-Систани
+  'khamenei.ir',         // официальный сайт Хаменеи
+  'al-islam.org',        // англо-шиитский портал
+];
+
+const SUNNI_SITES = [
+  'shamela.ws',          // аль-Мактаба аш-Шамила
+  'islamweb.net',        // исламвеб (суннитский)
+  'dorar.net',           // Дурар ас-Санийя
+  'hadith.islam-db.com', // база хадисов
+  'sunnah.com',          // хадисы на английском
+  'islamhouse.com',      // суннитский портал
+  'ahlalhdeeth.com',     // форум ахль аль-хадис
+  'alukah.net',          // суннитский научный портал
+  'islamicweb.com',      // исламский веб
+];
+
+const SHIA_KEYWORDS = [
+  'шиит', 'имам', 'кафи', 'бихар', 'eshia', 'الكافي', 'بحار',
+  'الشيعة', 'الكليني', 'المجلسي', 'الطوسي', 'النجاشي', 'الكشي',
+  'lib.eshia', 'شيعي', 'اثناعشري', 'الصدوق', 'العياشي', 'الاثنا عشر',
+  'الحر العاملي', 'وسائل الشيعة', 'معجم رجال الحديث', 'الخوئي',
+  'البروجردي', 'مرآة العقول', 'الاستبصار', 'تهذيب الأحكام',
+  'ريجال', 'риджал', 'اهل بيت', 'احل البيت',
+];
+
+const SUNNI_KEYWORDS = [
+  'сунни', 'бухари', 'муслим', 'shamela', 'islamweb', 'البخاري',
+  'مسلم', 'السنة', 'الشامل', 'ابن حجر', 'الذهبي', 'ترمذي',
+  'النسائي', 'سني', 'أبو داود', 'ابن ماجه', 'المسند', 'أحمد',
+  'تهذيب الكمال', 'ميزان الاعتدال', 'الجرح والتعديل', 'ابن أبي حاتم',
+  'الكامل', 'ابن عدي', 'الضعفاء', 'العقيلي',
+];
+
+function detectQueryTradition(query) {
+  const q = (query || '').toLowerCase();
+  const isShia = SHIA_KEYWORDS.some(k => q.includes(k.toLowerCase()));
+  const isSunni = SUNNI_KEYWORDS.some(k => q.includes(k.toLowerCase()));
+  if (isShia && !isSunni) return 'shia';
+  if (isSunni && !isShia) return 'sunni';
+  return 'both';
+}
+
+// Глобальный лог статусов поиска для передачи в промт
+let lastSearchLog = [];
+
+async function searchDDG(query, label) {
+  try {
+    const url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(query) + '&format=json&no_html=1&skip_disambig=1';
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const parts = [];
+    if (data.AbstractText) parts.push(data.AbstractText);
+    if (data.Answer) parts.push(data.Answer);
+    if (data.Definition) parts.push(data.Definition);
+    if (data.RelatedTopics) data.RelatedTopics.slice(0, 4).forEach(t => { if (t.Text) parts.push(t.Text); });
+    if (data.Results) data.Results.slice(0, 3).forEach(r => { if (r.Text) parts.push(r.Text); });
+    return parts.filter(Boolean).map(p => (label ? `[${label}] ` : '') + String(p).trim());
+  } catch(e) { return []; }
+}
 
 async function searchWeb(query) {
-  try {
-    const baseQuery = (query || '').trim();
-    if (!baseQuery) return '';
+  const baseQuery = (query || '').trim();
+  if (!baseQuery) return '';
 
-    // Public web search via DuckDuckGo Instant Answer API.
-    // We try two variants to improve coverage and keep the answer fast.
-    const variants = [
-      baseQuery,
-      baseQuery + ' islamic scholarship hadith rijal',
-    ];
+  lastSearchLog = [];
+  const snippets = [];
+  const tradition = detectQueryTradition(baseQuery);
 
-    const snippets = [];
-    for (const q of variants) {
-      const url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(q) + '&format=json&no_html=1&skip_disambig=1';
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const data = await res.json();
+  // ── 1. ШИИТСКИЕ ИСТОЧНИКИ ──────────────────────────────────────
+  if (tradition === 'shia' || tradition === 'both') {
 
-      const parts = [];
-      if (data.AbstractText) parts.push(data.AbstractText);
-      if (data.Answer) parts.push(data.Answer);
-      if (data.Definition) parts.push(data.Definition);
-      if (data.RelatedTopics) {
-        data.RelatedTopics.slice(0, 4).forEach(t => {
-          if (t.Text) parts.push(t.Text);
-        });
+    // 1a. lib.eshia.ir — главный приоритет
+    let eshiaResults = await searchDDG(baseQuery + ' site:lib.eshia.ir', 'شيعي | lib.eshia.ir');
+    if (eshiaResults.length > 0) {
+      eshiaResults.forEach(p => snippets.push(p));
+      lastSearchLog.push('✓ lib.eshia.ir: найдено ' + eshiaResults.length + ' результатов');
+    } else {
+      // Fallback — другие шиитские сайты
+      lastSearchLog.push('⚠ lib.eshia.ir: недоступен или результатов нет — переключаюсь на запасные шиитские источники');
+      const fallbackShia = [
+        baseQuery + ' site:shiaonlinelibrary.com',
+        baseQuery + ' site:al-islam.org',
+        baseQuery + ' site:erfan.ir',
+        baseQuery + ' site:hawzah.net',
+        baseQuery + ' site:rasekhoon.net',
+        baseQuery + ' site:ghbook.ir',
+        baseQuery + ' الكافي OR بحار الأنوار OR وسائل الشيعة OR تهذيب الأحكام شيعي',
+      ];
+      let fallbackFound = 0;
+      for (const fq of fallbackShia) {
+        const parts = await searchDDG(fq, 'شيعي | запасной');
+        parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
+        fallbackFound += parts.length;
+        if (snippets.filter(s => s.includes('شيعي')).length >= 5) break;
       }
-      if (data.Results) {
-        data.Results.slice(0, 3).forEach(r => {
-          if (r.Text) parts.push(r.Text);
-        });
+      if (fallbackFound > 0) {
+        lastSearchLog.push('✓ Запасные шиитские источники: найдено ' + fallbackFound + ' фрагментов');
+      } else {
+        lastSearchLog.push('✗ Все шиитские сайты недоступны — ответ из памяти модели');
       }
-      for (const part of parts) {
-        const clean = String(part || '').trim();
-        if (clean && !snippets.includes(clean)) snippets.push(clean);
-      }
-      if (snippets.length >= 6) break;
     }
 
-    return snippets.join(' | ').slice(0, 1000);
-  } catch(e) {
-    console.warn('Web search failed:', e);
-    return '';
+    // 1b. Дополнительные шиитские сайты
+    const extraShia = [
+      baseQuery + ' site:islamquest.net',
+      baseQuery + ' site:valiasr-aj.com',
+      baseQuery + ' site:alseraj.net',
+      baseQuery + ' site:al-shia.org',
+    ];
+    for (const eq of extraShia) {
+      const parts = await searchDDG(eq, 'شيعي | доп.');
+      parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
+      if (snippets.filter(s => s.includes('شيعي')).length >= 8) break;
+    }
   }
+
+  // ── 2. СУННИТСКИЕ ИСТОЧНИКИ ────────────────────────────────────
+  if (tradition === 'sunni' || tradition === 'both') {
+
+    // 2a. shamela.ws — главный приоритет
+    let shamelaResults = await searchDDG(baseQuery + ' site:shamela.ws', 'سني | shamela.ws');
+    if (shamelaResults.length > 0) {
+      shamelaResults.forEach(p => snippets.push(p));
+      lastSearchLog.push('✓ shamela.ws: найдено ' + shamelaResults.length + ' результатов');
+    } else {
+      lastSearchLog.push('⚠ shamela.ws: нет результатов — переключаюсь на islamweb.net и dorar.net');
+    }
+
+    // 2b. islamweb + dorar + остальные суннитские
+    const sunniExtra = [
+      baseQuery + ' site:islamweb.net',
+      baseQuery + ' site:dorar.net',
+      baseQuery + ' site:ahlalhdeeth.com',
+      baseQuery + ' site:alukah.net',
+      baseQuery + ' تهذيب الكمال OR ميزان الاعتدال OR الجرح والتعديل رجال سني',
+    ];
+    for (const sq of sunniExtra) {
+      const parts = await searchDDG(sq, 'سني');
+      parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
+      if (snippets.filter(s => s.includes('سني')).length >= 8) break;
+    }
+
+    if (snippets.filter(s => s.includes('سني')).length > 0) {
+      lastSearchLog.push('✓ Суннитские источники: найдено фрагментов');
+    }
+  }
+
+  // ── 3. ОБЩИЙ РИДЖАЛЬНЫЙ ПОИСК (если мало результатов) ──────────
+  if (snippets.length < 3) {
+    lastSearchLog.push('⚠ Основные источники дали мало результатов — запускаю общий поиск');
+    const general = [
+      baseQuery + ' علم الرجال حديث إسناد',
+      baseQuery + ' hadith rijal isnad transmitter',
+      baseQuery + ' islamic hadith scholarship',
+    ];
+    for (const gq of general) {
+      const parts = await searchDDG(gq, 'общий');
+      parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
+      if (snippets.length >= 6) break;
+    }
+  }
+
+  // ── Итоговый лог ────────────────────────────────────────────────
+  const logLine = lastSearchLog.length ? '\n[ПОИСКОВЫЙ ЛОГ]: ' + lastSearchLog.join(' | ') : '';
+  return (snippets.join('\n') + logLine).slice(0, 2500);
 }
 
 // ── Detect language of user message ──────────────────────────────
@@ -5660,39 +5803,146 @@ function buildSystemPrompt(userText) {
   const weakCount   = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('weak')).length  : 0;
   const dispCount   = state.data ? state.data.filter(d => (d.shiaStatusStyle || '').includes('disputed')).length : 0;
 
+  // Определяем традицию для подсказки в промте
+  const tradition = userText ? detectQueryTradition(userText) : 'both';
+  const traditionHint = tradition === 'shia' ? '→ вопрос шиитской традиции' :
+                        tradition === 'sunni' ? '→ вопрос суннитской традиции' :
+                        '→ сравнительный или общий вопрос';
+
   return `Ты — экспертный ИИ-ассистент проекта «Ильм ар-Риджаль» (علم الرجال).
+Специализация: хадисоведение, наука о передатчиках, сравнительный анализ шиитской и суннитской риджальной традиции. Контекст запроса: ${traditionHint}
 
 ${langInstruction}
 
-=== ГЛАВНЫЕ ПРАВИЛА ===
-1) Никогда не возвращай пустой ответ, заглушку или молчание. Если данных недостаточно, прямо скажи об этом и дай самый полезный краткий вывод.
-2) Отвечай на языке пользователя. Если вопрос смешанный, выбирай язык вопроса по смыслу.
-3) Держи ответ коротким и плотным по смыслу: обычно 4–10 предложений или 3–6 пунктов. Очень длинные ответы давай только если пользователь явно просит.
-4) Не выдумывай источники, имена, даты и оценки. Если данных нет, так и напиши.
-5) Если в подсказке ниже есть блок открытых источников, используй его как публичный веб-поиск и опирайся на него в первую очередь.
-6) Если вопрос про современную или спорную тему, а открытых данных нет, честно скажи, что подтверждения недостаточно.
+════════════════════════════════════════
+ГЛАВНЫЕ ПРАВИЛА
+════════════════════════════════════════
+1) Никогда не возвращай пустой ответ или заглушку. Если данных мало — дай лучший краткий вывод и объясни ограничение.
+2) Отвечай строго на языке пользователя.
+3) Плотность: обычно 5–12 предложений. Длинный ответ — только если явно просят или тема сложная.
+4) Не выдумывай источники, иснады, имена, страницы. Если неизвестно — прямо скажи.
+5) Если в промте есть блок «РЕЗУЛЬТАТЫ ПОИСКА» — это живые данные; опирайся на них в первую очередь.
+6) Если блока поиска нет или он пуст — используй знания модели, но ОБЯЗАТЕЛЬНО пометь: ⚠ «данные из памяти модели, рекомендуется проверить по источнику».
+7) Если поисковый лог содержит «⚠ lib.eshia.ir: недоступен» — сообщи пользователю об этом в конце ответа и предложи прямую ссылку для ручной проверки.
+8) Всегда указывай традицию источника: (ш) = шиитский, (с) = суннитский.
 
-=== КАК ОТВЕЧАТЬ ===
-- Сначала дай прямой ответ.
-- Затем, при необходимости, кратко поясни.
-- Для передатчиков указывай: имя, статус, ключевую причину оценки, и если уместно — ссылки на классические труды риджаля.
-- Для иснада давай итоговый хукм (сахих / хасан / да'иф / мавду') и короткое объяснение по звеньям.
-- Для сравнения передатчиков используй компактную таблицу только если она реально помогает.
-- Для перевода передавай смысл точно, без воды.
-- Если пользователь открыл карточку передатчика, анализируй именно её.
+════════════════════════════════════════
+ИСТОЧНИКИ — ИЕРАРХИЯ ПРИОРИТЕТОВ
+════════════════════════════════════════
+ШИИТСКИЕ ПЕРВОИСТОЧНИКИ:
+  (ш) Аль-Кафи (الكافي) — аль-Кулайни → lib.eshia.ir/71600
+  (ш) Бихар аль-анвар (بحار الأنوار) — аль-Маджлиси → lib.eshia.ir/71860
+  (ш) Васаил аш-Шиа (وسائل الشيعة) — аль-Хурр аль-Амили → lib.eshia.ir/71500
+  (ш) Тахзиб аль-ахкам (تهذيب الأحكام) — ат-Туси → lib.eshia.ir/22400
+  (ш) Аль-Истибсар (الاستبصار) — ат-Туси → lib.eshia.ir/22380
+  (ш) Ман ля йахдуруху аль-факих — аш-Садук → lib.eshia.ir/22376
 
-=== ЛОКАЛЬНАЯ БАЗА ===
-Всего передатчиков: ${total}
-Надёжные (تقة): ${trustCount}
-Слабые (ضعيف): ${weakCount}
-Спорные: ${dispCount}
-Форматы статусов: тика / айн / маджхуль / да'иф / мухмаль / васик / садук / гулат / фатхи / вакифи / каззаб
+ШИИТСКИЙ РИДЖАЛЬ:
+  (ш) Риджаль аль-Кашши (رجال الكشي) → lib.eshia.ir/22338
+  (ш) Риджаль ат-Туси (رجال الطوسي) → lib.eshia.ir/22339
+  (ш) Риджаль ан-Наджаши (رجال النجاشي) → lib.eshia.ir/22365
+  (ш) Муджам риджаль аль-хадис — аль-Хуй (معجم رجال الحديث) → lib.eshia.ir/70780
+  (ш) Танких аль-макаль — аль-Мамакани → lib.eshia.ir/71010
+  (ш) Джами ар-руват — аль-Ардабили → lib.eshia.ir/22350
+
+ШИИТСКИЕ САЙТЫ (для поиска):
+  lib.eshia.ir · shiaonlinelibrary.com · al-islam.org · erfan.ir
+  hawzah.net · rasekhoon.net · islamquest.net · alseraj.net
+  al-shia.org · ghbook.ir · valiasr-aj.com · tebyan.net
+
+СУННИТСКИЙ РИДЖАЛЬ:
+  (с) Тахзиб аль-камаль — аль-Миззи (تهذيب الكمال) → shamela.ws/book/9892
+  (с) Мизан аль-итидаль — аз-Захаби (ميزان الاعتدال) → shamela.ws/book/9904
+  (с) Тахзиб ат-тахзиб — Ибн Хаджар → shamela.ws/book/9894
+  (с) Аль-Камиль фи ду'афаа — Ибн Адий → shamela.ws/book/5776
+  (с) Аль-Джарх ва ат-та'диль — Ибн Аби Хатим → shamela.ws/book/9889
+  (с) Аль-Ду'афаа аль-кабир — аль-Укайли → shamela.ws/book/9900
+
+СУННИТСКИЕ ХАДИСЫ:
+  (с) Сахих аль-Бухари → shamela.ws/book/2
+  (с) Сахих Муслим → shamela.ws/book/3
+  (с) Сунан Абу Давуд → shamela.ws/book/4
+  (с) Джами ат-Тирмизи → shamela.ws/book/5
+  (с) Сунан ан-Насаи → shamela.ws/book/6
+  (с) Сунан Ибн Маджа → shamela.ws/book/7
+  (с) Мусанниф Абд ар-Раззак → shamela.ws/book/9767
+  (с) Тарих ат-Табари → shamela.ws/book/9783
+  (с) Тарих Димашк — Ибн Асакир → shamela.ws/book/9773
+
+СУННИТСКИЕ САЙТЫ (для поиска):
+  shamela.ws · islamweb.net · dorar.net · sunnah.com · alukah.net · ahlalhdeeth.com
+
+════════════════════════════════════════
+ПРАВИЛА ХАДИСОВ
+════════════════════════════════════════
+РАЗРЕШЕНО:
+✓ Приводить арабский текст хадиса + перевод
+✓ Указывать источник точно: книга → том → страница → номер хадиса
+✓ Давать полный риджальный анализ иснада по каждому звену
+✓ Выносить хукм (صحيح / حسن / ضعيف / مرسل / موضوع) с именем учёного
+✓ Указывать расхождение оценок учёных: «вассакаху X, да'афаху Y»
+✓ Сообщать о шахидах и мутаба'ат
+✓ Указывать тип дефекта иснада: мункати', му'аллак, мудаллас, шазз
+✓ Приводить прямую ссылку на shamela.ws или lib.eshia.ir
+✓ Сравнивать шиитскую и суннитскую оценку одного передатчика
+✓ Указывать принадлежность к фиркам: вакифи, гулат, фатхи, муршид и т.д.
+
+ЗАПРЕЩЕНО:
+✗ Фетвы и религиозные предписания («делай так», «это харам/халяль»)
+✗ Абсолютный хукм без источника оценки
+✗ Выдуманные иснады, имена, страницы, номера хадисов
+✗ Богословские суждения о правоте/неправоте мазхаба или школы
+✗ Утверждать, что информация проверена онлайн, если блока поиска нет
+
+════════════════════════════════════════
+СТРУКТУРА ОТВЕТА ПО ХАДИСУ
+════════════════════════════════════════
+① Текст хадиса (арабский)
+② Перевод (если нужен)
+③ Источник: [Книга], т. X, с. Y, хадис №Z
+④ Иснад: A ← B ← C ← D ← Имам
+⑤ Риджаль: оценка каждого звена (вусук / та'диль / джарх)
+⑥ Хукм иснада + кто его вынес
+⑦ Шахиды/мутаба'ат если есть
+⑧ Ссылка: shamela.ws/book/... или lib.eshia.ir/...
+
+════════════════════════════════════════
+СТРУКТУРА ОТВЕТА ПО ПЕРЕДАТЧИКУ
+════════════════════════════════════════
+① Полное имя (арабское) + куння + насаб + лакаб
+② Годы жизни / табака (поколение)
+③ Шиитская оценка → источник (ш)
+④ Суннитская оценка → источник (с)
+⑤ Причина джарха или та'диля
+⑥ Конфликт оценок между учёными
+⑦ Принадлежность к фиркам если есть
+⑧ Прямая ссылка на риджальный источник
+
+════════════════════════════════════════
+ДОПОЛНИТЕЛЬНЫЕ ФИШКИ
+════════════════════════════════════════
+• СРАВНЕНИЕ: Если спрашивают об одном передатчике, автоматически сравни его шиитскую и суннитскую оценки в таблице.
+• ИСНАД-ГРАФ: Если иснад длинный (5+ звеньев), покажи цепочку в виде: Имам ← A ← B ← C ← D (с оценкой каждого в скобках).
+• ПОИСКОВЫЙ СТАТУС: Всегда в конце ответа (одной строкой) укажи откуда данные: 🔍 «Источник: lib.eshia.ir» / «shamela.ws» / «память модели».
+• ПЕРЕКРЁСТНЫЕ ССЫЛКИ: Если передатчик есть и в шиитских и суннитских источниках — обязательно укажи обе ссылки.
+• АВТОПОИСК КНИГИ: Если пользователь называет книгу без тома/страницы — предложи прямую ссылку на неё в lib.eshia.ir или shamela.ws.
+• ДИАЛЕКТ РИДЖАЛЯ: Используй стандартную терминологию: ثقة / ضعيف / مجهول / مهمل / واسق / صدوق / غالٍ / واقفي / فطحي / كذاب. В русском тексте: тика / да'иф / маджхуль / мухмаль / васик / садук / галин / вакифи / фатхи / каззаб.
+
+════════════════════════════════════════
+ЛОКАЛЬНАЯ БАЗА
+════════════════════════════════════════
+Всего передатчиков: ${total} | Надёжные (ثقة): ${trustCount} | Слабые (ضعيف): ${weakCount} | Спорные: ${dispCount}
+Статусы: тика / айн / маджхуль / да'иф / мухмаль / васик / садук / гулат / фатхи / вакифи / каззаб
 ${activeCtx}${localMatches}
 
-=== ПРАВИЛО ПРОВЕРКИ ===
-- Если видишь блок «РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ», трактуй его как public search context.
-- Если этого блока нет, не утверждай, что ты что-то проверил в интернете.
-- Не завершай ответ пустотой: либо содержательный ответ, либо короткое честное сообщение о нехватке данных.`;
+════════════════════════════════════════
+ПРАВИЛО ПРОВЕРКИ И ПРОЗРАЧНОСТИ
+════════════════════════════════════════
+- Блок «РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ» ниже = реальные данные из поиска; приоритет над памятью.
+- Метка [شيعي] = шиитский источник; [سني] = суннитский источник; [общий] = смешанный.
+- Если лог содержит «⚠ lib.eshia.ir: недоступен» — ОБЯЗАТЕЛЬНО сообщи: «⚠ Библиотека lib.eshia.ir была недоступна при поиске. Рекомендую проверить вручную: lib.eshia.ir/[ID книги]/[том]/[страница]»
+- Если лог содержит «✗ Все шиитские сайты недоступны» — ответ дан из памяти модели; предупреди явно.
+- Никогда не притворяйся, что проверил, если поисковых данных нет.`;
 }
 
 
@@ -5755,14 +6005,19 @@ async function sendAiChatMessage(userText) {
     // More compact context for speed
     const messages = history.slice(-16); // последние 16 сообщений
 
-    // Public search context (DuckDuckGo)
+    // Public search context (мульти-источниковый поиск)
     let webContext = '';
     try {
       const webResult = await searchWeb(userText);
       if (webResult && webResult.length > 20) {
-        webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ (PUBLIC SEARCH) ===\n' + webResult;
+        webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ ===\n' + webResult;
+      } else {
+        // Нет результатов — сообщаем модели явно
+        webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ ===\n[Поиск не вернул результатов. Поисковый лог: ' + (lastSearchLog.join(' | ') || 'нет данных') + ']\nОтвечай из памяти модели с пометкой ⚠.';
       }
-    } catch(e) { /* silent */ }
+    } catch(e) {
+      webContext = '\n\n=== РЕЗУЛЬТАТЫ ПОИСКА В ИНТЕРНЕТЕ ===\n[Поиск недоступен из-за ошибки сети. Отвечай из памяти модели с пометкой ⚠.]';
+    }
 
     // Build enhanced system prompt with user text for lang detection + web results
     const sysPrompt = buildSystemPrompt(userText) + webContext;
