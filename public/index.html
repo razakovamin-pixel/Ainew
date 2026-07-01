@@ -2982,6 +2982,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     </button>
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="ru" title="Русский язык">РУ</button>
+      <button class="lang-btn" data-lang="ar" title="اللغة العربية">عربي</button>
       <button class="lang-btn" data-lang="az" title="Azərbaycan dili">АЗ</button>
     </div>
   </div>
@@ -4724,15 +4725,27 @@ Yalnız etibarlı JSON ilə cavab verin:
 
   if (!getApiKey()) throw new Error('NO_API_KEY');
 
-  const res = await fetch('/api/v1/messages', {
-    method: 'POST',
-    headers: aiRequestHeaders(),
-    body: JSON.stringify({
-      model: getModel(),
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 40000); // 40 сек — карточки крупнее, чем реплики чата
+
+  let res;
+  try {
+    res = await fetch('/api/v1/messages', {
+      method: 'POST',
+      headers: aiRequestHeaders(),
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: getModel(),
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('TIMEOUT');
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) throw new Error('API ' + res.status);
   const data = await parseAiResponse(res);
@@ -5051,6 +5064,8 @@ async function renderDetail(id) {
       });
       if (err && err.message === 'NO_API_KEY') {
         toast('⚠ Укажите API-ключ в настройках (⚙), чтобы включить перевод');
+      } else if (err && err.message === 'TIMEOUT') {
+        toast('⏱ Сервер перевода не ответил за 40 сек — попробуйте ещё раз');
       } else {
         toast(failMsg[state.lang] || '⚠ Translation failed');
       }
