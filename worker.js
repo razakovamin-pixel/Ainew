@@ -107,8 +107,8 @@ async function handleIndexApiRequest(request) {
     const bodyText = await request.text();
     let parsedBody = JSON.parse(bodyText);
 
-    // SmartAPI — OpenAI-совместимый, нужен /chat/completions, а не /messages
-    const targetUrl = "https://smartapi.shop/backend/v1/chat/completions";
+    // Перенаправляем на официальный шлюз SmartAPI для обработки структуры сообщений
+    const targetUrl = "https://smartapi.shop/backend/v1/messages";
 
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
