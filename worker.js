@@ -36,6 +36,12 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, x-api-key, Authorization',
   'Access-Control-Max-Age': '86400',
+  // Запрещаем Cloudflare (и любым промежуточным прокси) пересжимать ответ.
+  // Без этого Cloudflare может сам сжать JSON алгоритмом zstd, а некоторые
+  // Android WebView (в т.ч. используемые в приложениях-отладчиках вроде
+  // Tracer) заявляют поддержку zstd в Accept-Encoding, но не умеют его
+  // корректно распаковывать — тело приходит битым, и JSON.parse падает.
+  'Cache-Control': 'no-transform',
 };
 
 export default {
@@ -80,6 +86,10 @@ export default {
 
       const upstreamHeaders = new Headers();
       upstreamHeaders.set('Content-Type', 'application/json');
+      // Просим апстрим не сжимать ответ — Worker сам передаёт его клиенту
+      // без сжатия (см. Cache-Control: no-transform ниже), поэтому нет
+      // смысла тратить время на сжатие/распаковку лишний раз.
+      upstreamHeaders.set('Accept-Encoding', 'identity');
       // Подставляем ключ в обоих распространённых форматах — SmartAPI
       // разберётся, какой ему нужен.
       upstreamHeaders.set('Authorization', `Bearer ${apiKey}`);
