@@ -4609,6 +4609,46 @@ function translateStatusForLang(s, lang) {
   return s;
 }
 
+// ── Ремонт обрезанного JSON ─────────────────────────────────────
+// Если ИИ упёрся в max_tokens посреди ответа, JSON приходит недописанным
+// (например, строка не закрыта кавычкой, или не хватает "}"/"]").
+// Вместо полного провала — дозакрываем структуру, чтобы вытащить хотя бы
+// то, что модель успела перевести.
+function repairTruncatedJson(str) {
+  let inString = false;
+  let escape = false;
+  const stack = [];
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (inString) {
+      if (escape) escape = false;
+      else if (ch === '\\') escape = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') { inString = true; continue; }
+    if (ch === '{' || ch === '[') { stack.push(ch); continue; }
+    if (ch === '}' && stack[stack.length - 1] === '{') { stack.pop(); continue; }
+    if (ch === ']' && stack[stack.length - 1] === '[') { stack.pop(); continue; }
+  }
+  let repaired = str.replace(/,\s*$/, ''); // висячая запятая перед обрывом
+  if (inString) repaired += '"';
+  for (let i = stack.length - 1; i >= 0; i--) {
+    repaired += stack[i] === '{' ? '}' : ']';
+  }
+  return repaired;
+}
+
+// Пытается распарсить JSON; если не выходит — чинит обрыв и пробует снова.
+function parseJsonWithRepair(cleaned) {
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    const repaired = repairTruncatedJson(cleaned);
+    return JSON.parse(repaired); // если и это упадёт — ошибка уйдёт наверх как есть
+  }
+}
+
 // ── Безопасный разбор ответа ИИ (защита от Unexpected token 'e') ──
 // Сервер иногда присылает поток (event: message / data: {...}) вместо
 // чистого JSON. Здесь мы читаем ответ как текст, вырезаем служебные
@@ -4741,7 +4781,7 @@ Yalnız etibarlı JSON ilə cavab verin:
   if (!getApiKey()) throw new Error('NO_API_KEY');
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 40000); // 40 сек — карточки крупнее, чем реплики чата
+  const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 сек — max_tokens увеличен, генерация дольше
 
   let res;
   try {
@@ -4751,7 +4791,7 @@ Yalnız etibarlı JSON ilə cavab verin:
       signal: controller.signal,
       body: JSON.stringify({
         model: getModel(),
-        max_tokens: 1500,
+        max_tokens: 4000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -4766,7 +4806,7 @@ Yalnız etibarlı JSON ilə cavab verin:
   const data = await parseAiResponse(res);
   let raw = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '';
   const cleaned = raw.replace(/```json|```/g, '').trim();
-  const parsed = JSON.parse(cleaned);
+  const parsed = parseJsonWithRepair(cleaned);
 
   // Нормализуем структуру ответа, чтобы UI не зависел от того, как модель
   // оформила JSON.
@@ -4836,7 +4876,7 @@ async function batchTranslateAzNames() {
         headers: aiRequestHeaders(),
         body: JSON.stringify({
           model: getModel(),
-          max_tokens: 800,
+          max_tokens: 2500,
           messages: [{ role: 'user', content: prompt }]
         })
       });
@@ -4845,7 +4885,7 @@ async function batchTranslateAzNames() {
       const data = await parseAiResponse(res);
       let rawText = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '';
       const cleanedText = rawText.replace(/```json|```/g, '').trim();
-      const parsedNames = JSON.parse(cleanedText);
+      const parsedNames = parseJsonWithRepair(cleanedText);
 
       parsedNames.forEach(item => {
         const tx = batch[item.id - 1];
@@ -4876,7 +4916,7 @@ async function batchTranslateAzNames() {
         }
       }
     } catch(e) {
-      console.warn('AZ batch error:', e);
+      console.warn('AZ batch error:', e && e.message ? e.message : e);
     }
 
     await new Promise(r => setTimeout(r, 400));
