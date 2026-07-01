@@ -4608,6 +4608,33 @@ function translateStatusForLang(s, lang) {
   return s;
 }
 
+// ── Безопасный разбор ответа ИИ (защита от Unexpected token 'e') ──
+// Сервер иногда присылает поток (event: message / data: {...}) вместо
+// чистого JSON. Здесь мы читаем ответ как текст, вырезаем служебные
+// префиксы стриминга и markdown-обёртки, и только потом парсим JSON.
+async function parseAiResponse(res) {
+  const raw = await res.text();
+  let cleaned = raw
+    .replace(/^event:.*$/gm, '')
+    .replace(/^data:\s*/gm, '')
+    .replace(/```json|```/g, '')
+    .trim();
+
+  const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length > 1) cleaned = lines[lines.length - 1];
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) {
+      return JSON.parse(cleaned.substring(start, end + 1));
+    }
+    throw e;
+  }
+}
+
 // ── Fetch translation from Claude API ────────────────────────
 async function fetchArabicData(tx) {
   const lang = state.lang;
@@ -4708,7 +4735,7 @@ Yalnız etibarlı JSON ilə cavab verin:
   });
 
   if (!res.ok) throw new Error('API ' + res.status);
-  const data = await res.json();
+  const data = await parseAiResponse(res);
   let raw = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '';
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleaned);
@@ -4787,7 +4814,7 @@ async function batchTranslateAzNames() {
       });
 
       if (!res.ok) continue;
-      const data = await res.json();
+      const data = await parseAiResponse(res);
       let rawText = data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '';
       const cleanedText = rawText.replace(/```json|```/g, '').trim();
       const parsedNames = JSON.parse(cleanedText);
@@ -5700,7 +5727,7 @@ async function sendAiChatMessage(userText) {
       return;
     }
 
-    let data = await resp.json();
+    let data = await parseAiResponse(resp).catch(() => ({}));
     let reply = extractAiReply(data);
 
     // Retry once if the model returned an empty answer
@@ -5708,7 +5735,7 @@ async function sendAiChatMessage(userText) {
       const strongerPrompt = sysPrompt + '\n\nВАЖНО: предыдущий ответ был пустым. Верни только содержательный ответ минимум из 3 предложений. Не используй заглушки, не молчи и не возвращай пустую строку. Если данных недостаточно, прямо так и скажи, а затем кратко объясни почему.';
       resp = await makeRequest(strongerPrompt, 900);
       if (resp.ok) {
-        data = await resp.json().catch(() => ({}));
+        data = await parseAiResponse(resp).catch(() => ({}));
         reply = extractAiReply(data);
       }
     }
