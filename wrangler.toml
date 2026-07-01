@@ -1,0 +1,7 @@
+name = "rijal-smartapi-proxy"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+# Ключ лучше хранить как секрет, а не в коде:
+#   wrangler secret put SMARTAPI_KEY
+# После этого можно убрать FALLBACK_API_KEY из worker.js.
