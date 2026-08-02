@@ -1,7 +1,15 @@
-name = "rijal-smartapi-proxy"
+name = "ilm-al-rijal"
 main = "worker.js"
-compatibility_date = "2026-01-01"
+compatibility_date = "2025-01-01"
 
-# Ключ лучше хранить как секрет, а не в коде:
-#   wrangler secret put SMARTAPI_KEY
-# После этого можно убрать FALLBACK_API_KEY из worker.js.
+# Отдаёт index.html и любые другие статические файлы из ./public
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Секреты и реальные значения НЕ прописывайте здесь. После деплоя:
+#   wrangler secret put AI_API_KEY
+#   wrangler secret put AI_BASE_URL
+#   wrangler secret put AI_MODEL
+# (все три можно хранить как secrets, а не просто vars, если не хотите
+# светить даже провайдера и модель в конфиге репозитория)

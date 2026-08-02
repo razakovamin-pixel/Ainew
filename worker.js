@@ -1,143 +1,149 @@
 /**
- * Cloudflare Worker — прокси между твоим фронтендом (index.html)
- * и SmartAPI (https://smartapi.shop/backend/v1).
+ * Cloudflare Worker — Ilm al-Rijal
+ * ─────────────────────────────────────────────────────────────────
+ * Отвечает за две вещи:
+ *   1) Отдаёт статический index.html (через ASSETS / Workers Sites).
+ *   2) Проксирует POST /ai/chat к реальному AI-провайдеру, используя
+ *      ТОЛЬКО серверные секреты — клиент их не видит и не задаёт.
  *
- * Что делает:
- *  1. Принимает запросы вида POST /api/v1/messages от фронтенда.
- *  2. Пересылает их на SmartAPI, подставляя нужный путь и заголовки.
- *  3. Принудительно отключает стриминг (stream: false), чтобы не ловить
- *     ошибку "Unexpected token 'e'" (сервер иначе шлёт SSE: event:/data:).
- *  4. Возвращает чистый JSON и открывает CORS, чтобы можно было
- *     обращаться с любого источника (в т.ч. локальный HTML в Termux).
- *  5. Если клиент не прислал свой ключ — использует встроенный (fallback),
- *     чтобы приложение работало "из коробки".
+ * Требуемые переменные окружения (Settings → Variables and Secrets):
+ *   AI_API_KEY   — секрет, ваш реальный ключ провайдера   (Secret)
+ *   AI_BASE_URL  — адрес реального AI-провайдера           (Variable)
+ *   AI_MODEL     — имя модели                               (Variable)
  *
- * Деплой:
- *   1. cloudflareworkers.com → Create Worker → вставь этот код → Deploy.
- *   2. Либо через wrangler: `wrangler deploy` (см. wrangler.toml ниже).
- *   3. В index.html замени во всех fetch('/api/v1/messages', ...) на
- *      fetch('https://<твой-воркер>.workers.dev/api/v1/messages', ...)
- *      либо, если Worker висит на своём домене — оставь как есть.
+ * Клиент НИКОГДА не передаёт ключ, модель или base URL — сервер решает
+ * это сам. Если какая-то из переменных не настроена, Worker отвечает
+ * 503 и ИИ на сайте отключается — никаких встроенных/резервных
+ * значений по умолчанию нет.
  */
 
-// ── Настройки ──────────────────────────────────────────────────────
-const UPSTREAM_BASE = 'https://smartapi.shop/backend/v1';
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 20; // на один IP в минуту
 
-// Резервный ключ на случай, если фронтенд не прислал свой (x-api-key).
-// Лучше хранить это в Cloudflare Secrets (см. вариант ниже), а не в коде.
-const FALLBACK_API_KEY = 'sk-smart-_eU79oohpMMo6XIlwWe0CJEh4CHIfCgQ4o3GiCBImRU';
+// Простое in-memory ограничение — переживает только "тёплый" воркер,
+// для строгого лимита используйте Cloudflare Rate Limiting или KV/Durable Objects.
+const rateBuckets = new Map();
 
-// Разрешённый источник для CORS. '*' — разрешить всем (проще для
-// локальной разработки/Termux). Для продакшена лучше указать конкретный домен.
-const ALLOWED_ORIGIN = '*';
+function isRateLimited(ip) {
+  const now = Date.now();
+  const bucket = rateBuckets.get(ip) || [];
+  const recent = bucket.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  recent.push(now);
+  rateBuckets.set(ip, recent);
+  return recent.length > RATE_LIMIT_MAX_REQUESTS;
+}
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-api-key, Authorization',
-  'Access-Control-Max-Age': '86400',
-  // Запрещаем Cloudflare (и любым промежуточным прокси) пересжимать ответ.
-  // Без этого Cloudflare может сам сжать JSON алгоритмом zstd, а некоторые
-  // Android WebView (в т.ч. используемые в приложениях-отладчиках вроде
-  // Tracer) заявляют поддержку zstd в Accept-Encoding, но не умеют его
-  // корректно распаковывать — тело приходит битым, и JSON.parse падает.
-  'Cache-Control': 'no-transform',
-};
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+  });
+}
 
 export default {
   async fetch(request, env, ctx) {
-    // Preflight-запрос браузера
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
-    }
-
     const url = new URL(request.url);
 
-    // Ожидаем пути вида /api/v1/messages, /api/v1/chat/completions и т.п.
-    // Всё, что идёт после "/api", пробрасываем на UPSTREAM_BASE как есть.
-    if (!url.pathname.startsWith('/api')) {
-      return new Response('Not found', { status: 404, headers: CORS_HEADERS });
+    // ── CORS preflight ──────────────────────────────────────────
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders() });
     }
 
-    const upstreamPath = url.pathname.replace(/^\/api(\/v1)?/, '') || '/messages';
-    const upstreamUrl = UPSTREAM_BASE + upstreamPath + url.search;
-
-    try {
-      // Ключ: приоритет — то, что прислал клиент, иначе fallback.
-      // env.SMARTAPI_KEY — если задашь секрет через `wrangler secret put SMARTAPI_KEY`,
-      // он будет использован вместо FALLBACK_API_KEY.
-      const clientKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-      const apiKey = clientKey || (env && env.SMARTAPI_KEY) || FALLBACK_API_KEY;
-
-      // Готовим тело запроса. Если это POST с JSON — принудительно
-      // выключаем стриминг, чтобы получить единый чистый JSON-ответ.
-      let body = null;
-      if (request.method !== 'GET' && request.method !== 'HEAD') {
-        const rawBody = await request.text();
-        try {
-          const parsed = rawBody ? JSON.parse(rawBody) : {};
-          parsed.stream = false; // ключевой момент: без стриминга
-          body = JSON.stringify(parsed);
-        } catch (e) {
-          // Тело не JSON — пробрасываем как есть
-          body = rawBody;
-        }
+    // ── AI proxy ────────────────────────────────────────────────
+    if (url.pathname === '/ai/chat') {
+      if (request.method !== 'POST') {
+        return json({ error: 'Method not allowed' }, 405);
       }
 
-      const upstreamHeaders = new Headers();
-      upstreamHeaders.set('Content-Type', 'application/json');
-      // Просим апстрим не сжимать ответ — Worker сам передаёт его клиенту
-      // без сжатия (см. Cache-Control: no-transform ниже), поэтому нет
-      // смысла тратить время на сжатие/распаковку лишний раз.
-      upstreamHeaders.set('Accept-Encoding', 'identity');
-      // Подставляем ключ в обоих распространённых форматах — SmartAPI
-      // разберётся, какой ему нужен.
-      upstreamHeaders.set('Authorization', `Bearer ${apiKey}`);
-      upstreamHeaders.set('x-api-key', apiKey);
+      // Конфигурация отсутствует — ИИ отключён, без встроенных данных.
+      if (!env.AI_API_KEY || !env.AI_BASE_URL || !env.AI_MODEL) {
+        return json({ error: 'AI is not configured on the server' }, 503);
+      }
 
-      const upstreamResponse = await fetch(upstreamUrl, {
-        method: request.method,
-        headers: upstreamHeaders,
-        body,
-      });
+      const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+      if (isRateLimited(ip)) {
+        return json({ error: 'Rate limit exceeded' }, 429);
+      }
 
-      // Читаем как текст — так мы гарантированно избегаем краша, даже
-      // если апстрим всё же прислал что-то похожее на SSE.
-      const rawText = await upstreamResponse.text();
-      const cleanText = cleanupStreamArtifacts(rawText);
+      let payload;
+      try {
+        payload = await request.json();
+      } catch (e) {
+        return json({ error: 'Invalid JSON body' }, 400);
+      }
 
-      return new Response(cleanText, {
-        status: upstreamResponse.status,
-        headers: {
-          ...CORS_HEADERS,
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-      });
-    } catch (err) {
-      return new Response(
-        JSON.stringify({ error: 'Proxy error', message: String(err) }),
-        {
-          status: 502,
-          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json; charset=utf-8' },
+      // ── Валидация: разрешаем только ожидаемые поля (anti-SSRF/anti-injection) ──
+      const allowedKeys = ['messages', 'system', 'max_tokens', 'temperature'];
+      const safePayload = {};
+      for (const key of allowedKeys) {
+        if (key in payload) safePayload[key] = payload[key];
+      }
+
+      if (!Array.isArray(safePayload.messages) || safePayload.messages.length === 0) {
+        return json({ error: 'messages field is required' }, 400);
+      }
+      const approxSize = JSON.stringify(safePayload).length;
+      if (approxSize > 200_000) {
+        return json({ error: 'Payload too large' }, 413);
+      }
+      if (typeof safePayload.max_tokens === 'number') {
+        safePayload.max_tokens = Math.min(safePayload.max_tokens, 8000);
+      }
+
+      // Модель и Base URL — исключительно из env, клиент их не задаёт и не видит.
+      safePayload.model = env.AI_MODEL;
+
+      let targetUrl;
+      try {
+        targetUrl = new URL('/v1/messages', env.AI_BASE_URL).toString();
+      } catch (e) {
+        return json({ error: 'AI backend misconfigured' }, 503);
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 58_000);
+
+      try {
+        const upstream = await fetch(targetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': env.AI_API_KEY,
+          },
+          body: JSON.stringify(safePayload),
+          signal: controller.signal,
+        });
+
+        const text = await upstream.text();
+        return new Response(text, {
+          status: upstream.status,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+        });
+      } catch (e) {
+        if (e.name === 'AbortError') {
+          return json({ error: 'Upstream timeout' }, 504);
         }
-      );
+        return json({ error: 'Upstream request failed' }, 502);
+      } finally {
+        clearTimeout(timeout);
+      }
     }
+
+    // ── Статика: отдаём index.html и остальные ассеты ──────────────
+    // Если вы используете Workers Sites / Assets binding, раскомментируйте:
+    // return env.ASSETS.fetch(request);
+
+    // Заглушка на случай, если ASSETS ещё не подключены:
+    return new Response('Not found. Configure ASSETS binding to serve index.html.', {
+      status: 404,
+    });
   },
 };
-
-// Удаляет служебные префиксы SSE-стриминга (event:/data:) и markdown-обёртки,
-// если апстрим всё же прислал поток вместо обычного JSON.
-function cleanupStreamArtifacts(raw) {
-  let cleaned = raw
-    .replace(/^event:.*$/gm, '')
-    .replace(/^data:\s*/gm, '')
-    .replace(/```json|```/g, '')
-    .trim();
-
-  const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
-  if (lines.length > 1) {
-    // Если это NDJSON-поток из нескольких строк — берём последнюю (финальный чанк)
-    cleaned = lines[lines.length - 1];
-  }
-  return cleaned || raw;
-}
