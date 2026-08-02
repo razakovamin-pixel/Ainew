@@ -3,52 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#080c14">
+<meta name="theme-color" content="#3a2a16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Аналитическая база данных науки ар-Риджаль">
 <title>علم الرجال — Ilm al-Rijal | Ильм ар-Риджаль</title>
 <!-- manifest.json not available in single-file mode -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet" onerror="console.warn('Fonts blocked')">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet" onerror="console.warn('Fonts blocked')">
 
 <style>
 /* ═══════════════════════════════════════
    DESIGN TOKРУS
 ═══════════════════════════════════════ */
 :root {
-  /* Shia palette: deep emerald (Ahl al-Bayt green) + warm gold accents */
-  --ink: #07120f;
-  --ink-1: #0c1a16;
-  --ink-2: #122620;
-  --ink-3: #18342b;
-  --teal: #14a877;
-  --teal-glow: rgba(20,168,119,.18);
-  --teal-light: #6ee7b0;
-  --amber: #c89b3c;
-  --amber-glow: rgba(200,155,60,.16);
-  --rose: #e11d48;
-  --rose-glow: rgba(225,29,72,.15);
-  --gold: #d4af37;
-  --gold-glow: rgba(212,175,55,.16);
-  --karbala: #9c1c1c;
-  --karbala-glow: rgba(156,28,28,.14);
-  --text: #e7f1ec;
-  --text-2: #95ad9f;
-  --text-3: #4d6a5b;
-  --border: rgba(212,175,55,.09);
-  --border-bright: rgba(212,175,55,.16);
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow: 0 8px 32px rgba(0,0,0,.55);
-  --shadow-sm: 0 2px 12px rgba(0,0,0,.4);
+  /* Manuscript-archive palette: parchment, aged paper, walnut ink, gold leaf */
+  --ink: #f2e7cd;          /* base page — parchment */
+  --ink-1: #e8d8ac;        /* structural chrome — header, sidebar, deeper vellum */
+  --ink-2: #faf3e2;        /* raised surface — cards, inputs, clean folio */
+  --ink-3: #e3cd97;        /* hover / active — burnished highlight */
+  --teal: #8a6a1f;         /* primary accent — antique bronze-gold (was: teal) */
+  --teal-glow: rgba(138,106,31,.18);
+  --teal-light: #ad8425;
+  --amber: #b8863a;        /* ochre accent */
+  --amber-glow: rgba(184,134,58,.16);
+  --rose: #8b3a2e;         /* rubric red — like scribe's red ink */
+  --rose-glow: rgba(139,58,46,.15);
+  --gold: #a9791b;         /* gold leaf */
+  --gold-glow: rgba(169,121,27,.18);
+  --karbala: #7a2020;      /* deep oxblood */
+  --karbala-glow: rgba(122,32,32,.14);
+  --text: #2b1c0f;         /* walnut ink */
+  --text-2: #6b5636;       /* sepia */
+  --text-3: #93794f;       /* faded ink */
+  --border: rgba(90,62,20,.20);
+  --border-bright: rgba(90,62,20,.36);
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 10px 30px rgba(58,40,16,.20), 0 2px 8px rgba(58,40,16,.14);
+  --shadow-sm: 0 2px 10px rgba(58,40,16,.16);
   --font-display: 'Playfair Display', Georgia, serif;
+  --font-serif-body: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
   --font-body: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
   --font-arabic: 'Amiri', 'Traditional Arabic', serif;
   --sidebar-w: 360px;
   --header-h: 64px;
-  --geo-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23d4af37' stroke-opacity='0.4' stroke-width='1'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30 Z'/%3E%3Ccircle cx='30' cy='30' r='12'/%3E%3C/g%3E%3C/svg%3E");
+  --geo-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23a9791b' stroke-opacity='0.55' stroke-width='1'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30 Z'/%3E%3Ccircle cx='30' cy='30' r='12'/%3E%3C/g%3E%3C/svg%3E");
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
 /* ═══════════════════════════════════════
@@ -56,7 +58,8 @@
 ═══════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { height: 100%; font-size: 16px; scroll-behavior: smooth; overscroll-behavior: none; }
+html { height: 100%; font-size: 16px; scroll-behavior: smooth; overscroll-behavior: none; max-width: 100%; }
+body { max-width: 100vw; }
 
 body {
   font-family: var(--font-body);
@@ -201,39 +204,46 @@ html[lang="ar"] .welcome-stats {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Islamic geometric texture overlay (subtle, behind content) */
+/* Aged-paper grain + Islamic geometric watermark (subtle, behind content) */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: var(--geo-pattern);
-  background-size: 60px 60px;
-  opacity: .035;
+  background-image: var(--paper-grain), var(--geo-pattern);
+  background-size: 180px 180px, 120px 120px;
+  opacity: .5;
+  mix-blend-mode: multiply;
   pointer-events: none;
   z-index: 0;
 }
-/* Radial emerald glow, evokes mosque-lamp light */
+body::before { opacity: .06; }
+/* Warm illumination wash + vignette, evokes lamplight over vellum */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(20,168,119,.10), transparent 60%);
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(169,121,27,.14), transparent 60%),
+    radial-gradient(ellipse 120% 90% at 50% 110%, rgba(58,40,16,.10), transparent 55%);
   pointer-events: none;
   z-index: 0;
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+::selection { background: var(--gold-glow); color: var(--text); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* ═══════════════════════════════════════
    HEADER — BRAND BAR
 ═══════════════════════════════════════ */
 .app-header {
   height: var(--header-h);
-  background: linear-gradient(135deg, var(--ink-1) 0%, var(--ink-2) 60%, rgba(20,168,119,.08) 100%);
-  border-bottom: 1px solid var(--border-bright);
+  background: linear-gradient(135deg, var(--ink-1) 0%, var(--ink-2) 60%, rgba(138,106,31,.08) 100%);
+  border-bottom: 2px solid var(--gold);
+  box-shadow: 0 3px 0 -1px var(--ink), 0 4px 0 -1px var(--border-bright);
   display: flex;
   align-items: center;
   padding: 0 20px;
@@ -244,10 +254,10 @@ body::after {
 .app-header::after {
   content: '';
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: -4px; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), var(--teal), var(--gold), transparent);
-  opacity: .5;
+  background: linear-gradient(90deg, transparent, var(--gold) 15%, var(--rose) 50%, var(--gold) 85%, transparent);
+  opacity: .6;
 }
 
 .btn-menu {
@@ -275,9 +285,9 @@ body::after {
 .app-emblem {
   width: 36px;
   height: 36px;
-  background: radial-gradient(circle at 35% 30%, rgba(20,168,119,.25), var(--teal-glow));
+  background: radial-gradient(circle at 35% 30%, rgba(138,106,31,.25), var(--teal-glow));
   border: 1.5px solid var(--gold);
-  box-shadow: 0 0 0 1px rgba(212,175,55,.15), 0 0 14px rgba(20,168,119,.25);
+  box-shadow: 0 0 0 1px rgba(184,134,11,.15), 0 0 14px rgba(138,106,31,.25);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -363,7 +373,7 @@ body::after {
 }
 .lang-btn.active {
   background: var(--teal);
-  color: #fff;
+  color: #fdf6e3;
 }
 
 /* ═══════════════════════════════════════
@@ -432,12 +442,12 @@ body::after {
   transition: all .2s;
 }
 .action-btn:hover .action-icon {
-  background: rgba(20,168,119,.15);
-  border-color: rgba(20,168,119,.4);
+  background: rgba(138,106,31,.15);
+  border-color: rgba(138,106,31,.4);
 }
 .action-btn.active .action-icon {
-  background: rgba(20,168,119,.2);
-  border-color: rgba(20,168,119,.5);
+  background: rgba(138,106,31,.2);
+  border-color: rgba(138,106,31,.5);
 }
 
 .action-label {
@@ -583,8 +593,8 @@ html[lang="ar"] .search-clear { right: auto; left: 10px; }
 }
 
 .filter-chip:hover { border-color: var(--teal); color: var(--teal); }
-.filter-chip.active { background: var(--teal); border-color: var(--teal); color: #fff; }
-.filter-chip.fav-active { background: var(--amber); border-color: var(--amber); color: #fff; }
+.filter-chip.active { background: var(--teal); border-color: var(--teal); color: #fdf6e3; }
+.filter-chip.fav-active { background: var(--amber); border-color: var(--amber); color: #fdf6e3; }
 
 /* Quick actions */
 .quick-actions {
@@ -640,9 +650,10 @@ html[lang="ar"] .search-clear { right: auto; left: 10px; }
 }
 
 .tx-item {
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: 12px 14px 12px 16px;
+  border-radius: 6px;
   border: 1px solid transparent;
+  border-left: 3px solid transparent;
   cursor: pointer;
   transition: all .15s;
   position: relative;
@@ -654,11 +665,13 @@ html[lang="ar"] .search-clear { right: auto; left: 10px; }
 .tx-item:hover {
   background: var(--ink-2);
   border-color: var(--border-bright);
+  border-left-color: var(--amber);
 }
 
 .tx-item.active {
   background: var(--teal-glow);
   border-color: var(--teal);
+  border-left-color: var(--gold);
 }
 
 .tx-name {
@@ -750,9 +763,9 @@ html[lang="ar"] .tx-fav { right: auto; left: 10px; }
 .welcome-emblem {
   width: 96px;
   height: 96px;
-  background: radial-gradient(circle at 35% 30%, rgba(20,168,119,.18), var(--ink-2));
+  background: radial-gradient(circle at 35% 30%, rgba(138,106,31,.18), var(--ink-2));
   border: 2px solid var(--gold);
-  outline: 1px solid rgba(212,175,55,.25);
+  outline: 1px solid rgba(184,134,11,.25);
   outline-offset: 5px;
   border-radius: 50%;
   display: flex;
@@ -761,13 +774,13 @@ html[lang="ar"] .tx-fav { right: auto; left: 10px; }
   font-family: var(--font-arabic);
   font-size: 52px;
   color: var(--gold);
-  box-shadow: 0 0 40px var(--teal-glow), inset 0 0 20px rgba(20,168,119,.12);
+  box-shadow: 0 0 40px var(--teal-glow), inset 0 0 20px rgba(138,106,31,.12);
   animation: pulse 3s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 40px var(--teal-glow), inset 0 0 20px rgba(20,168,119,.12); }
-  50% { box-shadow: 0 0 60px rgba(20,168,119,.4), inset 0 0 24px rgba(212,175,55,.15); }
+  0%, 100% { box-shadow: 0 0 40px var(--teal-glow), inset 0 0 20px rgba(138,106,31,.12); }
+  50% { box-shadow: 0 0 60px rgba(138,106,31,.4), inset 0 0 24px rgba(184,134,11,.15); }
 }
 
 .welcome h2 {
@@ -912,9 +925,9 @@ html[lang="ar"] .tx-fav { right: auto; left: 10px; }
   line-height: 1.3;
 }
 
-.sc-value.trust { color: #34d399; }
-.sc-value.weak { color: #fb7185; }
-.sc-value.disputed { color: #fbbf24; }
+.sc-value.trust { color: #4a7c4e; }
+.sc-value.weak { color: #b3503f; }
+.sc-value.disputed { color: #c08a2e; }
 
 .sc-dot {
   width: 8px;
@@ -927,9 +940,9 @@ html[lang="ar"] .tx-fav { right: auto; left: 10px; }
 
 html[lang="ar"] .sc-dot { margin-right: 0; margin-left: 6px; }
 
-.dot-trust { background: #34d399; box-shadow: 0 0 6px #34d399; }
-.dot-weak { background: #fb7185; box-shadow: 0 0 6px #fb7185; }
-.dot-disputed { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
+.dot-trust { background: #4a7c4e; box-shadow: 0 0 6px #4a7c4e; }
+.dot-weak { background: #b3503f; box-shadow: 0 0 6px #b3503f; }
+.dot-disputed { background: #c08a2e; box-shadow: 0 0 6px #c08a2e; }
 
 /* Section */
 .section {
@@ -957,30 +970,34 @@ html[lang="ar"] .sc-dot { margin-right: 0; margin-left: 6px; }
 
 /* Bio box */
 .bio-box {
-  background: var(--ink-1);
+  background: var(--ink-2);
   border: 1px solid var(--border-bright);
   border-radius: var(--radius);
   padding: 18px 20px;
-  font-size: 15px;
+  font-family: var(--font-serif-body);
+  font-size: 17px;
   color: var(--text-2);
   line-height: 1.7;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), var(--shadow-sm);
 }
 
 /* Analysis box */
 .analysis-box {
   background: linear-gradient(135deg, var(--ink-2) 0%, var(--ink-1) 100%);
-  border: 1px solid rgba(225,29,72,.25);
+  border: 1px solid rgba(139,58,46,.25);
   border-left: 3px solid var(--rose);
   border-radius: var(--radius);
   padding: 20px;
-  font-size: 15px;
+  font-family: var(--font-serif-body);
+  font-size: 17px;
   line-height: 1.75;
   color: var(--text-2);
   position: relative;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), var(--shadow-sm);
 }
 
 html[lang="ar"] .analysis-box {
-  border-left: 1px solid rgba(225,29,72,.25);
+  border-left: 1px solid rgba(139,58,46,.25);
   border-right: 3px solid var(--rose);
 }
 
@@ -1021,7 +1038,7 @@ html[lang="ar"] .analysis-box {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(58,40,16,.6);
   z-index: 200;
   backdrop-filter: blur(2px);
   animation: overlayIn .2s ease;
@@ -1037,9 +1054,9 @@ html[lang="ar"] .analysis-box {
 /* ═══════════════════════════════════════
    STATUS BADGE COLORS (list)
 ═══════════════════════════════════════ */
-.sb-trust { background: rgba(52,211,153,.12); color: #34d399; border: 1px solid rgba(52,211,153,.25); }
-.sb-weak { background: rgba(251,113,133,.1); color: #fb7185; border: 1px solid rgba(251,113,133,.2); }
-.sb-disputed { background: rgba(251,191,36,.1); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+.sb-trust { background: rgba(52,211,153,.12); color: #4a7c4e; border: 1px solid rgba(52,211,153,.25); }
+.sb-weak { background: rgba(179,80,63,.1); color: #b3503f; border: 1px solid rgba(179,80,63,.2); }
+.sb-disputed { background: rgba(251,191,36,.1); color: #c08a2e; border: 1px solid rgba(251,191,36,.2); }
 
 /* ═══════════════════════════════════════
    BACK BUTTON (mobile)
@@ -1209,7 +1226,7 @@ html[lang="ar"] .analysis-box {
   position: absolute;
   top: 8px;
   background: var(--teal);
-  color: #fff;
+  color: #fdf6e3;
   font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
@@ -1368,12 +1385,12 @@ html[lang="ar"] .src-item { flex-direction: row-reverse; }
    LIGHT THEME
 ═══════════════════════════════════════ */
 body.light-theme {
-  --ink: #f0f4f8; --ink-1: #e2e8f0; --ink-2: #cbd5e1; --ink-3: #94a3b8;
-  --text: #0f172a; --text-2: #334155; --text-3: #64748b;
-  --border: rgba(0,0,0,.1); --border-bright: rgba(0,0,0,.18);
-  --shadow: 0 8px 32px rgba(0,0,0,.15); --shadow-sm: 0 2px 12px rgba(0,0,0,.1);
+  --ink: #faf3e2; --ink-1: #f2e8d0; --ink-2: #e3d4ac; --ink-3: #8a7a5c;
+  --text: #1f160b; --text-2: #3a2f1a; --text-3: #6b5c42;
+  --border: rgba(58,40,16,.1); --border-bright: rgba(58,40,16,.18);
+  --shadow: 0 8px 32px rgba(58,40,16,.15); --shadow-sm: 0 2px 12px rgba(58,40,16,.1);
 }
-body.light-theme .app-header { background: rgba(240,244,248,.92); }
+body.light-theme .app-header { background: rgba(250,240,214,.92); }
 body.light-theme .sidebar { background: var(--ink-1); }
 body.light-theme .tx-item:hover { background: var(--ink-2); }
 body.light-theme .tx-item.active { background: var(--teal-glow); }
@@ -1386,23 +1403,25 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
    MODAL / PANEL OVERLAY
 ═══════════════════════════════════════ */
 .panel-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  position: fixed; inset: 0; background: rgba(35,24,10,.72);
   z-index: 200; display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none; transition: opacity .25s;
 }
 .panel-overlay.open { opacity: 1; pointer-events: auto; }
 .panel-box {
-  background: var(--ink-1); border: 1px solid var(--border-bright);
+  background: var(--ink-2); border: 1px solid var(--gold);
+  outline: 1px solid var(--border); outline-offset: -6px;
   border-radius: var(--radius-lg); width: min(700px, 96vw);
   max-height: 90vh; overflow-y: auto; padding: 28px;
   box-shadow: var(--shadow); transform: translateY(20px); transition: transform .25s;
 }
 .panel-overlay.open .panel-box { transform: translateY(0); }
-.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
-.panel-title { font-family: var(--font-display); font-size: 20px; color: var(--teal-light); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border-bright); }
+.panel-title { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--teal); letter-spacing: .01em; }
 .panel-close { background: none; border: none; color: var(--text-2); cursor: pointer;
   padding: 6px; border-radius: 8px; font-size: 20px; line-height: 1; transition: color .15s; }
-.panel-close:hover { color: var(--text); }
+.panel-close:hover { color: var(--rose); }
 
 /* ── Donut chart ── */
 .donut-wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; margin-bottom: 28px; }
@@ -1429,10 +1448,14 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
 .cmp-select { background: var(--ink-2); border: 1px solid var(--border-bright);
   color: var(--text); border-radius: var(--radius); padding: 8px 10px;
   font-size: 13px; font-family: var(--font-body); width: 100%; cursor: pointer; }
-.cmp-btn { background: var(--teal); color: #fff; border: none; border-radius: var(--radius);
-  padding: 8px 18px; font-size: 13px; cursor: pointer; font-family: var(--font-body);
-  margin-bottom: 16px; transition: opacity .15s; }
-.cmp-btn:hover { opacity: .85; }
+.cmp-btn { background: linear-gradient(180deg, var(--teal-light) 0%, var(--teal) 100%);
+  color: #fdf6e3; border: 1px solid var(--gold); border-radius: var(--radius);
+  padding: 8px 18px; font-size: 12.5px; font-weight: 600; letter-spacing: .03em;
+  cursor: pointer; font-family: var(--font-body); text-transform: uppercase;
+  margin-bottom: 16px; transition: all .15s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 3px rgba(58,40,16,.3); }
+.cmp-btn:hover { filter: brightness(1.08); transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 8px rgba(58,40,16,.35); }
 .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .cmp-table th { padding: 9px 12px; text-align: left; color: var(--text-3); font-weight: 500;
   border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
@@ -1457,9 +1480,9 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   padding: 3px 10px; font-size: 11px; color: var(--text-2); cursor: pointer;
   transition: all .15s; white-space: nowrap; }
 .tl-chip:hover { background: var(--teal-glow); border-color: var(--teal); color: var(--teal-light); }
-.tl-chip.tl-trust { border-color: rgba(20,168,119,.4); }
-.tl-chip.tl-weak { border-color: rgba(225,29,72,.3); }
-.tl-chip.tl-disputed { border-color: rgba(200,155,60,.4); }
+.tl-chip.tl-trust { border-color: rgba(138,106,31,.4); }
+.tl-chip.tl-weak { border-color: rgba(139,58,46,.3); }
+.tl-chip.tl-disputed { border-color: rgba(184,134,58,.4); }
 
 /* ═══════════════════════════════════════
    GLOSSARY PANEL
@@ -1470,8 +1493,8 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
 .gloss-item.gloss-weak { border-color: var(--rose); }
 .gloss-item.gloss-disputed { border-color: var(--amber); }
 .gloss-term { font-family: var(--font-display); font-size: 15px; color: var(--teal-light); margin-bottom: 2px; }
-.gloss-item.gloss-weak .gloss-term { color: #fda4af; }
-.gloss-item.gloss-disputed .gloss-term { color: #fcd34d; }
+.gloss-item.gloss-weak .gloss-term { color: #c97a68; }
+.gloss-item.gloss-disputed .gloss-term { color: #d9ad4a; }
 .gloss-arabic { font-family: var(--font-arabic); font-size: 17px; color: var(--text-2);
   direction: rtl; margin-bottom: 6px; }
 .gloss-def { font-size: 13px; color: var(--text-2); line-height: 1.65; }
@@ -1488,7 +1511,7 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
 .epoch-chip:hover { color: var(--text-2); border-color: var(--border-bright); }
 .epoch-chip.active { background: var(--teal-glow); border-color: var(--teal); color: var(--teal-light); }
 .sect-chip:hover { color: var(--text-2); }
-.sect-chip.active { background: var(--rose-glow); border-color: var(--rose); color: #fda4af; }
+.sect-chip.active { background: var(--rose-glow); border-color: var(--rose); color: #c97a68; }
 
 /* ═══════════════════════════════════════
    COPY CARD BUTTON
@@ -1576,9 +1599,9 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   border-left: 3px solid var(--border-bright);
   position: relative;
 }
-.isnad-link.trust { border-left-color: #34d399; }
-.isnad-link.disputed { border-left-color: #fbbf24; }
-.isnad-link.weak { border-left-color: #fb7185; }
+.isnad-link.trust { border-left-color: #4a7c4e; }
+.isnad-link.disputed { border-left-color: #c08a2e; }
+.isnad-link.weak { border-left-color: #b3503f; }
 .isnad-link.unknown { border-left-color: var(--text-3); }
 .isnad-connector {
   text-align: center;
@@ -1593,9 +1616,9 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   border-radius: 8px;
   font-weight: 600;
 }
-.isnad-link-status.trust { background: rgba(52,211,153,.12); color: #34d399; }
-.isnad-link-status.disputed { background: rgba(251,191,36,.1); color: #fbbf24; }
-.isnad-link-status.weak { background: rgba(251,113,133,.1); color: #fb7185; }
+.isnad-link-status.trust { background: rgba(52,211,153,.12); color: #4a7c4e; }
+.isnad-link-status.disputed { background: rgba(251,191,36,.1); color: #c08a2e; }
+.isnad-link-status.weak { background: rgba(179,80,63,.1); color: #b3503f; }
 .isnad-link-status.unknown { background: var(--ink-3); color: var(--text-3); }
 .isnad-verdict {
   background: var(--ink-2);
@@ -1621,11 +1644,11 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
 /* ── Бейджи хукма хадиса (сахих/хасан/да'иф/...) ── */
 .hukm-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .hukm-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .3px; white-space: nowrap; }
-.hukm-sahih { background: rgba(52,211,153,.15); color: #34d399; }
-.hukm-hasan { background: rgba(96,165,250,.15); color: #60a5fa; }
-.hukm-daif { background: rgba(251,113,133,.15); color: #fb7185; }
-.hukm-mursal { background: rgba(251,191,36,.15); color: #fbbf24; }
-.hukm-mawdu { background: rgba(248,113,113,.2); color: #f87171; }
+.hukm-sahih { background: rgba(52,211,153,.15); color: #4a7c4e; }
+.hukm-hasan { background: rgba(96,165,250,.15); color: #4a6fa5; }
+.hukm-daif { background: rgba(179,80,63,.15); color: #b3503f; }
+.hukm-mursal { background: rgba(251,191,36,.15); color: #c08a2e; }
+.hukm-mawdu { background: rgba(139,32,32,.2); color: #8b2020; }
 
 /* ── Кнопки под сообщением: избранное / другая марджа ── */
 .msg-extras { align-self: flex-start; max-width: 88%; display: flex; flex-wrap: wrap; gap: 6px; margin-top: -2px; }
@@ -1641,7 +1664,7 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   font-family: var(--font-body);
 }
 .msg-bookmark-btn:hover, .msg-marja-btn:hover { border-color: var(--teal); color: var(--teal-light); }
-.msg-bookmark-btn.active { border-color: #fbbf24; color: #fbbf24; }
+.msg-bookmark-btn.active { border-color: #c08a2e; color: #c08a2e; }
 
 /* ═══════════════════════════════════════
    QUIZ
@@ -1705,8 +1728,8 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   transition: all .15s;
 }
 .quiz-option:hover { border-color: var(--teal); color: var(--teal-light); background: var(--teal-glow); }
-.quiz-option.correct { background: rgba(52,211,153,.12); border-color: #34d399; color: #34d399; cursor: default; }
-.quiz-option.wrong { background: rgba(251,113,133,.1); border-color: #fb7185; color: #fb7185; cursor: default; }
+.quiz-option.correct { background: rgba(52,211,153,.12); border-color: #4a7c4e; color: #4a7c4e; cursor: default; }
+.quiz-option.wrong { background: rgba(179,80,63,.1); border-color: #b3503f; color: #b3503f; cursor: default; }
 .quiz-option.reveal { background: rgba(52,211,153,.06); border-color: rgba(52,211,153,.3); cursor: default; }
 .quiz-explanation {
   background: var(--ink-2);
@@ -1789,7 +1812,7 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   height: 32px;
   border-radius: 50%;
   background: var(--teal-glow);
-  border: 1px solid rgba(20,168,119,.4);
+  border: 1px solid rgba(138,106,31,.4);
   color: var(--teal);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -1943,9 +1966,9 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
 .geo-tx-dot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
 }
-.geo-tx-dot.status-trust { background: #34d399; }
-.geo-tx-dot.status-weak { background: #fb7185; }
-.geo-tx-dot.status-disputed { background: #fbbf24; }
+.geo-tx-dot.status-trust { background: #4a7c4e; }
+.geo-tx-dot.status-weak { background: #b3503f; }
+.geo-tx-dot.status-disputed { background: #c08a2e; }
 
 /* ═══════════════════════════════════════
    GРУEALOGY TREE
@@ -2010,7 +2033,7 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
    SEARCH HIGHLIGHT
 ═══════════════════════════════════════ */
 .tx-name mark, .tx-arabic mark {
-  background: rgba(200,155,60,.25);
+  background: rgba(184,134,58,.25);
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;
@@ -2072,7 +2095,7 @@ body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--in
   align-items: center;
   gap: 4px;
   background: var(--teal-glow);
-  border: 1px solid rgba(20,168,119,.3);
+  border: 1px solid rgba(138,106,31,.3);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 10px;
@@ -2240,7 +2263,7 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 .donate-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.72);
+  background: rgba(58,40,16,.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 9999;
@@ -2262,20 +2285,20 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 }
 
 .donate-box {
-  background: linear-gradient(160deg, #0f1a2e 0%, #0d1421 60%, #0a1118 100%);
+  background: linear-gradient(160deg, #241a0d 0%, #201708 60%, #1a1206 100%);
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 20px;
   width: min(520px, 100%);
   max-height: min(90dvh, 720px);
   overflow-y: auto;
-  box-shadow: 0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(20,168,119,.15);
+  box-shadow: 0 32px 80px rgba(58,40,16,.7), 0 0 0 1px rgba(138,106,31,.15);
   animation: donateBoxIn .35s cubic-bezier(.22,1,.36,1);
   position: relative;
   scrollbar-width: thin;
-  scrollbar-color: #1d2a44 transparent;
+  scrollbar-color: #3a2a16 transparent;
 }
 .donate-box::-webkit-scrollbar { width: 3px; }
-.donate-box::-webkit-scrollbar-thumb { background: #1d2a44; border-radius: 2px; }
+.donate-box::-webkit-scrollbar-thumb { background: #3a2a16; border-radius: 2px; }
 
 @keyframes donateBoxIn {
   from { opacity: 0; transform: translateY(28px) scale(.96); }
@@ -2285,7 +2308,7 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 /* Top accent bar */
 .donate-accent {
   height: 3px;
-  background: linear-gradient(90deg, #14a877, #6ee7b0, #14a877);
+  background: linear-gradient(90deg, #8a6a1f, #c9a227, #8a6a1f);
   background-size: 200% 100%;
   animation: accentFlow 3s linear infinite;
   border-radius: 20px 20px 0 0;
@@ -2309,11 +2332,11 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 18px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #f2e8d0;
   line-height: 1.25;
   flex: 1;
 }
-.donate-title span { color: #6ee7b0; }
+.donate-title span { color: #c9a227; }
 .donate-close-btn {
   flex-shrink: 0;
   background: rgba(255,255,255,.06);
@@ -2325,7 +2348,7 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #94a3b8;
+  color: #8a7a5c;
   font-size: 16px;
   line-height: 1;
   transition: all .2s;
@@ -2333,19 +2356,19 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
   -webkit-tap-highlight-color: transparent;
 }
 .donate-close-btn:hover {
-  background: rgba(225,29,72,.18);
-  border-color: rgba(225,29,72,.35);
-  color: #fda4af;
+  background: rgba(139,58,46,.18);
+  border-color: rgba(139,58,46,.35);
+  color: #c97a68;
   transform: rotate(90deg);
 }
 
 /* Body text */
 .donate-body {
   font-size: 14px;
-  color: #94a3b8;
+  color: #8a7a5c;
   line-height: 1.75;
   margin-bottom: 22px;
-  border-left: 2px solid rgba(20,168,119,.4);
+  border-left: 2px solid rgba(138,106,31,.4);
   padding-left: 14px;
 }
 
@@ -2368,8 +2391,8 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
   cursor: pointer;
   position: relative;
 }
-.wallet-row:hover { border-color: rgba(20,168,119,.4); }
-.wallet-row:active { background: rgba(20,168,119,.06); }
+.wallet-row:hover { border-color: rgba(138,106,31,.4); }
+.wallet-row:active { background: rgba(138,106,31,.06); }
 
 .wallet-label {
   display: flex;
@@ -2377,7 +2400,7 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
   gap: 7px;
   font-size: 11px;
   font-weight: 700;
-  color: #6ee7b0;
+  color: #c9a227;
   text-transform: uppercase;
   letter-spacing: .07em;
 }
@@ -2386,24 +2409,24 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 .wallet-addr {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
-  color: #64748b;
+  color: #6b5c42;
   word-break: break-all;
   line-height: 1.5;
   transition: color .2s;
   user-select: all;
 }
-.wallet-row:hover .wallet-addr { color: #94a3b8; }
+.wallet-row:hover .wallet-addr { color: #8a7a5c; }
 
 .wallet-copy {
   position: absolute;
   top: 10px;
   right: 12px;
-  background: rgba(20,168,119,.12);
-  border: 1px solid rgba(20,168,119,.25);
+  background: rgba(138,106,31,.12);
+  border: 1px solid rgba(138,106,31,.25);
   border-radius: 6px;
   padding: 3px 8px;
   font-size: 10px;
-  color: #6ee7b0;
+  color: #c9a227;
   cursor: pointer;
   opacity: 0;
   transition: opacity .15s;
@@ -2415,17 +2438,17 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 
 /* Card row */
 .card-row {
-  background: linear-gradient(135deg, rgba(200,155,60,.08), rgba(180,140,40,.06));
-  border: 1px solid rgba(200,155,60,.22);
+  background: linear-gradient(135deg, rgba(184,134,58,.08), rgba(184,134,58,.06));
+  border: 1px solid rgba(184,134,58,.22);
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 20px;
 }
-.card-row .wallet-label { color: #fbbf24; }
-.card-row .wallet-addr { font-size: 15px; letter-spacing: .1em; color: #94a3b8; font-family: 'IBM Plex Mono', monospace; }
+.card-row .wallet-label { color: #c08a2e; }
+.card-row .wallet-addr { font-size: 15px; letter-spacing: .1em; color: #8a7a5c; font-family: 'IBM Plex Mono', monospace; }
 .card-recipient {
   font-size: 11px;
-  color: #64748b;
+  color: #6b5c42;
   margin-top: 3px;
 }
 
@@ -2433,24 +2456,24 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 .donate-footer {
   text-align: center;
   font-size: 13px;
-  color: #475569;
+  color: #4a3d24;
   padding-top: 16px;
   border-top: 1px solid rgba(255,255,255,.06);
   font-family: 'Amiri', serif;
   line-height: 1.7;
 }
-.donate-footer em { color: #6ee7b0; font-style: normal; }
+.donate-footer em { color: #c9a227; font-style: normal; }
 
 /* Close button at bottom */
 .donate-dismiss {
   display: block;
   width: 100%;
   margin-top: 16px;
-  background: rgba(20,168,119,.1);
-  border: 1px solid rgba(20,168,119,.25);
+  background: rgba(138,106,31,.1);
+  border: 1px solid rgba(138,106,31,.25);
   border-radius: 10px;
   padding: 10px;
-  color: #6ee7b0;
+  color: #c9a227;
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 13px;
   font-weight: 600;
@@ -2459,7 +2482,7 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
   transition: all .2s;
   touch-action: manipulation;
 }
-.donate-dismiss:hover { background: rgba(20,168,119,.2); border-color: rgba(110,231,176,.4); }
+.donate-dismiss:hover { background: rgba(138,106,31,.2); border-color: rgba(181,146,47,.4); }
 
 @media (max-width: 480px) {
   .donate-inner { padding: 18px 16px 22px; }
@@ -2478,10 +2501,10 @@ html[lang="fa"] .det-top { flex-direction: row-reverse; }
 
 body {
   background:
-    radial-gradient(circle at 20% 20%, rgba(20,168,119,.10), transparent 22%),
-    radial-gradient(circle at 80% 10%, rgba(200,155,60,.10), transparent 20%),
-    radial-gradient(circle at 50% 90%, rgba(225,29,72,.08), transparent 18%),
-    linear-gradient(135deg, #080c14 0%, #0b1220 45%, #06070b 100%);
+    radial-gradient(circle at 20% 20%, rgba(138,106,31,.10), transparent 22%),
+    radial-gradient(circle at 80% 10%, rgba(184,134,58,.10), transparent 20%),
+    radial-gradient(circle at 50% 90%, rgba(139,58,46,.08), transparent 18%),
+    linear-gradient(135deg, #3a2a16 0%, #1c1408 45%, #150f06 100%);
   background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   animation: bgDrift 18s ease-in-out infinite alternate;
 }
@@ -2492,9 +2515,9 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(circle at 30% 25%, rgba(110,231,176,.08), transparent 18%),
-    radial-gradient(circle at 70% 30%, rgba(200,155,60,.06), transparent 16%),
-    radial-gradient(circle at 50% 70%, rgba(225,29,72,.05), transparent 18%);
+    radial-gradient(circle at 30% 25%, rgba(181,146,47,.08), transparent 18%),
+    radial-gradient(circle at 70% 30%, rgba(184,134,58,.06), transparent 16%),
+    radial-gradient(circle at 50% 70%, rgba(139,58,46,.05), transparent 18%);
   filter: blur(28px);
   opacity: .8;
   animation: ambientShift 22s ease-in-out infinite alternate;
@@ -2562,7 +2585,7 @@ body::after {
 .method-card:hover,
 .conflict-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(0,0,0,.22);
+  box-shadow: 0 10px 26px rgba(58,40,16,.22);
 }
 
 .tx-item {
@@ -2606,7 +2629,7 @@ html[lang="ar"] .tx-item:hover {
 .filter-chip.active,
 .action-btn.active,
 .tab-btn.active {
-  box-shadow: 0 0 0 1px rgba(110,231,176,.18), 0 0 24px rgba(20,168,119,.08);
+  box-shadow: 0 0 0 1px rgba(181,146,47,.18), 0 0 24px rgba(138,106,31,.08);
 }
 
 .det-name,
@@ -2614,7 +2637,7 @@ html[lang="ar"] .tx-item:hover {
 .welcome h2,
 .app-title,
 .ws-num {
-  text-shadow: 0 0 18px rgba(20,168,119,.05);
+  text-shadow: 0 0 18px rgba(138,106,31,.05);
 }
 
 .det-header::before,
@@ -2653,7 +2676,7 @@ html[lang="ar"] .tx-item:hover {
 .btn-icon:hover svg,
 .action-btn:hover svg,
 .btn-quick:hover svg {
-  filter: drop-shadow(0 0 8px rgba(110,231,176,.35));
+  filter: drop-shadow(0 0 8px rgba(181,146,47,.35));
 }
 
 .toast {
@@ -2664,7 +2687,7 @@ html[lang="ar"] .tx-item:hover {
   position: relative;
 }
 .sec-title::after {
-  background: linear-gradient(90deg, rgba(255,255,255,.12), rgba(110,231,176,.45), rgba(255,255,255,.12));
+  background: linear-gradient(90deg, rgba(255,255,255,.12), rgba(181,146,47,.45), rgba(255,255,255,.12));
   background-size: 200% 100%;
   animation: shimmerLine 3.5s linear infinite;
 }
@@ -2688,7 +2711,7 @@ select:focus {
 .fx-particle {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(110,231,176,.9) 0%, rgba(20,168,119,.25) 45%, transparent 70%);
+  background: radial-gradient(circle, rgba(181,146,47,.9) 0%, rgba(138,106,31,.25) 45%, transparent 70%);
   filter: blur(.5px);
   opacity: .0;
   animation: floatParticle linear infinite;
@@ -2736,9 +2759,9 @@ select:focus {
   100% { opacity: .85; }
 }
 @keyframes toastGlow {
-  0% { box-shadow: 0 0 0 rgba(20,168,119,0); }
-  50% { box-shadow: 0 0 24px rgba(20,168,119,.15); }
-  100% { box-shadow: 0 0 0 rgba(20,168,119,0); }
+  0% { box-shadow: 0 0 0 rgba(138,106,31,0); }
+  50% { box-shadow: 0 0 24px rgba(138,106,31,.15); }
+  100% { box-shadow: 0 0 0 rgba(138,106,31,0); }
 }
 @keyframes shimmerLine {
   0% { background-position: 0% 50%; }
@@ -2755,13 +2778,13 @@ select:focus {
    PERFORMANCE + INTRO + DONATE BUTTON
 ═══════════════════════════════════════ */
 .btn-donate {
-  color: #fda4af;
-  background: rgba(225,29,72,.08);
-  border: 1px solid rgba(225,29,72,.22);
+  color: #c97a68;
+  background: rgba(139,58,46,.08);
+  border: 1px solid rgba(139,58,46,.22);
 }
 .btn-donate:hover {
-  background: rgba(225,29,72,.18);
-  color: #fecdd3;
+  background: rgba(139,58,46,.18);
+  color: #e8c9b8;
 }
 .btn-donate svg { stroke: currentColor; }
 
@@ -2776,9 +2799,9 @@ select:focus {
   width: min(420px, calc(100vw - 32px));
   padding: 26px 24px 22px;
   border-radius: 24px;
-  background: linear-gradient(160deg, rgba(15,23,36,.96), rgba(10,16,26,.98));
+  background: linear-gradient(160deg, rgba(35,24,10,.96), rgba(35,24,10,.98));
   border: 1px solid rgba(255,255,255,.1);
-  box-shadow: 0 28px 90px rgba(0,0,0,.55);
+  box-shadow: 0 28px 90px rgba(58,40,16,.55);
   text-align: center;
   backdrop-filter: blur(10px);
 }
@@ -2804,7 +2827,7 @@ select:focus {
   display: block;
   height: 10px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(110,231,176,.12), rgba(110,231,176,.38), rgba(110,231,176,.12));
+  background: linear-gradient(90deg, rgba(181,146,47,.12), rgba(181,146,47,.38), rgba(181,146,47,.12));
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -2843,7 +2866,7 @@ select:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 .tx-item.active {
-  box-shadow: 0 0 0 1px rgba(20,168,119,.2), 0 10px 30px rgba(20,168,119,.08);
+  box-shadow: 0 0 0 1px rgba(138,106,31,.2), 0 10px 30px rgba(138,106,31,.08);
   animation: activeGlow 2.4s ease-in-out infinite;
 }
 @keyframes activeGlow {
@@ -2921,9 +2944,9 @@ document.addEventListener("DOMContentLoaded",()=>{
       </div>
 
       <div class="donate-body">
-        Проект <strong style="color:#e2e8f0">ShiaIsnad</strong> развивается исключительно благодаря энтузиазму и поддержке неравнодушных людей.<br><br>
+        Проект <strong style="color:#f2e8d0">ShiaIsnad</strong> развивается исключительно благодаря энтузиазму и поддержке неравнодушных людей.<br><br>
         Сайт полностью бесплатный и останется таким, однако его развитие, поддержка домена, хостинга и добавление новых материалов требуют времени и средств.<br><br>
-        Если вы хотите поддержать проект любой суммой, мы будем искренне благодарны. Поддержка является исключительно <strong style="color:#6ee7b0">добровольной</strong>.
+        Если вы хотите поддержать проект любой суммой, мы будем искренне благодарны. Поддержка является исключительно <strong style="color:#c9a227">добровольной</strong>.
       </div>
 
       <div class="donate-wallets">
@@ -2993,6 +3016,12 @@ document.addEventListener("DOMContentLoaded",()=>{
   </div>
 
   <div class="header-actions">
+    <button class="btn-icon" id="btnSettings" title="Настройки">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
     <button class="btn-icon" id="btnSort" title="Сортировка списка">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/>
@@ -3340,7 +3369,6 @@ document.addEventListener("DOMContentLoaded",()=>{
         <div class="sec-title" id="secBioLabel">—</div>
         <div class="bio-box" id="detBio"></div>
       </div>
-
       <!-- Analysis -->
       <div class="section" id="analysisSection">
         <div class="sec-title" id="secAnalysisLabel">—</div>
@@ -3450,35 +3478,18 @@ document.addEventListener("DOMContentLoaded",()=>{
   </div>
 </div>
 
-<!-- SETTINGS PANEL — ввод собственного API-ключа для ИИ -->
+<!-- SETTINGS PANEL -->
 <div class="panel-overlay" id="settingsPanel">
   <div class="panel-box" style="width:min(480px,96vw)">
     <div class="panel-head">
-      <div class="panel-title">⚙️ Настройки ИИ</div>
+      <div class="panel-title">⚙️ Настройки</div>
       <button class="panel-close" id="settingsClose">✕</button>
     </div>
     <p style="font-size:13.5px;color:var(--text-2);line-height:1.75;margin-bottom:14px">
-      ИИ-ассистент работает через <strong style="color:var(--teal-light)">smartapi.shop</strong>. Чтобы пользоваться переводом карточек и ИИ-чатом, вставьте сюда свой API-ключ. Ключ хранится только в вашем браузере (localStorage) и никуда, кроме smartapi.shop, не передаётся.
+      Перевод карточек и ИИ-чат работают через сервер сайта. Никакие ключи доступа или адреса ИИ-сервиса на этой странице не хранятся и не настраиваются — это делается только на сервере.
     </p>
-    <label style="display:block;font-size:12px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:6px">API-КЛЮЧ</label>
-    <input
-      type="password"
-      id="settingsApiKeyInput"
-      placeholder="sk-smart-3WT4wAKrsLLApXN7IUji_rlX3Dlb50MTKtj070qyyXQ"
-      autocomplete="off"
-      spellcheck="false"
-      style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-bottom:6px"
-    >
-    <button id="settingsShowKey" type="button" style="background:none;border:none;color:var(--teal);font-size:12px;cursor:pointer;padding:0;margin-bottom:14px">Показать ключ</button>
 
-    <div style="display:flex;gap:10px;margin-bottom:8px">
-      <button id="settingsSaveKey" class="cmp-btn" style="flex:1">Сохранить</button>
-      <button id="settingsClearKey" class="cmp-btn" style="flex:1;opacity:.75">Удалить ключ</button>
-    </div>
-
-    <div id="settingsKeyStatus" style="margin-top:14px;padding:14px;border-radius:var(--radius);font-size:13.5px"></div>
-
-    <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
+    <div style="margin-top:4px">
       <label style="display:block;font-size:12px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:6px">МАРДЖА ТАКЛИДА (для вопросов по фикху)</label>
       <select id="settingsMarjaSelect" style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:13.5px">
         <option value="">Не выбрана (общий ответ)</option>
@@ -3492,16 +3503,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       <p style="font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.6">Выбор марджи влияет только на ответы по фикху (فقه) в ИИ-чате — ассистент будет явно указывать, чью фетву приводит, и позволит спросить мнение другой марджи в любой момент.</p>
     </div>
 
-    <!-- Model selector hidden - model is fixed internally -->
-    <select id="settingsModelSelect" style="display:none">
-      <option value="deepseek-v4-flash">deepseek-v4-flash</option>
-    </select>
-    <input type="text" id="settingsModelCustomInput" style="display:none"
-    <button id="settingsSaveModel" style="display:none">Сохранить модель</button>
-    <div id="settingsModelStatus" style="display:none"></div>
-
     <button id="settingsClose2" class="cmp-btn" style="margin-top:18px;width:100%">Закрыть</button>
-    <div id="settingsStatus" style="display:none"></div>
   </div>
 </div>
 
@@ -4836,19 +4838,19 @@ Yalnız etibarlı JSON ilə cavab verin:
 {"name":"Azərbaycan dilində ravi adı","bio":"tərcümə olunmuş mətn","analysis":"tərcümə olunmuş təhlil","sources":["Mənbə 1","Mənbə 2"]}`;
   }
 
-  if (!getApiKey()) throw new Error('NO_API_KEY');
+  // Ключ больше не обязателен на клиенте — сервер (Worker) сам
+  // решает, каким доступом и какой моделью пользоваться.
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 сек — max_tokens увеличен, генерация дольше
 
   let res;
   try {
-    res = await fetch('/api/v1/messages', {
+    res = await fetch('/ai/chat', {
       method: 'POST',
       headers: aiRequestHeaders(),
       signal: controller.signal,
       body: JSON.stringify({
-        model: getModel(),
         max_tokens: 4000,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -4929,12 +4931,11 @@ async function batchTranslateAzNames() {
     const prompt = 'Transkribe these Islamic hadith transmitter names from Russian/Arabic into Azerbaijani (Latin-based). Phonetic rules: Мухаммад→Muhəmməd, Али→Əli, Хусейн→Hüseyn, аль→əl, ибн→ibn, Джафар→Cəfər, Хасан→Həsən, Аббас→Abbas. Reply ONLY with valid JSON array:\n[{"id":1,"name":"Az name"},...]\n\nNames:\n' + nameList;
 
     try {
-      const res = await fetch('/api/v1/messages', {
+      const res = await fetch('/ai/chat', {
         method: 'POST',
         headers: aiRequestHeaders(),
         body: JSON.stringify({
-          model: getModel(),
-          max_tokens: 2500,
+            max_tokens: 2500,
           messages: [{ role: 'user', content: prompt }]
         })
       });
@@ -5539,7 +5540,6 @@ function initExtras() {
   // ── ИИ-чат и настройки ──────────────────────────────────────────
   initAiChatPanel();
   initSettingsPanel();
-  updateAiChatModelLabel();
 
   // Escape closes any panel
   document.addEventListener('keydown', e => {
@@ -6151,20 +6151,9 @@ function extractAiReply(data) {
 
 
 async function sendAiChatMessage(userText) {
-  if (!getApiKey()) {
-    renderChatMessage('user', userText);
-    const detectedLangNoKey = detectUserLang(userText);
-    const noKeyMessages = {
-      ru: '⚠ Сначала вставьте ваш ключ в настройках (значок ⚙ сверху), затем повторите вопрос.',
-      ar: '⚠ الرجاء إدخال مفتاح API في الإعدادات (أيقونة ⚙ بالأعلى) ثم كرر السؤال.',
-      az: '⚠ Əvvəlcə API açarınızı parametrlərdə (yuxarıda ⚙ işarəsi) daxil edin, sonra sualı təkrarlayın.',
-      en: '⚠ Please enter your API key in settings (⚙ icon above) first, then repeat your question.',
-      fa: '⚠ لطفاً ابتدا کلید API خود را در تنظیمات (آیکون ⚙ بالا) وارد کنید، سپس سوال را تکرار کنید.',
-    };
-    const noKeyBubble = renderChatMessage('assistant', noKeyMessages[detectedLangNoKey] || noKeyMessages.ru);
-    noKeyBubble.style.color = 'var(--rose)';
-    return;
-  }
+  // Ключ теперь не обязателен — по умолчанию используется серверный
+  // доступ (env.AI_API_KEY на Cloudflare Worker). Личный ключ пользователя,
+  // если он его сохранил в настройках, просто передаётся как переопределение.
 
   const sendBtn = $('aiChatSend');
   const input = $('aiChatInput');
@@ -6227,13 +6216,12 @@ async function sendAiChatMessage(userText) {
     }, 12000);
 
     const makeRequest = async (systemText, maxTokens) => {
-      const resp = await fetch('/api/v1/messages', {
+      const resp = await fetch('/ai/chat', {
         method: 'POST',
         headers: aiRequestHeaders(),
         signal: controller.signal,
         body: JSON.stringify({
-          model: getModel(),
-          max_tokens: maxTokens,
+            max_tokens: maxTokens,
           temperature: 0.2,
           system: systemText,
           messages,
@@ -6357,63 +6345,11 @@ function initAiChatPanel() {
 
 function initSettingsPanel() {
   const btnSettings = $('btnSettings');
-  if (btnSettings) btnSettings.addEventListener('click', () => { openPanelEl('settingsPanel'); refreshSettingsKeyUI(); refreshSettingsModelUI(); });
+  if (btnSettings) btnSettings.addEventListener('click', () => openPanelEl('settingsPanel'));
   $('settingsClose').addEventListener('click', () => closePanel('settingsPanel'));
   const close2 = $('settingsClose2');
   if (close2) close2.addEventListener('click', () => closePanel('settingsPanel'));
   $('settingsPanel').addEventListener('click', e => { if (e.target === $('settingsPanel')) closePanel('settingsPanel'); });
-
-  const input = $('settingsApiKeyInput');
-  const showBtn = $('settingsShowKey');
-  const saveBtn = $('settingsSaveKey');
-  const clearBtn = $('settingsClearKey');
-
-  if (showBtn) showBtn.addEventListener('click', () => {
-    const isPw = input.type === 'password';
-    input.type = isPw ? 'text' : 'password';
-    showBtn.textContent = isPw ? 'Скрыть ключ' : 'Показать ключ';
-  });
-
-  if (saveBtn) saveBtn.addEventListener('click', () => {
-    const val = (input.value || '').trim();
-    if (!val) {
-      renderSettingsKeyStatus('Введите ключ перед сохранением.', false);
-      return;
-    }
-    setApiKey(val);
-    renderSettingsKeyStatus('✅ Ключ сохранён в этом браузере.', true);
-  });
-
-  if (clearBtn) clearBtn.addEventListener('click', () => {
-    clearApiKeyStorage();
-    input.value = '';
-    renderSettingsKeyStatus('Ключ удалён.', false);
-  });
-
-  // ── Выбор модели ──
-  const modelSelect = $('settingsModelSelect');
-  const modelCustom = $('settingsModelCustomInput');
-  const modelSave = $('settingsSaveModel');
-
-  function syncCustomVisibility() {
-    if (!modelSelect || !modelCustom) return;
-    modelCustom.style.display = modelSelect.value === '__custom__' ? 'block' : 'none';
-  }
-
-  if (modelSelect) modelSelect.addEventListener('change', syncCustomVisibility);
-
-  if (modelSave) modelSave.addEventListener('click', () => {
-    let chosen = modelSelect ? modelSelect.value : '';
-    if (chosen === '__custom__') {
-      chosen = (modelCustom.value || '').trim();
-      if (!chosen) {
-        renderSettingsModelStatus('Введите название модели.', false);
-        return;
-      }
-    }
-    setModel(chosen);
-    renderSettingsModelStatus(`✅ Используется модель: ${chosen}`, true);
-  });
 
   // ── Выбор марджи таклида ──
   const marjaSelect = $('settingsMarjaSelect');
@@ -6423,46 +6359,16 @@ function initSettingsPanel() {
       setMarja(marjaSelect.value);
     });
   }
-
-  refreshSettingsKeyUI();
-  refreshSettingsModelUI();
 }
 
-function refreshSettingsModelUI() {
-  // Model is fixed internally - no UI needed
-}
-
-function renderSettingsModelStatus(text, ok) {
-  const el = $('settingsModelStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.style.background = ok ? 'var(--teal-glow)' : 'var(--rose-glow)';
-  el.style.border = '1px solid ' + (ok ? 'rgba(20,168,119,.3)' : 'rgba(225,29,72,.3)');
-  el.style.color = ok ? 'var(--teal-light)' : 'var(--rose)';
-}
-
-function refreshSettingsKeyUI() {
-  const input = $('settingsApiKeyInput');
-  if (!input) return;
-  input.value = getApiKey();
-  renderSettingsKeyStatus(getApiKey() ? '✅ Ключ сохранён и используется для запросов к ИИ.' : '⚠ Ключ не задан — переводы и ИИ-чат работать не будут.', !!getApiKey());
-}
-
-function renderSettingsKeyStatus(text, ok) {
-  const el = $('settingsKeyStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.style.background = ok ? 'var(--teal-glow)' : 'var(--rose-glow)';
-  el.style.border = '1px solid ' + (ok ? 'rgba(20,168,119,.3)' : 'rgba(225,29,72,.3)');
-  el.style.color = ok ? 'var(--teal-light)' : 'var(--rose)';
-}
-
-// ── Личный API-ключ пользователя для smartapi.shop ──────────────
-const API_KEY_STORAGE = 'rijal_smartapi_key';
-const MODEL_STORAGE = 'rijal_smartapi_model';
-const MARJA_STORAGE = 'rijal_marja';
-const DEFAULT_MODEL = 'deepseek-v4-flash';
-const _BUILT_IN_KEY = 'sk-smart-_eU79oohpMMo6XIlwWe0CJEh4CHIfCgQ4o3GiCBImRU';
+// ── Конфигурация ИИ ──────────────────────────────────────────────
+// HTML/JS НЕ хранит и не знает никаких API-ключей, Base URL или
+// названий моделей — ни встроенных, ни резервных, ни пользовательских.
+// Всё это целиком живёт на стороне Cloudflare Worker
+// (env.AI_API_KEY / env.AI_BASE_URL / env.AI_MODEL) и никогда не
+// передаётся и не хранится в браузере. Если Worker не настроен —
+// сервер сам вернёт ошибку, а не будет работать на встроенных данных.
+const MARJA_STORAGE = 'rijal_marja'; // это пользовательская настройка, а не секрет
 
 function getMarja() {
   try { return (localStorage.getItem(MARJA_STORAGE) || '').trim(); }
@@ -6475,40 +6381,12 @@ function setMarja(name) {
   } catch (e) {}
 }
 
-function getModel() {
-  // Model is fixed - users don't see or choose this
-  return 'deepseek-v4-flash';
-}
-function setModel(model) {
-  // Intentionally locked - model is hardcoded
-}
-
-function getApiKey() {
-  try {
-    const userKey = (localStorage.getItem(API_KEY_STORAGE) || '').trim();
-    return userKey || _BUILT_IN_KEY;
-  } catch (e) { return _BUILT_IN_KEY; }
-}
-function setApiKey(key) {
-  try { localStorage.setItem(API_KEY_STORAGE, key); } catch (e) {}
-}
-function clearApiKeyStorage() {
-  try { localStorage.removeItem(API_KEY_STORAGE); } catch (e) {}
-}
-
-// Заголовки для запросов к /api/v1/messages с учётом ключа пользователя
+// Заголовки для запросов к бэкенду ИИ. Никаких ключей клиент не отправляет.
 function aiRequestHeaders() {
-  const headers = { 'Content-Type': 'application/json' };
-  const key = getApiKey();
-  if (key) headers['x-api-key'] = key;
-  return headers;
+  return { 'Content-Type': 'application/json' };
 }
 
-function updateAiChatModelLabel() {} // больше не нужна, оставляем заглушку
-function loadAiConfig() { return {}; }
-function saveAiConfig() {}
-function aiConfigIsSet() { return true; }
-function openSettings() { openPanelEl('settingsPanel'); refreshSettingsKeyUI(); refreshSettingsModelUI(); }
+
 
 
 // ── STATS ────────────────────────────────────────────────────────
