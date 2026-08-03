@@ -137,9 +137,10 @@ export default {
       }
     }
 
-    // ── Статика: отдаём index.html и остальные ассеты ──────────────
-    // Если вы используете Workers Sites / Assets binding, раскомментируйте:
-    // return env.ASSETS.fetch(request);
+    // ── Статика: отдаём index.html, /hadis и остальные ассеты ──────
+    if (env.ASSETS) {
+      return env.ASSETS.fetch(request);
+    }
 
     // Заглушка на случай, если ASSETS ещё не подключены:
     return new Response('Not found. Configure ASSETS binding to serve index.html.', {
