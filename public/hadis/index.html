@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3a2a16">
+<meta name="description" content="Аль-Кафи — 2800 хадисов по главам">
+<title>الكافي — Аль-Кафи | 2800 хадисов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #f2e7cd;
+  --ink-1: #e8d8ac;
+  --ink-2: #faf3e2;
+  --ink-3: #e3cd97;
+  --teal: #8a6a1f;
+  --teal-glow: rgba(138,106,31,.18);
+  --teal-light: #ad8425;
+  --amber: #b8863a;
+  --amber-glow: rgba(184,134,58,.16);
+  --rose: #8b3a2e;
+  --gold: #a9791b;
+  --gold-glow: rgba(169,121,27,.18);
+  --text: #2b1c0f;
+  --text-2: #6b5636;
+  --text-3: #93794f;
+  --border: rgba(90,62,20,.20);
+  --border-bright: rgba(90,62,20,.36);
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 10px 30px rgba(58,40,16,.20), 0 2px 8px rgba(58,40,16,.14);
+  --shadow-sm: 0 2px 10px rgba(58,40,16,.16);
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-serif-body: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --header-h: 60px;
+  --tabbar-h: 62px;
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;font-size:16px;scroll-behavior:smooth;overscroll-behavior:none;}
+body{
+  font-family:var(--font-body);
+  background:var(--ink);
+  color:var(--text);
+  min-height:100%;
+  position:relative;
+  -webkit-overflow-scrolling:touch;
+}
+body::before{
+  content:"";position:fixed;inset:0;background-image:var(--paper-grain);
+  opacity:.35;pointer-events:none;z-index:0;mix-blend-mode:multiply;
+}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+
+/* HEADER */
+.hd-header{
+  position:sticky;top:0;z-index:20;height:var(--header-h);
+  display:flex;align-items:center;gap:12px;padding:0 14px;
+  background:linear-gradient(180deg, var(--ink-1), var(--ink));
+  border-bottom:1px solid var(--border-bright);
+  box-shadow:var(--shadow-sm);
+}
+.hd-back{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+  background:var(--ink-2);display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);flex-shrink:0;
+}
+.hd-titles{flex:1;min-width:0;}
+.hd-title{font-family:var(--font-display);font-size:17px;font-weight:700;line-height:1.15;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hd-sub{font-size:11px;color:var(--text-3);letter-spacing:.03em;}
+.hd-search-btn{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+  background:var(--ink-2);display:flex;align-items:center;justify-content:center;color:var(--text-2);
+}
+
+/* SEARCH BAR */
+.search-bar{
+  position:sticky;top:var(--header-h);z-index:19;
+  background:var(--ink);border-bottom:1px solid var(--border);
+  padding:10px 14px;display:none;gap:8px;
+}
+.search-bar.open{display:flex;}
+.search-bar input{
+  flex:1;background:var(--ink-2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:9px 12px;font-size:14px;color:var(--text);font-family:var(--font-body);
+}
+.search-bar input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow);}
+
+/* BREADCRUMB */
+.crumb{
+  padding:10px 14px 4px;font-size:12px;color:var(--text-3);display:flex;
+  align-items:center;gap:6px;flex-wrap:wrap;
+}
+.crumb span.seg{cursor:pointer;color:var(--teal);}
+.crumb span.seg:hover{text-decoration:underline;}
+.crumb span.sep{color:var(--text-3);}
+.crumb span.cur{color:var(--text-2);font-weight:600;}
+
+/* MAIN */
+main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);max-width:840px;margin:0 auto;}
+
+/* BOOK LIST */
+.book-card{
+  background:var(--ink-2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm);
+  display:flex;align-items:center;gap:12px;transition:transform .15s, box-shadow .15s;
+}
+.book-card:active{transform:scale(.985);}
+.book-num{
+  font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--gold);
+  width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border-bright);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--ink-1);
+}
+.book-info{flex:1;min-width:0;}
+.book-title{font-family:var(--font-serif-body);font-size:16.5px;font-weight:600;line-height:1.3;color:var(--text);}
+.book-meta{font-size:11.5px;color:var(--text-3);margin-top:3px;font-family:var(--font-mono);}
+.book-chev{color:var(--text-3);flex-shrink:0;}
+
+/* CHAPTER LIST */
+.chapter-card{
+  background:var(--ink-2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow-sm);
+}
+.chapter-card:active{transform:scale(.985);}
+.chapter-num{
+  font-family:var(--font-mono);font-size:12px;color:var(--text-3);
+  width:28px;height:28px;border-radius:6px;background:var(--ink-1);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.chapter-info{flex:1;min-width:0;}
+.chapter-title{font-family:var(--font-serif-body);font-size:15.5px;font-weight:600;line-height:1.3;}
+.chapter-meta{font-size:11px;color:var(--text-3);margin-top:2px;}
+
+/* HADITH CARD */
+.hadith-card{
+  background:var(--ink-2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);position:relative;
+}
+.hadith-card::before{
+  content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;
+  background:linear-gradient(180deg, var(--gold), var(--amber));border-radius:2px;
+}
+.hadith-num{
+  font-family:var(--font-mono);font-size:11px;color:var(--gold);letter-spacing:.05em;
+  font-weight:600;margin-bottom:6px;display:block;
+}
+.hadith-text{
+  font-family:var(--font-serif-body);font-size:17px;line-height:1.6;color:var(--text);
+}
+
+/* EMPTY / LOADING */
+.state-msg{
+  text-align:center;padding:60px 20px;color:var(--text-3);font-family:var(--font-serif-body);font-size:15px;
+}
+.spinner{
+  width:28px;height:28px;border-radius:50%;border:3px solid var(--border);
+  border-top-color:var(--gold);animation:spin 0.8s linear infinite;margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SEARCH RESULTS */
+.result-highlight{background:var(--gold-glow);color:var(--text);border-radius:2px;padding:0 1px;}
+.result-path{font-size:11px;color:var(--text-3);margin-bottom:4px;font-family:var(--font-mono);}
+
+/* BOTTOM NAV (matches main site tab bar) */
+.tab-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;height:var(--tabbar-h);
+  background:linear-gradient(180deg, var(--ink-1), var(--ink));
+  border-top:1px solid var(--border-bright);box-shadow:0 -6px 20px rgba(58,40,16,.14);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tab-bar-inner{display:flex;height:100%;max-width:840px;margin:0 auto;}
+.tab-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:none;border:none;color:var(--text-3);font-size:11px;font-family:var(--font-body);
+}
+.tab-btn.active{color:var(--gold);}
+.tab-btn svg{width:20px;height:20px;}
+
+/* SCROLL TOP FAB */
+.fab-top{
+  position:fixed;right:16px;bottom:calc(var(--tabbar-h) + 16px);z-index:25;
+  width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;border:none;
+  box-shadow:var(--shadow);display:none;align-items:center;justify-content:center;
+}
+.fab-top.show{display:flex;}
+</style>
+</head>
+<body>
+
+<header class="hd-header">
+  <button class="hd-back" id="backBtn" title="Назад" aria-label="Назад">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <div class="hd-titles">
+    <div class="hd-title" id="hdTitle">الكافي — Аль-Кафи</div>
+    <div class="hd-sub" id="hdSub">2800 хадисов · 35 книг</div>
+  </div>
+  <button class="hd-search-btn" id="searchToggle" title="Поиск" aria-label="Поиск">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </button>
+</header>
+
+<div class="search-bar" id="searchBar">
+  <input type="text" id="searchInput" placeholder="Поиск по 2800 хадисам…" autocomplete="off">
+</div>
+
+<div class="crumb" id="crumb"></div>
+
+<main id="mainArea">
+  <div class="state-msg"><div class="spinner"></div>Загрузка хадисов…</div>
+</main>
+
+<button class="fab-top" id="fabTop" title="Наверх">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+<nav class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab-btn" id="navRijal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <span>Риджаль</span>
+    </button>
+    <button class="tab-btn active" id="navHadis">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Хадисы</span>
+    </button>
+    <button class="tab-btn" id="navChat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <span>ИИ-чат</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  var DATA = null;
+  var state = { view: 'books', bookId: null, chapterN: null, query: '' };
+
+  var mainArea = document.getElementById('mainArea');
+  var crumbEl = document.getElementById('crumb');
+  var hdTitle = document.getElementById('hdTitle');
+  var hdSub = document.getElementById('hdSub');
+
+  fetch('hadis_data.json').then(function(r){ return r.json(); }).then(function(json){
+    DATA = json;
+    render();
+  }).catch(function(err){
+    mainArea.innerHTML = '<div class="state-msg">Не удалось загрузить базу хадисов.<br>' + (err && err.message ? err.message : '') + '</div>';
+  });
+
+  function esc(s){
+    return String(s || '').replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function highlight(text, q){
+    if (!q) return esc(text);
+    var idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx === -1) return esc(text);
+    return esc(text.slice(0, idx)) + '<span class="result-highlight">' + esc(text.slice(idx, idx+q.length)) + '</span>' + esc(text.slice(idx+q.length));
+  }
+
+  function setCrumb(parts){
+    crumbEl.innerHTML = parts.map(function(p, i){
+      if (i === parts.length - 1) return '<span class="cur">' + esc(p.label) + '</span>';
+      return '<span class="seg" data-action="' + p.action + '">' + esc(p.label) + '</span><span class="sep">›</span>';
+    }).join('');
+    crumbEl.querySelectorAll('.seg').forEach(function(el){
+      el.addEventListener('click', function(){
+        var action = el.getAttribute('data-action');
+        if (action === 'books') { state.view='books'; state.bookId=null; state.chapterN=null; }
+        else if (action === 'chapters') { state.view='chapters'; state.chapterN=null; }
+        render();
+      });
+    });
+  }
+
+  function render(){
+    if (!DATA) return;
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+
+    if (state.query) return renderSearch();
+    if (state.view === 'books') return renderBooks();
+    if (state.view === 'chapters') return renderChapters();
+    if (state.view === 'hadiths') return renderHadiths();
+  }
+
+  function renderBooks(){
+    hdTitle.textContent = 'الكافي — Аль-Кафи';
+    hdSub.textContent = '2800 хадисов · 35 книг';
+    setCrumb([{label:'Все книги'}]);
+    var html = '';
+    DATA.forEach(function(book){
+      var hcount = book.chapters.reduce(function(a,c){return a + c.h.length;}, 0);
+      html += '<div class="book-card" data-book="' + book.id + '">' +
+        '<div class="book-num">' + book.id + '</div>' +
+        '<div class="book-info"><div class="book-title">' + esc(book.title) + '</div>' +
+        '<div class="book-meta">' + book.chapters.length + ' ' + pluralize(book.chapters.length,'глава','главы','глав') + ' · ' + hcount + ' ' + pluralize(hcount,'хадис','хадиса','хадисов') + '</div></div>' +
+        '<div class="book-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>' +
+      '</div>';
+    });
+    mainArea.innerHTML = html;
+    mainArea.querySelectorAll('.book-card').forEach(function(el){
+      el.addEventListener('click', function(){
+        state.bookId = parseInt(el.getAttribute('data-book'), 10);
+        state.view = 'chapters';
+        render();
+      });
+    });
+  }
+
+  function pluralize(n, one, few, many){
+    var mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
+  }
+
+  function getBook(id){
+    return DATA.find(function(b){ return b.id === id; });
+  }
+
+  function renderChapters(){
+    var book = getBook(state.bookId);
+    if (!book) { state.view = 'books'; return render(); }
+    hdTitle.textContent = 'Книга ' + book.id;
+    hdSub.textContent = book.title;
+    setCrumb([{label:'Все книги', action:'books'}, {label:'Книга ' + book.id}]);
+    var html = '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin:4px 0 14px;line-height:1.3;">' + esc(book.title) + '</div>';
+    book.chapters.forEach(function(ch){
+      html += '<div class="chapter-card" data-ch="' + ch.n + '">' +
+        '<div class="chapter-num">' + ch.n + '</div>' +
+        '<div class="chapter-info"><div class="chapter-title">' + esc(ch.name || ('Глава ' + ch.n)) + '</div>' +
+        '<div class="chapter-meta">' + ch.h.length + ' ' + pluralize(ch.h.length,'хадис','хадиса','хадисов') + '</div></div>' +
+      '</div>';
+    });
+    mainArea.innerHTML = html;
+    mainArea.querySelectorAll('.chapter-card').forEach(function(el){
+      el.addEventListener('click', function(){
+        state.chapterN = parseInt(el.getAttribute('data-ch'), 10);
+        state.view = 'hadiths';
+        render();
+      });
+    });
+  }
+
+  function renderHadiths(){
+    var book = getBook(state.bookId);
+    if (!book) { state.view = 'books'; return render(); }
+    var ch = book.chapters.find(function(c){ return c.n === state.chapterN; });
+    if (!ch) { state.view = 'chapters'; return render(); }
+    hdTitle.textContent = 'Глава ' + ch.n;
+    hdSub.textContent = book.title;
+    setCrumb([{label:'Все книги', action:'books'}, {label:'Книга ' + book.id, action:'chapters'}, {label:'Глава ' + ch.n}]);
+    var html = '<div style="font-family:var(--font-serif-body);font-size:16px;font-weight:600;margin:4px 0 14px;color:var(--text-2);">' + esc(ch.name || '') + '</div>';
+    ch.h.forEach(function(h, i){
+      html += '<div class="hadith-card"><span class="hadith-num">ХАДИС ' + (i+1) + '</span><div class="hadith-text">' + esc(h.text) + '</div></div>';
+    });
+    mainArea.innerHTML = html;
+  }
+
+  function renderSearch(){
+    hdTitle.textContent = 'Поиск';
+    hdSub.textContent = '«' + state.query + '»';
+    var q = state.query.toLowerCase();
+    var results = [];
+    DATA.forEach(function(book){
+      book.chapters.forEach(function(ch){
+        ch.h.forEach(function(h){
+          if (h.text.toLowerCase().indexOf(q) !== -1) {
+            results.push({book: book, ch: ch, h: h});
+          }
+        });
+      });
+    });
+    setCrumb([{label:'Все книги', action:'books'}, {label:'Результаты: ' + results.length}]);
+    if (!results.length) {
+      mainArea.innerHTML = '<div class="state-msg">Ничего не найдено по запросу «' + esc(state.query) + '»</div>';
+      return;
+    }
+    var html = '';
+    results.slice(0, 300).forEach(function(r){
+      html += '<div class="hadith-card" data-book="' + r.book.id + '" data-ch="' + r.ch.n + '" style="cursor:pointer;">' +
+        '<div class="result-path">' + esc(r.book.title.split(' — ')[1] || r.book.title) + ' · Глава ' + r.ch.n + '</div>' +
+        '<div class="hadith-text">' + highlight(r.h.text, state.query) + '</div>' +
+      '</div>';
+    });
+    if (results.length > 300) {
+      html += '<div class="state-msg">Показаны первые 300 из ' + results.length + ' результатов. Уточните запрос.</div>';
+    }
+    mainArea.innerHTML = html;
+    mainArea.querySelectorAll('.hadith-card[data-book]').forEach(function(el){
+      el.addEventListener('click', function(){
+        state.query = '';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchBar').classList.remove('open');
+        state.bookId = parseInt(el.getAttribute('data-book'), 10);
+        state.chapterN = parseInt(el.getAttribute('data-ch'), 10);
+        state.view = 'hadiths';
+        render();
+      });
+    });
+  }
+
+  // Search bar toggle
+  var searchBar = document.getElementById('searchBar');
+  var searchInput = document.getElementById('searchInput');
+  document.getElementById('searchToggle').addEventListener('click', function(){
+    searchBar.classList.toggle('open');
+    if (searchBar.classList.contains('open')) searchInput.focus();
+  });
+  var searchTimer;
+  searchInput.addEventListener('input', function(){
+    clearTimeout(searchTimer);
+    var v = searchInput.value.trim();
+    searchTimer = setTimeout(function(){
+      state.query = v.length >= 2 ? v : '';
+      render();
+    }, 250);
+  });
+
+  // Back button
+  document.getElementById('backBtn').addEventListener('click', function(){
+    if (state.query) { state.query=''; searchInput.value=''; searchBar.classList.remove('open'); return render(); }
+    if (state.view === 'hadiths') { state.view = 'chapters'; state.chapterN=null; return render(); }
+    if (state.view === 'chapters') { state.view = 'books'; state.bookId=null; return render(); }
+    window.location.href = '/';
+  });
+
+  // Bottom nav
+  document.getElementById('navRijal').addEventListener('click', function(){ window.location.href = '/'; });
+  document.getElementById('navHadis').addEventListener('click', function(){ state.view='books'; state.bookId=null; state.chapterN=null; state.query=''; render(); });
+  document.getElementById('navChat').addEventListener('click', function(){ window.location.href = '/#ai-chat'; });
+
+  // Scroll-to-top FAB
+  var fab = document.getElementById('fabTop');
+  window.addEventListener('scroll', function(){
+    if (window.scrollY > 400) fab.classList.add('show'); else fab.classList.remove('show');
+  });
+  fab.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+})();
+</script>
+</body>
+</html>
