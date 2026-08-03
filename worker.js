@@ -114,6 +114,38 @@ const SOURCE_PRIORITY = {
 const rateBuckets = new Map();
 const memoryCache = new Map();
 
+
+const MAX_MEMORY_CACHE_ENTRIES = 256;
+const MAX_RATE_BUCKETS = 2000;
+const MAX_CONTENT_LENGTH_BYTES = 1_250_000;
+const MAX_SEARCH_TASKS = 8;
+const DIRECT_SEARCH_TIMEOUT_MS = 9_000;
+const OPEN_TIMEOUT_MS = 12_000;
+
+function hashText(input) {
+  const s = normalizeText(input);
+  let hash = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    hash ^= s.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function makeCacheRequestKey(prefix, key) {
+  return `https://cache.local/${prefix}/${hashText(key)}`;
+}
+
+function capText(text, maxChars) {
+  const s = normalizeText(text);
+  if (s.length <= maxChars) return s;
+  return s.slice(0, maxChars).trimEnd() + '\n…[обрезано]';
+}
+
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
@@ -133,8 +165,22 @@ function json(data, status = 200) {
   });
 }
 
+
 function isRateLimited(ip) {
   const now = Date.now();
+
+  if (rateBuckets.size > MAX_RATE_BUCKETS) {
+    for (const [key, bucket] of rateBuckets) {
+      if (!bucket || bucket.length === 0) {
+        rateBuckets.delete(key);
+        continue;
+      }
+      if (now - bucket[bucket.length - 1] > RATE_LIMIT_WINDOW_MS * 4) {
+        rateBuckets.delete(key);
+      }
+    }
+  }
+
   const bucket = rateBuckets.get(ip) || [];
   const recent = bucket.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
   recent.push(now);
@@ -142,6 +188,7 @@ function isRateLimited(ip) {
   return recent.length > RATE_LIMIT_MAX_REQUESTS;
 }
 
+function clamp(n, min, max) {
 function clamp(n, min, max) {
   return Math.min(max, Math.max(min, n));
 }
@@ -170,19 +217,30 @@ function truncate(text, maxChars) {
   return s.slice(0, maxChars).trimEnd() + '\n…[обрезано]';
 }
 
+
 function decodeHtmlEntities(str) {
+  const safeCodePoint = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0 || n > 0x10ffff) return '';
+    try {
+      return String.fromCodePoint(n);
+    } catch {
+      return '';
+    }
+  };
+
   return String(str)
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
     .replace(/&#39;/gi, "'")
-    .replace(/&#(\d+);/gi, (_, num) => String.fromCharCode(parseInt(num, 10)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
-      String.fromCharCode(parseInt(hex, 16)),
-    );
+    .replace(/&#(\d+);/gi, (_, num) => safeCodePoint(num))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => safeCodePoint(parseInt(hex, 16)));
 }
+
 
 function stripHtml(html) {
   let text = String(html)
@@ -192,13 +250,12 @@ function stripHtml(html) {
     .replace(/<template[\s\S]*?<\/template>/gi, ' ')
     .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
     .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(
-      /<\/(p|div|br|li|tr|h[1-6]|section|article|header|footer|main|blockquote)>/gi,
-      '\n',
-    )
+    .replace(/<(?:br|hr)\b[^>]*\/?>/gi, '\n')
+    .replace(/<\/(?:p|div|li|tr|td|th|h[1-6]|section|article|header|footer|main|aside|blockquote|figure|figcaption|ul|ol|pre)>/gi, '\n')
     .replace(/<[^>]+>/g, ' ');
 
   text = decodeHtmlEntities(text);
+  text = text.replace(/[\u200b-\u200f\ufeff]/g, '');
   text = text.replace(/\r/g, '');
   text = text.replace(/[ \t]+/g, ' ');
   text = text.replace(/\n[ \t]+\n/g, '\n\n');
@@ -206,6 +263,7 @@ function stripHtml(html) {
   return text.trim();
 }
 
+function extractTitle(html) {
 function extractTitle(html) {
   const m = String(html).match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   if (!m) return '';
@@ -335,67 +393,282 @@ function cacheSet(key, value, ttlMs) {
   memoryCache.set(key, { value, expiresAt: Date.now() + ttlMs });
 }
 
+
 function cacheRequestKey(prefix, key) {
-  return `https://cache.local/${prefix}/${encodeURIComponent(key)}`;
+  return makeCacheRequestKey(prefix, key);
 }
 
 async function cacheMatchText(prefix, key) {
   if (!globalThis.caches?.default) return null;
   const req = new Request(cacheRequestKey(prefix, key), { method: 'GET' });
-  const cached = await caches.default.match(req);
-  return cached;
+  try {
+    return await caches.default.match(req);
+  } catch {
+    return null;
+  }
 }
 
 async function cachePutText(prefix, key, response) {
   if (!globalThis.caches?.default) return;
   const req = new Request(cacheRequestKey(prefix, key), { method: 'GET' });
-  await caches.default.put(req, response);
+  try {
+    await caches.default.put(req, response);
+  } catch {}
 }
 
-async function fetchTextWithTimeout(url, timeoutMs = 15000) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+async function fetchTextWithTimeout(url, timeoutMs = 15000, retries = 1) {
+  let lastError = null;
 
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      redirect: 'follow',
-      headers: {
-        'user-agent': USER_AGENT,
-        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'accept-language': 'ru,en;q=0.8',
-      },
-      signal: controller.signal,
-    });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-    const contentType = (res.headers.get('content-type') || '').toLowerCase();
-    const body = await res.text();
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'user-agent': USER_AGENT,
+          accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'accept-language': 'ru,en;q=0.8',
+        },
+        signal: controller.signal,
+      });
 
-    return {
-      ok: res.ok,
-      status: res.status,
-      url: res.url || url,
-      contentType,
-      body,
-    };
-  } finally {
-    clearTimeout(timeout);
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      const contentLength = Number(res.headers.get('content-length') || 0);
+      if (contentLength && contentLength > MAX_CONTENT_LENGTH_BYTES) {
+        return {
+          ok: false,
+          status: 413,
+          url: res.url || url,
+          contentType,
+          body: '',
+          tooLarge: true,
+        };
+      }
+
+      const body = await res.text();
+      return {
+        ok: res.ok,
+        status: res.status,
+        url: res.url || url,
+        contentType,
+        body,
+      };
+    } catch (err) {
+      lastError = err;
+      if (attempt >= retries) break;
+      await sleep(150 * (attempt + 1));
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+
+  return {
+    ok: false,
+    status: 0,
+    url,
+    contentType: '',
+    body: '',
+    error: lastError ? String(lastError?.message || lastError) : 'fetch failed',
+  };
 }
 
-function decodeDuckDuckGoUrl(href) {
-  let u = String(href || '').trim();
-  if (!u) return '';
-  if (u.startsWith('//')) u = 'https:' + u;
+function normalizeSearchVariant(text) {
+  let q = normalizeText(text).trim();
+  if (!q) return q;
 
+  q = q
+    .normalize('NFKD')
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    .replace(/[\u200b-\u200f\ufeff]/g, '')
+    .replace(/\b(ibn|bin|ben|bnu|bint)\b/gi, 'بن')
+    .replace(/\b(abu|abū|abo)\b/gi, 'أبو')
+    .replace(/\b(umm|um)\b/gi, 'أم')
+    .replace(/\b(al|el|al-)\b/gi, 'ال')
+    .replace(/[-_,.:;!?()[\]{}]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return q;
+}
+
+function extractResultLinks(html, baseUrl, siteHost, query, limit = SEARCH_LIMIT) {
+  const source = String(html || '');
+  const links = [];
+  const seen = new Set();
+  const q = normalizeSearchVariant(query).toLowerCase();
+  const terms = q.split(/\s+/).filter(Boolean).slice(0, 6);
+
+  const re = /<a\b([^>]*?)href="([^"]+)"([^>]*)>([\s\S]*?)<\/a>/gi;
+  let match;
+
+  while ((match = re.exec(source)) && links.length < limit * 6) {
+    const href = match[2];
+    const inner = match[4];
+    const title = stripHtml(inner).replace(/\s+/g, ' ').trim();
+    if (!href || !title) continue;
+    if (/^(?:#|javascript:|mailto:|tel:)/i.test(href)) continue;
+
+    let resolved;
+    try {
+      resolved = new URL(href, baseUrl);
+    } catch {
+      continue;
+    }
+
+    const host = resolved.hostname.toLowerCase();
+    if (!isAllowedHost(host)) continue;
+    if (siteHost && !(host === siteHost || host.endsWith('.' + siteHost))) continue;
+
+    const url = resolved.toString();
+    if (seen.has(url)) continue;
+    seen.add(url);
+
+    const lowerTitle = title.toLowerCase();
+    const lowerUrl = url.toLowerCase();
+    let score = sourcePriority(host);
+    if (terms.some((term) => lowerTitle.includes(term) || lowerUrl.includes(term))) score += 8;
+    if (terms.length && terms.every((term) => lowerTitle.includes(term))) score += 4;
+    if (title.length < 8) score -= 3;
+
+    links.push({ url, title, host, score });
+  }
+
+  links.sort((a, b) => (b.score || 0) - (a.score || 0) || a.title.localeCompare(b.title));
+  return links.slice(0, limit);
+}
+
+async function searchMediaWikiSite(apiBase, query, host, limit) {
+  const url = new URL(apiBase);
+  url.searchParams.set('action', 'query');
+  url.searchParams.set('list', 'search');
+  url.searchParams.set('srsearch', query);
+  url.searchParams.set('srlimit', String(limit));
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('formatversion', '2');
+
+  const res = await fetchTextWithTimeout(url.toString(), DIRECT_SEARCH_TIMEOUT_MS, 1);
+  if (!res.ok || !res.body) return [];
+
+  let data;
   try {
-    const parsed = new URL(u, 'https://duckduckgo.com');
-    const uddg = parsed.searchParams.get('uddg');
-    if (uddg) return decodeURIComponent(uddg);
-    return parsed.toString();
+    data = JSON.parse(res.body);
   } catch {
-    return u;
+    return [];
   }
+
+  const items = Array.isArray(data?.query?.search) ? data.query.search : [];
+  const results = [];
+  const seen = new Set();
+
+  for (const item of items) {
+    const title = normalizeText(item?.title).trim();
+    if (!title) continue;
+    const pageUrl = new URL('/wiki/' + encodeURIComponent(title.replace(/ /g, '_')), `${url.protocol}//${url.host}`).toString();
+    if (seen.has(pageUrl)) continue;
+    seen.add(pageUrl);
+    results.push({
+      url: pageUrl,
+      title,
+      host,
+      score: sourcePriority(host) + 12,
+    });
+    if (results.length >= limit) break;
+  }
+
+  return results;
+}
+
+async function searchArchiveSite(query, limit) {
+  const url = new URL('https://archive.org/advancedsearch.php');
+  url.searchParams.set('q', query);
+  url.searchParams.append('fl[]', 'identifier');
+  url.searchParams.append('fl[]', 'title');
+  url.searchParams.append('fl[]', 'description');
+  url.searchParams.set('rows', String(limit));
+  url.searchParams.set('page', '1');
+  url.searchParams.set('output', 'json');
+
+  const res = await fetchTextWithTimeout(url.toString(), DIRECT_SEARCH_TIMEOUT_MS, 1);
+  if (!res.ok || !res.body) return [];
+
+  let data;
+  try {
+    data = JSON.parse(res.body);
+  } catch {
+    return [];
+  }
+
+  const docs = Array.isArray(data?.response?.docs) ? data.response.docs : [];
+  const results = [];
+  const seen = new Set();
+
+  for (const doc of docs) {
+    const identifier = normalizeText(doc?.identifier).trim();
+    if (!identifier) continue;
+    const title = normalizeText(doc?.title).trim() || identifier;
+    const pageUrl = `https://archive.org/details/${encodeURIComponent(identifier)}`;
+    if (seen.has(pageUrl)) continue;
+    seen.add(pageUrl);
+    results.push({
+      url: pageUrl,
+      title,
+      host: 'archive.org',
+      score: sourcePriority('archive.org') + 10,
+    });
+    if (results.length >= limit) break;
+  }
+
+  return results;
+}
+
+async function searchDirectSitePage(host, query, limit) {
+  const templates = [
+    `https://${host}/search?query={q}`,
+    `https://${host}/search?q={q}`,
+    `https://${host}/search?keys={q}`,
+    `https://${host}/?s={q}`,
+    `https://${host}/search/{q}`,
+  ];
+
+  const results = [];
+  const seen = new Set();
+
+  for (const template of templates) {
+    const url = template.replace('{q}', encodeURIComponent(query));
+    const res = await fetchTextWithTimeout(url, DIRECT_SEARCH_TIMEOUT_MS, 0);
+    if (!res.ok || !res.body) continue;
+
+    const parsed = extractResultLinks(res.body, res.url || url, host, query, limit);
+    for (const item of parsed) {
+      if (seen.has(item.url)) continue;
+      seen.add(item.url);
+      results.push(item);
+      if (results.length >= limit) return results;
+    }
+
+    if (results.length > 0) return results;
+  }
+
+  return results;
+}
+
+async function searchSourceHost(host, query, limit = SEARCH_LIMIT) {
+  const normalizedHost = String(host || '').toLowerCase();
+  const normalizedQuery = normalizeSearchVariant(query);
+  if (!normalizedHost || !normalizedQuery) return [];
+
+  if (normalizedHost === 'wikishia.net') {
+    return searchMediaWikiSite('https://wikishia.net/w/api.php', normalizedQuery, normalizedHost, limit);
+  }
+
+  if (normalizedHost === 'archive.org') {
+    return searchArchiveSite(normalizedQuery, limit);
+  }
+
+  return searchDirectSitePage(normalizedHost, normalizedQuery, limit);
 }
 
 function extractMainHtml(html) {
@@ -411,88 +684,30 @@ function extractMainHtml(html) {
 
   pushMatches(/<main[^>]*>([\s\S]*?)<\/main>/gi);
   pushMatches(/<article[^>]*>([\s\S]*?)<\/article>/gi);
-  pushMatches(
-    /<div[^>]*(?:id|class)="[^"]*(?:content|post|article|main|entry|body|page|forum|topic|thread|comment|discussion)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
-  );
+  pushMatches(/<section[^>]*>([\s\S]*?)<\/section>/gi);
+  pushMatches(/<div[^>]*(?:id|class)="[^"]*(?:content|post|article|main|entry|body|page|article-content|content-body|post-content|entry-content|page-content|text|articleBody)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
+  pushMatches(/<div[^>]*role="main"[^>]*>([\s\S]*?)<\/div>/gi);
 
   let best = '';
-  let bestLen = 0;
+  let bestScore = -1;
+
   for (const c of candidates) {
-    const len = stripHtml(c).length;
-    if (len > bestLen) {
+    const text = stripHtml(c);
+    const score =
+      text.length +
+      Math.min(2000, text.replace(/\s+/g, ' ').length) -
+      (c.match(/<(?:nav|aside|footer|header|form|script|style)[^>]*>/gi)?.length || 0) * 120;
+    if (score > bestScore) {
       best = c;
-      bestLen = len;
+      bestScore = score;
     }
   }
 
   return best || source;
 }
 
-async function searchDuckDuckGo(query, siteHost, limit = SEARCH_LIMIT) {
-  const q = siteHost ? `site:${siteHost} ${query}` : query;
-  const cacheKey = `ddg:${siteHost || 'all'}:${q}:${limit}`;
 
-  const cachedMem = cacheGet(cacheKey);
-  if (cachedMem) return cachedMem;
-
-  const cached = await cacheMatchText('search', cacheKey);
-  if (cached) {
-    try {
-      return await cached.json();
-    } catch {}
-  }
-
-  const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`;
-  const res = await fetchTextWithTimeout(searchUrl, 12000);
-  if (!res.ok || !res.body) {
-    return [];
-  }
-
-  const results = [];
-  const re = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
-  let match;
-
-  while ((match = re.exec(res.body)) && results.length < limit) {
-    const url = decodeDuckDuckGoUrl(match[1]);
-    const title = stripHtml(match[2]).replace(/\s+/g, ' ').trim();
-    if (!url) continue;
-
-    try {
-      const host = new URL(url).hostname.toLowerCase();
-      if (siteHost && !(host === siteHost || host.endsWith('.' + siteHost))) continue;
-      if (!isAllowedHost(host)) continue;
-    } catch {
-      continue;
-    }
-
-    results.push({
-      url,
-      title,
-      host: new URL(url).hostname.toLowerCase(),
-      score: sourcePriority(new URL(url).hostname.toLowerCase()),
-    });
-  }
-
-  results.sort((a, b) => (b.score || 0) - (a.score || 0));
-  const finalResults = results.slice(0, limit);
-
-  cacheSet(cacheKey, finalResults, MEMORY_CACHE_TTL_MS);
-  try {
-    await cachePutText(
-      'search',
-      cacheKey,
-      new Response(JSON.stringify(finalResults), {
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Cache-Control': 'public, max-age=600',
-        },
-      }),
-    );
-  } catch {}
-  return finalResults;
-}
-
-async function openAllowedUrl(url, fallbackTitle = '') {
+async function openAllowedUrl(url, fallbackTitle = '', ctx) {
   let parsed;
   try {
     parsed = new URL(url);
@@ -503,18 +718,19 @@ async function openAllowedUrl(url, fallbackTitle = '') {
   if (!isAllowedHost(parsed.hostname)) return null;
 
   const cacheKey = `open:${parsed.toString()}`;
-
   const cachedMem = cacheGet(cacheKey);
   if (cachedMem) return cachedMem;
 
   const cached = await cacheMatchText('open', cacheKey);
   if (cached) {
     try {
-      return await cached.json();
+      const jsonData = await cached.json();
+      cacheSet(cacheKey, jsonData, MEMORY_CACHE_TTL_MS);
+      return jsonData;
     } catch {}
   }
 
-  const res = await fetchTextWithTimeout(parsed.toString(), 15000);
+  const res = await fetchTextWithTimeout(parsed.toString(), OPEN_TIMEOUT_MS, 1);
   if (!res.ok || !res.body) return null;
 
   let finalUrl;
@@ -529,9 +745,16 @@ async function openAllowedUrl(url, fallbackTitle = '') {
   const title = fallbackTitle || extractTitle(res.body) || finalUrl.toString();
   let text = '';
 
-  if (res.contentType.includes('html')) {
+  if (res.contentType.includes('html') || res.contentType.includes('xhtml')) {
     const mainHtml = extractMainHtml(res.body);
     text = stripHtml(mainHtml);
+
+    if (!text || text.length < 120) {
+      const metaDescription = String(res.body).match(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']+)["'][^>]*>/i);
+      if (metaDescription && metaDescription[1]) {
+        text = stripHtml(metaDescription[1]);
+      }
+    }
   } else if (
     res.contentType.includes('text/plain') ||
     res.contentType.includes('application/json') ||
@@ -542,7 +765,7 @@ async function openAllowedUrl(url, fallbackTitle = '') {
     return null;
   }
 
-  text = truncate(text, MAX_SOURCE_TEXT_CHARS);
+  text = capText(text, MAX_SOURCE_TEXT_CHARS);
   if (!text) return null;
 
   const result = {
@@ -555,8 +778,21 @@ async function openAllowedUrl(url, fallbackTitle = '') {
   };
 
   cacheSet(cacheKey, result, MEMORY_CACHE_TTL_MS);
-  try {
-    await cachePutText(
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(
+      cachePutText(
+        'open',
+        cacheKey,
+        new Response(JSON.stringify(result), {
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'public, max-age=600',
+          },
+        }),
+      ),
+    );
+  } else {
+    void cachePutText(
       'open',
       cacheKey,
       new Response(JSON.stringify(result), {
@@ -566,10 +802,11 @@ async function openAllowedUrl(url, fallbackTitle = '') {
         },
       }),
     );
-  } catch {}
+  }
   return result;
 }
 
+function buildSourceContext(sources) {
 function buildSourceContext(sources) {
   if (!Array.isArray(sources) || sources.length === 0) return '';
 
@@ -591,11 +828,12 @@ function buildSourceContext(sources) {
   ].join('\n\n');
 }
 
-async function collectSourceContext(userText) {
+
+async function collectSourceContext(userText, ctx) {
   const rawText = normalizeText(userText);
   if (!rawText) return '';
 
-  const cacheKey = `ctx:${rawText}`;
+  const cacheKey = `ctx:${hashText(rawText)}`;
   const cachedMem = cacheGet(cacheKey);
   if (cachedMem) return cachedMem;
 
@@ -614,7 +852,7 @@ async function collectSourceContext(userText) {
 
   for (const url of directUrls) {
     try {
-      const opened = await openAllowedUrl(url);
+      const opened = await openAllowedUrl(url, '', ctx);
       if (opened) pushSource(opened);
     } catch {}
     if (sources.length >= MAX_SOURCES_PER_ANSWER) break;
@@ -633,22 +871,31 @@ async function collectSourceContext(userText) {
           'al-islam.org',
           'islamquest.net',
           'wikishia.net',
+          'archive.org',
+          'aqaed.com',
+          'alkafeel.net',
+          'imam-us.org',
           'shiachat.com',
           'shiatent.com',
           'twelvers.com',
         ];
 
-    const searchTasks = [];
-    for (const host of hosts) {
-      for (const q of queryVariants) {
-        searchTasks.push(
-          searchDuckDuckGo(q, host, SEARCH_LIMIT).catch(() => []),
-        );
+    const searchPlan = [];
+    for (const host of hosts.slice(0, MAX_SEARCH_TASKS)) {
+      for (const q of queryVariants.slice(0, 2)) {
+        searchPlan.push({ host, q });
+        if (searchPlan.length >= MAX_SEARCH_TASKS) break;
       }
+      if (searchPlan.length >= MAX_SEARCH_TASKS) break;
     }
 
-    const searchResults = (await Promise.all(searchTasks)).flat();
+    const searchResultsNested = await Promise.all(
+      searchPlan.map(({ host, q }) =>
+        searchSourceHost(host, q, SEARCH_LIMIT).catch(() => []),
+      ),
+    );
 
+    const searchResults = searchResultsNested.flat();
     searchResults.sort(
       (a, b) =>
         (b.score || 0) - (a.score || 0) ||
@@ -657,16 +904,15 @@ async function collectSourceContext(userText) {
 
     const uniqueResults = [];
     for (const item of searchResults) {
-      if (!item?.url) continue;
-      if (seen.has(item.url)) continue;
+      if (!item?.url || seen.has(item.url)) continue;
       uniqueResults.push(item);
       seen.add(item.url);
       if (uniqueResults.length >= 12) break;
     }
 
     const opened = await Promise.all(
-      uniqueResults.slice(0, 8).map((item) =>
-        openAllowedUrl(item.url, item.title).catch(() => null),
+      uniqueResults.slice(0, 6).map((item) =>
+        openAllowedUrl(item.url, item.title, ctx).catch(() => null),
       ),
     );
 
@@ -684,6 +930,7 @@ async function collectSourceContext(userText) {
 }
 
 async function readJsonBody(request) {
+async function readJsonBody(request) {
   try {
     return await request.json();
   } catch {
@@ -691,13 +938,15 @@ async function readJsonBody(request) {
   }
 }
 
+
 function normalizeMessages(messages) {
   if (!Array.isArray(messages)) return [];
   return messages
     .filter((m) => m && typeof m === 'object' && typeof m.role === 'string')
-    .map((m) => ({ ...m, content: m.content }));
+    .map((m) => ({ ...m, content: normalizeText(m.content) }));
 }
 
+function mergeSystemText(originalSystem, injectedContext) {
 function mergeSystemText(originalSystem, injectedContext) {
   const base = normalizeText(originalSystem).trim();
   const extra = normalizeText(injectedContext).trim();
@@ -711,7 +960,8 @@ function upstreamPath(env) {
   return value;
 }
 
-async function handleChat(request, env) {
+
+async function handleChat(request, env, ctx) {
   if (!env.AI_API_KEY || !env.AI_BASE_URL || !env.AI_MODEL) {
     return json({ error: 'AI is not configured on the server' }, 503);
   }
@@ -748,7 +998,7 @@ async function handleChat(request, env) {
   }
 
   const lastUserText = getLastUserText(safePayload.messages);
-  const sourceContext = await collectSourceContext(lastUserText);
+  const sourceContext = await collectSourceContext(lastUserText, ctx);
 
   if (sourceContext) {
     safePayload.system = mergeSystemText(safePayload.system, sourceContext);
@@ -763,47 +1013,62 @@ async function handleChat(request, env) {
     return json({ error: 'AI backend misconfigured' }, 503);
   }
 
-  const controller = new AbortController();
   const timeoutMs = clamp(
     Number(env.AI_TIMEOUT_MS || DEFAULT_TIMEOUT_MS),
     10_000,
     MAX_UPSTREAM_TIMEOUT_MS,
   );
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  const attemptUpstream = async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const upstream = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': env.AI_API_KEY,
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(safePayload),
+        signal: controller.signal,
+      });
+
+      const text = await upstream.text();
+      return new Response(text, {
+        status: upstream.status,
+        headers: {
+          'Content-Type':
+            upstream.headers.get('content-type') ||
+            'application/json; charset=utf-8',
+          ...corsHeaders(),
+        },
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
 
   try {
-    const upstream = await fetch(targetUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': env.AI_API_KEY,
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(safePayload),
-      signal: controller.signal,
-    });
-
-    const text = await upstream.text();
-    return new Response(text, {
-      status: upstream.status,
-      headers: {
-        'Content-Type':
-          upstream.headers.get('content-type') ||
-          'application/json; charset=utf-8',
-        ...corsHeaders(),
-      },
-    });
+    const first = await attemptUpstream();
+    if (first.status >= 500) {
+      await sleep(180);
+      const second = await attemptUpstream();
+      return second;
+    }
+    return first;
   } catch (e) {
     if (e && e.name === 'AbortError') {
       return json({ error: 'Upstream timeout' }, 504);
     }
     return json({ error: 'Upstream request failed' }, 502);
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
-async function handleSearch(request) {
+async function handleSearch(request, env, ctx) {
+
+async function handleSearch(request, env, ctx) {
   const url = new URL(request.url);
   let query = url.searchParams.get('q') || '';
   let host = url.searchParams.get('host') || '';
@@ -830,11 +1095,92 @@ async function handleSearch(request) {
     return json({ error: 'host is not allowed' }, 400);
   }
 
-  const results = await searchDuckDuckGo(query, host || undefined, limit);
-  return json({ query, host: host || null, results });
+  const cacheKey = `search:${host || 'all'}:${hashText(query)}:${limit}`;
+  const cachedMem = cacheGet(cacheKey);
+  if (cachedMem) {
+    return json(cachedMem);
+  }
+
+  const cached = await cacheMatchText('search', cacheKey);
+  if (cached) {
+    try {
+      const data = await cached.json();
+      cacheSet(cacheKey, data, MEMORY_CACHE_TTL_MS);
+      return json(data);
+    } catch {}
+  }
+
+  const hosts = host ? [host] : inferHosts(query);
+  const searchHosts = hosts.length
+    ? hosts
+    : [
+        'lib.eshia.ir',
+        'shamela.ws',
+        'noorlib.ir',
+        'hawzah.net',
+        'al-islam.org',
+        'wikishia.net',
+        'islamquest.net',
+        'aqaed.com',
+        'alkafeel.net',
+        'archive.org',
+        'imam-us.org',
+        'shiachat.com',
+        'shiatent.com',
+        'twelvers.com',
+      ];
+
+  const tasks = searchHosts.slice(0, MAX_SEARCH_TASKS).map((itemHost) =>
+    searchSourceHost(itemHost, query, limit).catch(() => []),
+  );
+
+  const results = (await Promise.all(tasks))
+    .flat()
+    .filter((item) => item && item.url && isAllowedHost(new URL(item.url).hostname.toLowerCase()));
+
+  const deduped = [];
+  const seen = new Set();
+  for (const item of results.sort((a, b) => (b.score || 0) - (a.score || 0))) {
+    if (seen.has(item.url)) continue;
+    seen.add(item.url);
+    deduped.push(item);
+    if (deduped.length >= limit) break;
+  }
+
+  const payload = { query, host: host || null, results: deduped };
+  cacheSet(cacheKey, payload, MEMORY_CACHE_TTL_MS);
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(
+      cachePutText(
+        'search',
+        cacheKey,
+        new Response(JSON.stringify(payload), {
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'public, max-age=600',
+          },
+        }),
+      ),
+    );
+  } else {
+    void cachePutText(
+      'search',
+      cacheKey,
+      new Response(JSON.stringify(payload), {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'public, max-age=600',
+        },
+      }),
+    );
+  }
+
+  return json(payload);
 }
 
-async function handleOpen(request) {
+async function handleOpen(request, env, ctx) {
+
+async function handleOpen(request, env, ctx) {
   const url = new URL(request.url);
   let target = url.searchParams.get('url') || '';
 
@@ -849,13 +1195,14 @@ async function handleOpen(request) {
     return json({ error: 'url is required' }, 400);
   }
 
-  const opened = await openAllowedUrl(target);
+  const opened = await openAllowedUrl(target, '', ctx);
   if (!opened) {
     return json({ error: 'url is not allowed or cannot be opened' }, 400);
   }
 
   return json(opened);
 }
+
 
 export default {
   async fetch(request, env, ctx) {
@@ -876,14 +1223,14 @@ export default {
       if (request.method !== 'GET' && request.method !== 'POST') {
         return json({ error: 'Method not allowed' }, 405);
       }
-      return handleSearch(request);
+      return handleSearch(request, env, ctx);
     }
 
     if (url.pathname === '/ai/open' || url.pathname === '/api/open') {
       if (request.method !== 'GET' && request.method !== 'POST') {
         return json({ error: 'Method not allowed' }, 405);
       }
-      return handleOpen(request);
+      return handleOpen(request, env, ctx);
     }
 
     if (url.pathname === '/health') {
