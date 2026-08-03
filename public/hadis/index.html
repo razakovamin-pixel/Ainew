@@ -78,6 +78,19 @@ button{font-family:inherit;cursor:pointer;}
   background:var(--ink-2);display:flex;align-items:center;justify-content:center;color:var(--text-2);
 }
 
+/* LANGUAGE TOGGLE */
+.lang-toggle{
+  display:flex;align-items:center;gap:2px;background:var(--ink-2);
+  border:1px solid var(--border-bright);border-radius:8px;padding:3px;flex-shrink:0;
+}
+.lang-btn{
+  background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px 8px;
+  border-radius:6px;font-family:var(--font-body);font-size:11px;font-weight:500;
+  transition:all .2s;white-space:nowrap;
+}
+.lang-btn.active{background:var(--teal);color:#fdf6e3;}
+.hadith-text.hd-loading{color:var(--text-3);font-style:italic;font-family:var(--font-body);font-size:14px;}
+
 /* SEARCH BAR */
 .search-bar{
   position:sticky;top:var(--header-h);z-index:19;
@@ -202,6 +215,10 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     <div class="hd-title" id="hdTitle">الكافي — Аль-Кафи</div>
     <div class="hd-sub" id="hdSub">2800 хадисов · 35 книг</div>
   </div>
+  <div class="lang-toggle" id="langToggle">
+    <button class="lang-btn" data-lang="ru" title="Русский язык">РУ</button>
+    <button class="lang-btn" data-lang="az" title="Azərbaycan dili">AZ</button>
+  </div>
   <button class="hd-search-btn" id="searchToggle" title="Поиск" aria-label="Поиск">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   </button>
@@ -241,12 +258,93 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 <script>
 (function(){
   var DATA = null;
-  var state = { view: 'books', bookId: null, chapterN: null, query: '' };
+
+  // ── Язык (общий с главным сайтом shiaisnad.ru через localStorage) ──
+  var LANG_KEY = 'rijal_lang';
+  function getLang(){
+    var l = null;
+    try { l = localStorage.getItem(LANG_KEY); } catch(e) {}
+    return l === 'az' ? 'az' : 'ru';
+  }
+  function setLang(l){
+    try { localStorage.setItem(LANG_KEY, l); } catch(e) {}
+  }
+
+  var state = { view: 'books', bookId: null, chapterN: null, query: '', lang: getLang() };
 
   var mainArea = document.getElementById('mainArea');
   var crumbEl = document.getElementById('crumb');
   var hdTitle = document.getElementById('hdTitle');
   var hdSub = document.getElementById('hdSub');
+
+  // ── Кэш перевода хадисов на азербайджанский ──
+  var AZ_CACHE_KEY = 'hadis_az_cache';
+  var azCache = {};
+  try { azCache = JSON.parse(localStorage.getItem(AZ_CACHE_KEY) || '{}'); } catch(e) { azCache = {}; }
+  function saveAzCache(){
+    try { localStorage.setItem(AZ_CACHE_KEY, JSON.stringify(azCache)); } catch(e) {}
+  }
+
+  async function translateHadithsBatch(items){
+    if (!items.length) return;
+    var list = items.map(function(it, idx){ return (idx + 1) + '. ' + it.text; }).join('\n\n');
+    var prompt = 'Siz hədis elmləri üzrə mütəxəssis alimsiniz. Aşağıdakı hədis mətnlərini rus dilindən Azərbaycan dilinə dəqiq, hədis elminə uyğun akademik üslubda tərcümə edin. Mətnlərin sırasını və sayını dəyişməyin, hər birini ayrıca tərcümə edin.\n\nYalnız etibarlı JSON massivi ilə cavab verin, başqa heç nə yazmayın:\n[{"id":1,"text":"tərcümə mətni"},...]\n\nMətnlər:\n' + list;
+    try {
+      var res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Translate': '1' },
+        body: JSON.stringify({ max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+      });
+      if (!res.ok) return;
+      var data = await res.json();
+      var raw = (data && data.content && data.content[0] && data.content[0].text)
+        || (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)
+        || '';
+      var cleaned = String(raw).replace(/```json|```/g, '').trim();
+      var start = cleaned.indexOf('[');
+      var end = cleaned.lastIndexOf(']');
+      if (start !== -1 && end !== -1) cleaned = cleaned.slice(start, end + 1);
+      var parsed = JSON.parse(cleaned);
+      parsed.forEach(function(item){
+        var it = items[item.id - 1];
+        if (it && item.text) azCache[it.key] = item.text;
+      });
+      saveAzCache();
+    } catch(e) {
+      console.warn('AZ hadith translate error:', e && e.message ? e.message : e);
+    }
+  }
+
+  async function translateAndFillHadiths(pending){
+    var BATCH = 12;
+    for (var i = 0; i < pending.length; i += BATCH) {
+      if (state.lang !== 'az' || state.view !== 'hadiths') break;
+      var chunk = pending.slice(i, i + BATCH);
+      await translateHadithsBatch(chunk);
+      chunk.forEach(function(it){
+        if (azCache[it.key]) {
+          var el = mainArea.querySelector('.hadith-card[data-hkey="' + it.key + '"] .hadith-text');
+          if (el) { el.textContent = azCache[it.key]; el.classList.remove('hd-loading'); }
+        }
+      });
+    }
+  }
+
+  function applyLangUI(){
+    document.querySelectorAll('#langToggle .lang-btn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.lang === state.lang);
+    });
+  }
+  applyLangUI();
+  document.querySelectorAll('#langToggle .lang-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (state.lang === btn.dataset.lang) return;
+      state.lang = btn.dataset.lang;
+      setLang(state.lang);
+      applyLangUI();
+      if (DATA) render();
+    });
+  });
 
   fetch('/hadis/hadis_data.json').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -375,10 +473,26 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     hdSub.textContent = book.title;
     setCrumb([{label:'Все книги', action:'books'}, {label:'Книга ' + book.id, action:'chapters'}, {label:'Глава ' + ch.n}]);
     var html = '<div style="font-family:var(--font-serif-body);font-size:16px;font-weight:600;margin:4px 0 14px;color:var(--text-2);">' + esc(ch.name || '') + '</div>';
+    var isAz = state.lang === 'az';
+    var pending = [];
     ch.h.forEach(function(h, i){
-      html += '<div class="hadith-card"><span class="hadith-num">ХАДИС ' + (i+1) + '</span><div class="hadith-text">' + esc(h.text) + '</div></div>';
+      var key = book.id + '_' + ch.n + '_' + i;
+      var text = h.text;
+      var loadingCls = '';
+      if (isAz) {
+        if (azCache[key]) {
+          text = azCache[key];
+        } else {
+          text = 'Tərcümə yüklənir…';
+          loadingCls = ' hd-loading';
+          pending.push({ key: key, text: h.text });
+        }
+      }
+      html += '<div class="hadith-card" data-hkey="' + key + '"><span class="hadith-num">ХАДИС ' + (i+1) + '</span><div class="hadith-text' + loadingCls + '">' + esc(text) + '</div></div>';
     });
     mainArea.innerHTML = html;
+
+    if (isAz && pending.length) translateAndFillHadiths(pending);
   }
 
   function renderSearch(){
