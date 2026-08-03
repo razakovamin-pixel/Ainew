@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr">
+
+<html dir="ltr" lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#3a2a16">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="Аналитическая база данных науки ар-Риджаль">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="#3a2a16" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Аналитическая база данных науки ар-Риджаль" name="description"/>
 <title>علم الرجال — Ilm al-Rijal | Ильм ар-Риджаль</title>
 <!-- manifest.json not available in single-file mode -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet" onerror="console.warn('Fonts blocked')">
-
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&amp;family=Cormorant+Garamond:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;family=Amiri:wght@400;700&amp;display=swap" onerror="console.warn('Fonts blocked')" rel="stylesheet"/>
 <style>
 /* ═══════════════════════════════════════
    DESIGN TOKРУS
@@ -2909,7 +2909,6 @@ select:focus {
 #aiChatMessages::-webkit-scrollbar { width: 3px; }
 #aiChatMessages::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
 </style>
-
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
  try{
@@ -2928,282 +2927,263 @@ document.addEventListener("DOMContentLoaded",()=>{
  }catch(e){}
 });
 </script>
-
 </head>
 <body class="app-intro">
-
-<div class="body-ambient-layer" aria-hidden="true"></div>
-
-
+<div aria-hidden="true" class="body-ambient-layer"></div>
 <!-- DONATION MODAL -->
-<div class="donate-overlay" id="donateOverlay" role="dialog" aria-modal="true" aria-label="Поддержать проект" style="display:none">
-  <div class="donate-box" id="donateBox" tabindex="-1">
-    <div class="donate-accent"></div>
-    <div class="donate-inner">
-      <div class="donate-head">
-        <div class="donate-title">📚 Поддержать <span>ShiaIsnad</span></div>
-        <button class="donate-close-btn" id="donateDismissTop" aria-label="Закрыть">✕</button>
-      </div>
-
-      <div class="donate-body">
-        Проект <strong style="color:#f2e8d0">ShiaIsnad</strong> развивается исключительно благодаря энтузиазму и поддержке неравнодушных людей.<br><br>
-        Сайт полностью бесплатный и останется таким, однако его развитие, поддержка домена, хостинга и добавление новых материалов требуют времени и средств.<br><br>
+<div aria-label="Поддержать проект" aria-modal="true" class="donate-overlay" id="donateOverlay" role="dialog" style="display:none">
+<div class="donate-box" id="donateBox" tabindex="-1">
+<div class="donate-accent"></div>
+<div class="donate-inner">
+<div class="donate-head">
+<div class="donate-title">📚 Поддержать <span>ShiaIsnad</span></div>
+<button aria-label="Закрыть" class="donate-close-btn" id="donateDismissTop">✕</button>
+</div>
+<div class="donate-body">
+        Проект <strong style="color:#f2e8d0">ShiaIsnad</strong> развивается исключительно благодаря энтузиазму и поддержке неравнодушных людей.<br/><br/>
+        Сайт полностью бесплатный и останется таким, однако его развитие, поддержка домена, хостинга и добавление новых материалов требуют времени и средств.<br/><br/>
         Если вы хотите поддержать проект любой суммой, мы будем искренне благодарны. Поддержка является исключительно <strong style="color:#c9a227">добровольной</strong>.
       </div>
-
-      <div class="donate-wallets">
-        <div class="wallet-row" onclick="copyWallet(this, 'UQAyLRTWh4BXSYpH0SvIvTHlW-aFazWNckhRALaQx6thPoau')">
-          <div class="wallet-label"><span class="wallet-gem">💎</span> TON</div>
-          <div class="wallet-addr">UQAyLRTWh4BXSYpH0SvIvTHlW-aFazWNckhRALaQx6thPoau</div>
-          <span class="wallet-copy">Копировать</span>
-        </div>
-
-        <div class="wallet-row" onclick="copyWallet(this, 'TB2mj3BotRRaA6knJpA2FYRgMZqMGDpaZR')">
-          <div class="wallet-label"><span class="wallet-gem">💎</span> TRC20&nbsp;<span style="font-size:10px;opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">(USDT / TRX)</span></div>
-          <div class="wallet-addr">TB2mj3BotRRaA6knJpA2FYRgMZqMGDpaZR</div>
-          <span class="wallet-copy">Копировать</span>
-        </div>
-
-        <div class="wallet-row" onclick="copyWallet(this, '0xd15758F5B14798EE37cDE73992A550118c593F62')">
-          <div class="wallet-label"><span class="wallet-gem">💎</span> ERC20 / BEP20&nbsp;<span style="font-size:10px;opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">(ETH, BNB, USDT...)</span></div>
-          <div class="wallet-addr">0xd15758F5B14798EE37cDE73992A550118c593F62</div>
-          <span class="wallet-copy">Копировать</span>
-        </div>
-      </div>
-
-      <div class="card-row">
-        <div class="wallet-label">💳 Сбербанк</div>
-        <div class="wallet-addr" style="cursor:pointer" onclick="copyWallet(this.parentElement, '2202208585323547')">2202 2085 8532 3547</div>
-        <div class="card-recipient">Получатель: Разаков Аминджон</div>
-        <span class="wallet-copy" style="opacity:1">Копировать</span>
-      </div>
-
-      <div class="donate-footer">
-        <em>Да вознаградит Аллах всех, кто помогает развитию проекта и распространению полезных знаний.</em>
-        <button class="donate-dismiss" id="donateDismissBottom">Закрыть</button>
-      </div>
-    </div>
-  </div>
+<div class="donate-wallets">
+<div class="wallet-row" onclick="copyWallet(this, 'UQAyLRTWh4BXSYpH0SvIvTHlW-aFazWNckhRALaQx6thPoau')">
+<div class="wallet-label"><span class="wallet-gem">💎</span> TON</div>
+<div class="wallet-addr">UQAyLRTWh4BXSYpH0SvIvTHlW-aFazWNckhRALaQx6thPoau</div>
+<span class="wallet-copy">Копировать</span>
 </div>
-
-
+<div class="wallet-row" onclick="copyWallet(this, 'TB2mj3BotRRaA6knJpA2FYRgMZqMGDpaZR')">
+<div class="wallet-label"><span class="wallet-gem">💎</span> TRC20 <span style="font-size:10px;opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">(USDT / TRX)</span></div>
+<div class="wallet-addr">TB2mj3BotRRaA6knJpA2FYRgMZqMGDpaZR</div>
+<span class="wallet-copy">Копировать</span>
+</div>
+<div class="wallet-row" onclick="copyWallet(this, '0xd15758F5B14798EE37cDE73992A550118c593F62')">
+<div class="wallet-label"><span class="wallet-gem">💎</span> ERC20 / BEP20 <span style="font-size:10px;opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">(ETH, BNB, USDT...)</span></div>
+<div class="wallet-addr">0xd15758F5B14798EE37cDE73992A550118c593F62</div>
+<span class="wallet-copy">Копировать</span>
+</div>
+</div>
+<div class="card-row">
+<div class="wallet-label">💳 Сбербанк</div>
+<div class="wallet-addr" onclick="copyWallet(this.parentElement, '2202208585323547')" style="cursor:pointer">2202 2085 8532 3547</div>
+<div class="card-recipient">Получатель: Разаков Аминджон</div>
+<span class="wallet-copy" style="opacity:1">Копировать</span>
+</div>
+<div class="donate-footer">
+<em>Да вознаградит Аллах всех, кто помогает развитию проекта и распространению полезных знаний.</em>
+<button class="donate-dismiss" id="donateDismissBottom">Закрыть</button>
+</div>
+</div>
+</div>
+</div>
 <!-- Загрузка -->
 <div class="loading-overlay" id="loading">
-  <div class="loading-card">
-    <div class="loading-emblem">ر</div>
-    <div class="loading-title">Загружаю базу риджаля</div>
-    <div class="loading-subtitle">Подготавливаю список передатчиков и интерфейс</div>
-    <div class="loading-skeleton" aria-hidden="true">
-      <span></span><span></span><span></span>
-    </div>
-    <div class="loading-bar"></div>
-  </div>
+<div class="loading-card">
+<div class="loading-emblem">ر</div>
+<div class="loading-title">Загружаю базу риджаля</div>
+<div class="loading-subtitle">Подготавливаю список передатчиков и интерфейс</div>
+<div aria-hidden="true" class="loading-skeleton">
+<span></span><span></span><span></span>
 </div>
-
+<div class="loading-bar"></div>
+</div>
+</div>
 <!-- Header -->
-
 <header class="app-header">
-  <button class="btn-menu" id="btnMenu" aria-label="Меню">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  </button>
-
-  <div class="header-left">
-    <div class="app-emblem">ر</div>
-    <div class="app-brand">
-      <div class="app-title" id="appTitle">Ильм <span>ар-Риджаль</span></div>
-      <div class="app-subtitle" id="appSubtitle">Сравнительный критический анализ передатчиков</div>
-    </div>
-  </div>
-
-  <div class="header-actions">
-    <button class="btn-icon" id="btnSettings" title="Настройки">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-    </button>
-    <button class="btn-icon" id="btnSort" title="Сортировка списка">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/>
-        <polyline points="17 15 21 19 17 23" transform="translate(0,-3)"/>
-      </svg>
-    </button>
-    <button class="btn-icon btn-donate" id="btnDonate" title="Поддержать проект" aria-label="Поддержать проект">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.8 4.6c-1.5-1.6-4-1.7-5.7-.2L12 7.3 8.9 4.4c-1.7-1.5-4.2-1.4-5.7.2-1.7 1.8-1.6 4.6.1 6.3L12 19l8.7-8.1c1.7-1.7 1.8-4.5.1-6.3z"/>
-      </svg>
-    </button>
-    <button class="btn-icon" id="btnTheme" title="Переключить тему">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-    </button>
-    <div class="lang-toggle">
-      <button class="lang-btn active" data-lang="ru" title="Русский язык">РУ</button>
-    </div>
-  </div>
+<button aria-label="Меню" class="btn-menu" id="btnMenu">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24" width="22">
+<line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line>
+</svg>
+</button>
+<div class="header-left">
+<div class="app-emblem">ر</div>
+<div class="app-brand">
+<div class="app-title" id="appTitle">Ильм <span>ар-Риджаль</span></div>
+<div class="app-subtitle" id="appSubtitle">Сравнительный критический анализ передатчиков</div>
+</div>
+</div>
+<div class="header-actions">
+<button class="btn-icon" id="btnSettings" title="Настройки">
+<svg fill="none" height="17" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="17">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+</svg>
+</button>
+<button class="btn-icon" id="btnSort" title="Сортировка списка">
+<svg fill="none" height="17" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="17">
+<line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="15" y1="12" y2="12"></line><line x1="3" x2="9" y1="18" y2="18"></line>
+<polyline points="17 15 21 19 17 23" transform="translate(0,-3)"></polyline>
+</svg>
+</button>
+<button aria-label="Поддержать проект" class="btn-icon btn-donate" id="btnDonate" title="Поддержать проект">
+<svg fill="none" height="17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="17">
+<path d="M20.8 4.6c-1.5-1.6-4-1.7-5.7-.2L12 7.3 8.9 4.4c-1.7-1.5-4.2-1.4-5.7.2-1.7 1.8-1.6 4.6.1 6.3L12 19l8.7-8.1c1.7-1.7 1.8-4.5.1-6.3z"></path>
+</svg>
+</button>
+<button class="btn-icon" id="btnTheme" title="Переключить тему">
+<svg fill="none" height="17" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="17">
+<circle cx="12" cy="12" r="5"></circle><line x1="12" x2="12" y1="1" y2="3"></line><line x1="12" x2="12" y1="21" y2="23"></line>
+<line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line>
+<line x1="1" x2="3" y1="12" y2="12"></line><line x1="21" x2="23" y1="12" y2="12"></line>
+<line x1="4.22" x2="5.64" y1="19.78" y2="18.36"></line><line x1="18.36" x2="19.78" y1="5.64" y2="4.22"></line>
+</svg>
+</button>
+<div class="lang-toggle">
+<button class="lang-btn active" data-lang="ru" title="Русский язык">РУ</button>
+</div>
+</div>
 </header>
-
 <!-- Action Bar -->
 <div class="action-bar-wrap">
-  <nav class="action-bar" id="actionBar" aria-label="Действия">
-    <button class="action-btn" id="btnFavView" title="Избранное">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-      </div>
-      <span class="action-label">Избранное</span>
-    </button>
-    <button class="action-btn" id="btnRandom" title="Случайный передатчик">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-        </svg>
-      </div>
-      <span class="action-label">Случайный</span>
-    </button>
-    <button class="action-btn" id="btnStats" title="Статистика">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="2" y="13" width="4" height="8" rx="1"/>
-        </svg>
-      </div>
-      <span class="action-label">Статистика</span>
-    </button>
-    <button class="action-btn" id="btnСравнение" title="Сравнить двух передатчиков">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="3" x2="12" y2="21"/><polyline points="17 8 12 3 7 8"/><polyline points="7 16 12 21 17 16"/>
-        </svg>
-      </div>
-      <span class="action-label">Сравнение</span>
-    </button>
-    <button class="action-btn" id="btnХронология" title="Хронология">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <span class="action-label">Хронология</span>
-    </button>
-    <button class="action-btn" id="btnГлоссарий" title="Глоссарий терминов">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>
-      </div>
-      <span class="action-label">Глоссарий</span>
-    </button>
-    <button class="action-btn" id="btnIsnad" title="Анализатор иснада">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="5" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="20" r="2"/>
-          <line x1="5" y1="8" x2="12" y2="10"/><line x1="19" y1="8" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/>
-        </svg>
-      </div>
-      <span class="action-label">Иснад</span>
-    </button>
-    <button class="action-btn" id="btnReliability" title="Индекс надёжности">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      </div>
-      <span class="action-label">Рейтинг</span>
-    </button>
-    <button class="action-btn" id="btnТест" title="Викторина">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-      </div>
-      <span class="action-label">Викторина</span>
-    </button>
-    <button class="action-btn" id="btnConflict" title="Карта противоречий">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-        </svg>
-      </div>
-      <span class="action-label">Конфликты</span>
-    </button>
-    <button class="action-btn" id="btnHilali" title="Метод аль-Хилли">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
-      </div>
-      <span class="action-label">Методология</span>
-    </button>
-    <button class="action-btn" id="btnЗаметки" title="Личные заметки">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-      </div>
-      <span class="action-label">Заметки</span>
-    </button>
-    <button class="action-btn" id="btnGeography" title="Карта географии передатчиков">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.686-7-11a7 7 0 0 1 14 0c0 5.314-7 11-7 11z"/>
-        </svg>
-      </div>
-      <span class="action-label">География</span>
-    </button>
-    <button class="action-btn" id="btnGenealogy" title="Генеалогическое дерево передачи">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="4" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/>
-          <path d="M12 6v3M12 9 6 11M12 9l6 2M6 14v4M18 14v4"/>
-        </svg>
-      </div>
-      <span class="action-label">Генеалогия</span>
-    </button>
-  </nav>
-  <div class="action-bar-title">Инструменты анализа риджаля</div>
+<nav aria-label="Действия" class="action-bar" id="actionBar">
+<button class="action-btn" id="btnFavView" title="Избранное">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+</svg>
 </div>
-
+<span class="action-label">Избранное</span>
+</button>
+<button class="action-btn" id="btnRandom" title="Случайный передатчик">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<polyline points="16 3 21 3 21 8"></polyline><line x1="4" x2="21" y1="20" y2="3"></line>
+<polyline points="21 16 21 21 16 21"></polyline><line x1="15" x2="21" y1="15" y2="21"></line>
+</svg>
+</div>
+<span class="action-label">Случайный</span>
+</button>
+<button class="action-btn" id="btnStats" title="Статистика">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<rect height="18" rx="1" width="4" x="18" y="3"></rect><rect height="13" rx="1" width="4" x="10" y="8"></rect><rect height="8" rx="1" width="4" x="2" y="13"></rect>
+</svg>
+</div>
+<span class="action-label">Статистика</span>
+</button>
+<button class="action-btn" id="btnСравнение" title="Сравнить двух передатчиков">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<line x1="12" x2="12" y1="3" y2="21"></line><polyline points="17 8 12 3 7 8"></polyline><polyline points="7 16 12 21 17 16"></polyline>
+</svg>
+</div>
+<span class="action-label">Сравнение</span>
+</button>
+<button class="action-btn" id="btnХронология" title="Хронология">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+</div>
+<span class="action-label">Хронология</span>
+</button>
+<button class="action-btn" id="btnГлоссарий" title="Глоссарий терминов">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+</svg>
+</div>
+<span class="action-label">Глоссарий</span>
+</button>
+<button class="action-btn" id="btnIsnad" title="Анализатор иснада">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<circle cx="5" cy="6" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="6" r="2"></circle><circle cx="12" cy="20" r="2"></circle>
+<line x1="5" x2="12" y1="8" y2="10"></line><line x1="19" x2="12" y1="8" y2="10"></line><line x1="12" x2="12" y1="14" y2="18"></line>
+</svg>
+</div>
+<span class="action-label">Иснад</span>
+</button>
+<button class="action-btn" id="btnReliability" title="Индекс надёжности">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+</svg>
+</div>
+<span class="action-label">Рейтинг</span>
+</button>
+<button class="action-btn" id="btnТест" title="Викторина">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<circle cx="12" cy="12" r="10"></circle>
+<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" x2="12.01" y1="17" y2="17"></line>
+</svg>
+</div>
+<span class="action-label">Викторина</span>
+</button>
+<button class="action-btn" id="btnConflict" title="Карта противоречий">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+</svg>
+</div>
+<span class="action-label">Конфликты</span>
+</button>
+<button class="action-btn" id="btnHilali" title="Метод аль-Хилли">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+</svg>
+</div>
+<span class="action-label">Методология</span>
+</button>
+<button class="action-btn" id="btnЗаметки" title="Личные заметки">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+</svg>
+</div>
+<span class="action-label">Заметки</span>
+</button>
+<button class="action-btn" id="btnGeography" title="Карта географии передатчиков">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-5.686-7-11a7 7 0 0 1 14 0c0 5.314-7 11-7 11z"></path>
+</svg>
+</div>
+<span class="action-label">География</span>
+</button>
+<button class="action-btn" id="btnGenealogy" title="Генеалогическое дерево передачи">
+<div class="action-icon">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<circle cx="12" cy="4" r="2"></circle><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="12" r="2"></circle><circle cx="6" cy="20" r="2"></circle><circle cx="18" cy="20" r="2"></circle>
+<path d="M12 6v3M12 9 6 11M12 9l6 2M6 14v4M18 14v4"></path>
+</svg>
+</div>
+<span class="action-label">Генеалогия</span>
+</button>
+</nav>
+<div class="action-bar-title">Инструменты анализа риджаля</div>
+</div>
 <!-- Tab Bar (mobile) -->
 <nav class="tab-bar" id="tabBar" role="tablist">
-  <div class="tab-bar-inner">
-    <button class="tab-btn active" id="tabСписок" role="tab" aria-selected="true">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-      <span id="tabСписокLabel">Список</span>
-    </button>
-    <button class="tab-btn" id="tabDetail" role="tab" aria-selected="false" style="position:relative;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="3"/><line x1="8" y1="9" x2="16" y2="9"/>
-        <line x1="8" y1="13" x2="14" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/>
-      </svg>
-      <span id="tabDetailLabel">Карточка</span>
-    </button>
-    <button class="tab-btn" id="btnAiChat" title="Чат с ИИ">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-      </svg>
-      <span id="btnAiChatLabel">ИИ-чат</span>
-    </button>
-    <button class="tab-btn" id="btnHadis" title="Хадисы">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-      </svg>
-      <span id="btnHadisLabel">Хадисы</span>
-    </button>
-  </div>
+<div class="tab-bar-inner">
+<button aria-selected="true" class="tab-btn active" id="tabСписок" role="tab">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20">
+<line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="15" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line>
+</svg>
+<span id="tabСписокLabel">Список</span>
+</button>
+<button aria-selected="false" class="tab-btn" id="tabDetail" role="tab" style="position:relative;">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20">
+<rect height="18" rx="3" width="18" x="3" y="3"></rect><line x1="8" x2="16" y1="9" y2="9"></line>
+<line x1="8" x2="14" y1="13" y2="13"></line><line x1="8" x2="12" y1="17" y2="17"></line>
+</svg>
+<span id="tabDetailLabel">Карточка</span>
+</button>
+<button class="tab-btn" id="btnAiChat" title="Чат с ИИ">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20">
+<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+</svg>
+<span id="btnAiChatLabel">ИИ-чат</span>
+</button>
+<button class="tab-btn" id="btnHadis" title="Хадисы">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20">
+<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+</svg>
+<span id="btnHadisLabel">Хадисы</span>
+</button>
+</div>
 </nav>
-
 <script>
   (function(){
     var btn = document.getElementById('btnHadis');
@@ -3214,465 +3194,425 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
   })();
 </script>
-
 <!-- App Body -->
 <div class="app-body">
-
-  <!-- Drawer Overlay -->
-  <div class="drawer-overlay" id="drawerOverlay"></div>
-
-  <!-- Sidebar / Drawer -->
-  <aside class="sidebar tab-active" id="sidebar">
-    <div class="sidebar-top">
-      <!-- Search -->
-      <div class="search-wrap">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="search" class="search-input" id="searchInput" autocomplete="off" autocorrect="off" spellcheck="false">
-        <button class="search-clear" id="searchClear" aria-label="Очистить">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-        <span class="kbd-hint">Ctrl+K</span>
-      </div>
-
-      <!-- Filters -->
-      <div class="filter-bar" id="filterBar">
-        <button class="filter-chip active" data-filter="all" id="filterВсе">—</button>
-        <button class="filter-chip" data-filter="trust" id="filterTrust">—</button>
-        <button class="filter-chip" data-filter="disputed" id="filterСпорный">—</button>
-        <button class="filter-chip" data-filter="weak" id="filterСлабый">—</button>
-      </div>
-
-      <!-- Epoch filter -->
-      <div class="filter-section-label" id="epochLabel">Эпоха</div>
-      <div class="epoch-bar" id="epochBar">
-        <button class="epoch-chip active" data-epoch="all">Все</button>
-        <button class="epoch-chip" data-epoch="sahaba">Сахабы</button>
-        <button class="epoch-chip" data-epoch="tabiin">Табиины</button>
-        <button class="epoch-chip" data-epoch="2">II в.х.</button>
-        <button class="epoch-chip" data-epoch="3">III в.х.</button>
-        <button class="epoch-chip" data-epoch="4">IV в.х.</button>
-        <button class="epoch-chip" data-epoch="5+">V+ в.х.</button>
-      </div>
-
-      <!-- Sect filter -->
-      <div class="filter-section-label" id="sectLabel">Течение</div>
-      <div class="sect-bar" id="sectBar">
-        <button class="sect-chip active" data-sect="all">Все</button>
-        <button class="sect-chip" data-sect="imamit">Имамиты</button>
-        <button class="sect-chip" data-sect="nasibi">Насибиты</button>
-        <button class="sect-chip" data-sect="ghulat">Гулаты</button>
-        <button class="sect-chip" data-sect="wakifi">Вакифиты</button>
-        <button class="sect-chip" data-sect="zaydi">Зейдиты</button>
-      </div>
-
-      <!-- Quick actions -->
-      <div class="quick-actions">
-        <button class="btn-quick" id="btnShowFav">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span id="favLabel">—</span>
-        </button>
-        <button class="btn-quick" id="btnShowВсе">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          <span id="allLabel">—</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Stats bar -->
-    <div class="stats-bar">
-      <span class="stats-count" id="statsCount"></span>
-      <button id="btnCollapseFilters" title="Скрыть/показать фильтры" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px 6px;border-radius:6px;display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-mono);transition:color .2s">
-        <svg id="collapseIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="18 15 12 9 6 15"/>
-        </svg>
-        <span id="collapseLabel">Фильтры</span>
-      </button>
-    </div>
-
-    <!-- Список -->
-    <div class="transmitter-list" id="txListViewport" role="listbox" style="overflow-y:auto; position:relative;">
-      <div id="txListTopSpacer" style="height:0px; flex-shrink:0;"></div>
-      <ul id="txСписок" style="list-style:none; padding:8px; display:flex; flex-direction:column; gap:4px; margin:0;"></ul>
-      <div id="txListBottomSpacer" style="height:0px; flex-shrink:0;"></div>
-    </div>
-  </aside>
-
-  <!-- Content -->
-  <main class="content" id="content">
-    <!-- Назад button (mobile) -->
-    <button class="btn-back" id="btnНазад">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      <span id="backLabel">—</span>
-    </button>
-
-    <!-- Добро пожаловать -->
-    <div class="welcome" id="welcome">
-      <div class="welcome-emblem">ر</div>
-      <h2 id="welcomeTitle">—</h2>
-      <p id="welcomeDesc">—</p>
-      <div class="welcome-stats">
-        <div class="ws-item">
-          <div class="ws-num" id="wsTotalNum">—</div>
-          <div class="ws-label" id="wsTotalLabel">—</div>
-        </div>
-        <div class="ws-item">
-          <div class="ws-num" id="wsTrustNum">—</div>
-          <div class="ws-label" id="wsTrustLabel">—</div>
-        </div>
-        <div class="ws-item">
-          <div class="ws-num" id="wsFavNum">—</div>
-          <div class="ws-label" id="wsFavLabel">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Detail -->
-    <div class="detail" id="detailView" style="display:none;">
-      <div class="det-header">
-        <div class="det-top">
-          <div class="det-names">
-            <div class="det-name" id="detName"></div>
-            <span class="det-arabic" id="detArabic"></span>
-            <div class="det-id" id="detId"></div>
-          <div class="det-score-badge" id="detScoreBadge" style="display:none">
-            <span class="det-score-label">Индекс</span>
-            <div class="det-score-bar"><div class="det-score-fill" id="detScoreFill"></div></div>
-            <span class="det-score-val" id="detScoreVal"></span>
-          </div>
-          </div>
-          <div class="det-actions">
-    <button class="btn-icon" id="btnNoteDetail" title="Заметка к передатчику" style="position:relative">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              <span id="noteIndicator" style="position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--amber);border-radius:50%;display:none"></span>
-            </button>
-            <button class="btn-icon" id="btnFav" title="—">
-              <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status grid -->
-      <div class="status-grid">
-        <div class="status-card">
-          <div class="sc-label" id="scShiaLabel">—</div>
-          <div class="sc-value" id="scShiaVal">
-            <span class="sc-dot" id="scShiaDot"></span>
-            <span id="scShiaText"></span>
-          </div>
-        </div>
-        <div class="status-card">
-          <div class="sc-label" id="scSunniLabel">—</div>
-          <div class="sc-value" id="scSunniVal">
-            <span class="sc-dot" id="scSunniDot"></span>
-            <span id="scSunniText"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Biography -->
-      <div class="section">
-        <div class="sec-title" id="secBioLabel">—</div>
-        <div class="bio-box" id="detBio"></div>
-      </div>
-      <!-- Analysis -->
-      <div class="section" id="analysisSection">
-        <div class="sec-title" id="secAnalysisLabel">—</div>
-        <div class="analysis-box" id="detAnalysis"></div>
-      </div>
-
-      <!-- Sources -->
-      <div class="section">
-        <div class="sec-title" id="secSourcesLabel">—</div>
-        <ul class="sources-list" id="detSources"></ul>
-      </div>
-
-      <!-- Copy card -->
-      <div class="det-footer">
-        <button class="btn-copy-card" id="btnCopyCard">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
-          <span id="copyCardLabel">Копировать карточку</span>
-        </button>
-      </div>
-      <div class="welcome-quick">
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnRandom').click()">🎲 Случайный передатчик</button>
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnГлоссарий').click()">📖 Глоссарий</button>
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnТест').click()">🎓 Викторина</button>
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnStats').click()">📊 Статистика</button>
-      </div>
-    </div>
+<!-- Drawer Overlay -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<!-- Sidebar / Drawer -->
+<aside class="sidebar tab-active" id="sidebar">
+<div class="sidebar-top">
+<!-- Search -->
+<div class="search-wrap">
+<svg class="search-icon" fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16">
+<circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+</svg>
+<input autocomplete="off" autocorrect="off" class="search-input" id="searchInput" spellcheck="false" type="search"/>
+<button aria-label="Очистить" class="search-clear" id="searchClear">
+<svg fill="none" height="14" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="14">
+<line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line>
+</svg>
+</button>
+<span class="kbd-hint">Ctrl+K</span>
 </div>
-
+<!-- Filters -->
+<div class="filter-bar" id="filterBar">
+<button class="filter-chip active" data-filter="all" id="filterВсе">—</button>
+<button class="filter-chip" data-filter="trust" id="filterTrust">—</button>
+<button class="filter-chip" data-filter="disputed" id="filterСпорный">—</button>
+<button class="filter-chip" data-filter="weak" id="filterСлабый">—</button>
+</div>
+<!-- Epoch filter -->
+<div class="filter-section-label" id="epochLabel">Эпоха</div>
+<div class="epoch-bar" id="epochBar">
+<button class="epoch-chip active" data-epoch="all">Все</button>
+<button class="epoch-chip" data-epoch="sahaba">Сахабы</button>
+<button class="epoch-chip" data-epoch="tabiin">Табиины</button>
+<button class="epoch-chip" data-epoch="2">II в.х.</button>
+<button class="epoch-chip" data-epoch="3">III в.х.</button>
+<button class="epoch-chip" data-epoch="4">IV в.х.</button>
+<button class="epoch-chip" data-epoch="5+">V+ в.х.</button>
+</div>
+<!-- Sect filter -->
+<div class="filter-section-label" id="sectLabel">Течение</div>
+<div class="sect-bar" id="sectBar">
+<button class="sect-chip active" data-sect="all">Все</button>
+<button class="sect-chip" data-sect="imamit">Имамиты</button>
+<button class="sect-chip" data-sect="nasibi">Насибиты</button>
+<button class="sect-chip" data-sect="ghulat">Гулаты</button>
+<button class="sect-chip" data-sect="wakifi">Вакифиты</button>
+<button class="sect-chip" data-sect="zaydi">Зейдиты</button>
+</div>
+<!-- Quick actions -->
+<div class="quick-actions">
+<button class="btn-quick" id="btnShowFav">
+<svg fill="currentColor" height="13" viewbox="0 0 24 24" width="13"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+<span id="favLabel">—</span>
+</button>
+<button class="btn-quick" id="btnShowВсе">
+<svg fill="none" height="13" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="13"><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
+<span id="allLabel">—</span>
+</button>
+</div>
+</div>
+<!-- Stats bar -->
+<div class="stats-bar">
+<span class="stats-count" id="statsCount"></span>
+<button id="btnCollapseFilters" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px 6px;border-radius:6px;display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-mono);transition:color .2s" title="Скрыть/показать фильтры">
+<svg fill="none" height="14" id="collapseIcon" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14">
+<polyline points="18 15 12 9 6 15"></polyline>
+</svg>
+<span id="collapseLabel">Фильтры</span>
+</button>
+</div>
+<!-- Список -->
+<div class="transmitter-list" id="txListViewport" role="listbox" style="overflow-y:auto; position:relative;">
+<div id="txListTopSpacer" style="height:0px; flex-shrink:0;"></div>
+<ul id="txСписок" style="list-style:none; padding:8px; display:flex; flex-direction:column; gap:4px; margin:0;"></ul>
+<div id="txListBottomSpacer" style="height:0px; flex-shrink:0;"></div>
+</div>
+</aside>
+<!-- Content -->
+<main class="content" id="content">
+<!-- Назад button (mobile) -->
+<button class="btn-back" id="btnНазад">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="16">
+<polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+<span id="backLabel">—</span>
+</button>
+<!-- Добро пожаловать -->
+<div class="welcome" id="welcome">
+<div class="welcome-emblem">ر</div>
+<h2 id="welcomeTitle">—</h2>
+<p id="welcomeDesc">—</p>
+<div class="welcome-stats">
+<div class="ws-item">
+<div class="ws-num" id="wsTotalNum">—</div>
+<div class="ws-label" id="wsTotalLabel">—</div>
+</div>
+<div class="ws-item">
+<div class="ws-num" id="wsTrustNum">—</div>
+<div class="ws-label" id="wsTrustLabel">—</div>
+</div>
+<div class="ws-item">
+<div class="ws-num" id="wsFavNum">—</div>
+<div class="ws-label" id="wsFavLabel">—</div>
+</div>
+</div>
+</div>
+<!-- Detail -->
+<div class="detail" id="detailView" style="display:none;">
+<div class="det-header">
+<div class="det-top">
+<div class="det-names">
+<div class="det-name" id="detName"></div>
+<span class="det-arabic" id="detArabic"></span>
+<div class="det-id" id="detId"></div>
+<div class="det-score-badge" id="detScoreBadge" style="display:none">
+<span class="det-score-label">Индекс</span>
+<div class="det-score-bar"><div class="det-score-fill" id="detScoreFill"></div></div>
+<span class="det-score-val" id="detScoreVal"></span>
+</div>
+</div>
+<div class="det-actions">
+<button class="btn-icon" id="btnNoteDetail" style="position:relative" title="Заметка к передатчику">
+<svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="18">
+<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+</svg>
+<span id="noteIndicator" style="position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--amber);border-radius:50%;display:none"></span>
+</button>
+<button class="btn-icon" id="btnFav" title="—">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20">
+<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<!-- Status grid -->
+<div class="status-grid">
+<div class="status-card">
+<div class="sc-label" id="scShiaLabel">—</div>
+<div class="sc-value" id="scShiaVal">
+<span class="sc-dot" id="scShiaDot"></span>
+<span id="scShiaText"></span>
+</div>
+</div>
+<div class="status-card">
+<div class="sc-label" id="scSunniLabel">—</div>
+<div class="sc-value" id="scSunniVal">
+<span class="sc-dot" id="scSunniDot"></span>
+<span id="scSunniText"></span>
+</div>
+</div>
+</div>
+<!-- Biography -->
+<div class="section">
+<div class="sec-title" id="secBioLabel">—</div>
+<div class="bio-box" id="detBio"></div>
+</div>
+<!-- Analysis -->
+<div class="section" id="analysisSection">
+<div class="sec-title" id="secAnalysisLabel">—</div>
+<div class="analysis-box" id="detAnalysis"></div>
+</div>
+<!-- Sources -->
+<div class="section">
+<div class="sec-title" id="secSourcesLabel">—</div>
+<ul class="sources-list" id="detSources"></ul>
+</div>
+<!-- Copy card -->
+<div class="det-footer">
+<button class="btn-copy-card" id="btnCopyCard">
+<svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14">
+<rect height="13" rx="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+<span id="copyCardLabel">Копировать карточку</span>
+</button>
+</div>
+<div class="welcome-quick">
+<button class="welcome-quick-btn" onclick="document.getElementById('btnRandom').click()">🎲 Случайный передатчик</button>
+<button class="welcome-quick-btn" onclick="document.getElementById('btnГлоссарий').click()">📖 Глоссарий</button>
+<button class="welcome-quick-btn" onclick="document.getElementById('btnТест').click()">🎓 Викторина</button>
+<button class="welcome-quick-btn" onclick="document.getElementById('btnStats').click()">📊 Статистика</button>
+</div>
+</div>
+</main></div>
 <!-- STATS PANEL -->
 <div class="panel-overlay" id="statsPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title" id="statsPanelTitle">📊 Статистика базы данных</div>
-      <button class="panel-close" id="statsClose">✕</button>
-    </div>
-    <div class="donut-wrap">
-      <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160" id="donutSvg"></svg>
-      <div class="donut-legend" id="donutLegend"></div>
-    </div>
-    <div class="bar-section">
-      <div class="bar-section-title">Топ источников</div>
-      <div id="sourcesChart"></div>
-    </div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title" id="statsPanelTitle">📊 Статистика базы данных</div>
+<button class="panel-close" id="statsClose">✕</button>
 </div>
-
+<div class="donut-wrap">
+<svg class="donut-svg" height="160" id="donutSvg" viewbox="0 0 160 160" width="160"></svg>
+<div class="donut-legend" id="donutLegend"></div>
+</div>
+<div class="bar-section">
+<div class="bar-section-title">Топ источников</div>
+<div id="sourcesChart"></div>
+</div>
+</div>
+</div>
 <!-- COMPARE PANEL -->
 <div class="panel-overlay" id="comparePanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">⚖ Сравнение передатчиков</div>
-      <button class="panel-close" id="compareClose">✕</button>
-    </div>
-    <div class="cmp-selects">
-      <select class="cmp-select" id="cmpA"><option value="">— Выберите первого —</option></select>
-      <select class="cmp-select" id="cmpB"><option value="">— Выберите второго —</option></select>
-    </div>
-    <button class="cmp-btn" id="cmpGo">Сравнить</button>
-    <div id="cmpResult"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">⚖ Сравнение передатчиков</div>
+<button class="panel-close" id="compareClose">✕</button>
 </div>
-
+<div class="cmp-selects">
+<select class="cmp-select" id="cmpA"><option value="">— Выберите первого —</option></select>
+<select class="cmp-select" id="cmpB"><option value="">— Выберите второго —</option></select>
+</div>
+<button class="cmp-btn" id="cmpGo">Сравнить</button>
+<div id="cmpResult"></div>
+</div>
+</div>
 <!-- TIMELINE PANEL -->
 <div class="panel-overlay" id="timelinePanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">🕐 Хронология передатчиков</div>
-      <button class="panel-close" id="timelineClose">✕</button>
-    </div>
-    <div id="timelineContent"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">🕐 Хронология передатчиков</div>
+<button class="panel-close" id="timelineClose">✕</button>
 </div>
-
+<div id="timelineContent"></div>
+</div>
+</div>
 <!-- GLOSSARY PANEL -->
 <div class="panel-overlay" id="glossaryPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📖 Глоссарий терминов ар-Риджаль</div>
-      <button class="panel-close" id="glossaryClose">✕</button>
-    </div>
-    <div class="gloss-list" id="glossaryСписок"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">📖 Глоссарий терминов ар-Риджаль</div>
+<button class="panel-close" id="glossaryClose">✕</button>
 </div>
-
+<div class="gloss-list" id="glossaryСписок"></div>
+</div>
+</div>
 <!-- AI CHAT PANEL -->
 <div class="panel-overlay" id="aiChatPanel">
-  <div class="panel-box" style="width:min(560px,96vw);display:flex;flex-direction:column;max-height:min(85dvh,720px)">
-    <div class="panel-head">
-      <div class="panel-title">💬 ИИ-ассистент — Риджаль</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="panel-close" id="btnBookmarks" title="Избранное" style="font-size:16px">⭐</button>
-        <button class="panel-close" id="aiChatClose">✕</button>
-      </div>
-    </div>
-    <div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;min-height:200px;max-height:52vh"></div>
-    <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--border);padding-top:12px">
-      <textarea id="aiChatInput" rows="1" placeholder="Спросите про передатчика, риджаль, иснад, хадис или фикх…"
-        style="flex:1;resize:none;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;max-height:120px;outline:none"></textarea>
-      <button id="aiChatSend" class="cmp-btn" style="white-space:nowrap;margin:0">Отправить</button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-      <button id="aiChatClear" style="background:none;border:none;color:var(--text-3);font-size:12px;cursor:pointer;text-decoration:underline">Очистить чат</button>
-      <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)">ShiaIsnad AI · риджаль-режим</span>
-    </div>
-  </div>
+<div class="panel-box" style="width:min(560px,96vw);display:flex;flex-direction:column;max-height:min(85dvh,720px)">
+<div class="panel-head">
+<div class="panel-title">💬 ИИ-ассистент — Риджаль</div>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="panel-close" id="btnBookmarks" style="font-size:16px" title="Избранное">⭐</button>
+<button class="panel-close" id="aiChatClose">✕</button>
 </div>
-
+</div>
+<div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;min-height:200px;max-height:52vh"></div>
+<div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--border);padding-top:12px">
+<textarea id="aiChatInput" placeholder="Спросите про передатчика, риджаль, иснад, хадис или фикх…" rows="1" style="flex:1;resize:none;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;max-height:120px;outline:none"></textarea>
+<button class="cmp-btn" id="aiChatSend" style="white-space:nowrap;margin:0">Отправить</button>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+<button id="aiChatClear" style="background:none;border:none;color:var(--text-3);font-size:12px;cursor:pointer;text-decoration:underline">Очистить чат</button>
+<span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)">ShiaIsnad AI · риджаль-режим</span>
+</div>
+</div>
+</div>
 <!-- SETTINGS PANEL -->
 <div class="panel-overlay" id="settingsPanel">
-  <div class="panel-box" style="width:min(480px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">⚙️ Настройки</div>
-      <button class="panel-close" id="settingsClose">✕</button>
-    </div>
-    <p style="font-size:13.5px;color:var(--text-2);line-height:1.75;margin-bottom:14px">
+<div class="panel-box" style="width:min(480px,96vw)">
+<div class="panel-head">
+<div class="panel-title">⚙️ Настройки</div>
+<button class="panel-close" id="settingsClose">✕</button>
+</div>
+<p style="font-size:13.5px;color:var(--text-2);line-height:1.75;margin-bottom:14px">
       Перевод карточек и ИИ-чат работают через сервер сайта. Никакие ключи доступа или адреса ИИ-сервиса на этой странице не хранятся и не настраиваются — это делается только на сервере.
     </p>
-
-    <div style="margin-top:4px">
-      <label style="display:block;font-size:12px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:6px">МАРДЖА ТАКЛИДА (для вопросов по фикху)</label>
-      <select id="settingsMarjaSelect" style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:13.5px">
-        <option value="">Не выбрана (общий ответ)</option>
-        <option value="Аятолла Али аль-Систани">Аятолла Али аль-Систани</option>
-        <option value="Аятолла Али Хаменеи">Аятолла Али Хаменеи</option>
-        <option value="Аятолла Насир Макарем Ширази">Аятолла Насир Макарем Ширази</option>
-        <option value="Аятолла Мухаммад Саид ат-Табатабаи аль-Хаким">Аятолла Мухаммад Саид аль-Хаким</option>
-        <option value="Аятолла Башир ан-Наджафи">Аятолла Башир ан-Наджафи</option>
-        <option value="Аятолла Джавад Табризи (наследие)">Аятолла Джавад Табризи</option>
-      </select>
-      <p style="font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.6">Выбор марджи влияет только на ответы по фикху (فقه) в ИИ-чате — ассистент будет явно указывать, чью фетву приводит, и позволит спросить мнение другой марджи в любой момент.</p>
-    </div>
-
-    <button id="settingsClose2" class="cmp-btn" style="margin-top:18px;width:100%">Закрыть</button>
-  </div>
+<div style="margin-top:4px">
+<label style="display:block;font-size:12px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:6px">МАРДЖА ТАКЛИДА (для вопросов по фикху)</label>
+<select id="settingsMarjaSelect" style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:13.5px">
+<option value="">Не выбрана (общий ответ)</option>
+<option value="Аятолла Али аль-Систани">Аятолла Али аль-Систани</option>
+<option value="Аятолла Али Хаменеи">Аятолла Али Хаменеи</option>
+<option value="Аятолла Насир Макарем Ширази">Аятолла Насир Макарем Ширази</option>
+<option value="Аятолла Мухаммад Саид ат-Табатабаи аль-Хаким">Аятолла Мухаммад Саид аль-Хаким</option>
+<option value="Аятолла Башир ан-Наджафи">Аятолла Башир ан-Наджафи</option>
+<option value="Аятолла Джавад Табризи (наследие)">Аятолла Джавад Табризи</option>
+</select>
+<p style="font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.6">Выбор марджи влияет только на ответы по фикху (فقه) в ИИ-чате — ассистент будет явно указывать, чью фетву приводит, и позволит спросить мнение другой марджи в любой момент.</p>
 </div>
-
+<button class="cmp-btn" id="settingsClose2" style="margin-top:18px;width:100%">Закрыть</button>
+</div>
+</div>
 <!-- BOOKMARKS / ИЗБРАННОЕ PANEL -->
 <div class="panel-overlay" id="bookmarksPanel">
-  <div class="panel-box" style="width:min(560px,96vw);max-height:min(85dvh,720px);display:flex;flex-direction:column">
-    <div class="panel-head">
-      <div class="panel-title">⭐ Избранное</div>
-      <button class="panel-close" id="bookmarksClose">✕</button>
-    </div>
-    <div id="bookmarksList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px"></div>
-  </div>
+<div class="panel-box" style="width:min(560px,96vw);max-height:min(85dvh,720px);display:flex;flex-direction:column">
+<div class="panel-head">
+<div class="panel-title">⭐ Избранное</div>
+<button class="panel-close" id="bookmarksClose">✕</button>
 </div>
-
+<div id="bookmarksList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px"></div>
+</div>
+</div>
 <!-- ISNАД ANALYSER PANEL -->
 <div class="panel-overlay" id="isnadPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">⛓ Анализатор Иснада</div>
-      <button class="panel-close" id="isnadClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6">
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">⛓ Анализатор Иснада</div>
+<button class="panel-close" id="isnadClose">✕</button>
+</div>
+<p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6">
       Введите цепочку передатчиков через запятую — система оценит каждое звено и даст итоговое заключение о степени достоверности.
     </p>
-    <div style="position:relative;margin-bottom:12px">
-      <textarea id="isnadInput" placeholder="Например: Мухаммад аль-Кулайни, Аль-Хусейн ибн Убайдуллах, Ибн Аби Умайр..." style="width:100%;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px;min-height:80px;resize:vertical;outline:none;line-height:1.6"></textarea>
-    </div>
-    <button class="cmp-btn" id="isnadGo">🔍 Анализировать цепочку</button>
-    <div id="isnadResult" style="margin-top:16px"></div>
-  </div>
+<div style="position:relative;margin-bottom:12px">
+<textarea id="isnadInput" placeholder="Например: Мухаммад аль-Кулайни, Аль-Хусейн ибн Убайдуллах, Ибн Аби Умайр..." style="width:100%;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px;min-height:80px;resize:vertical;outline:none;line-height:1.6"></textarea>
 </div>
-
+<button class="cmp-btn" id="isnadGo">🔍 Анализировать цепочку</button>
+<div id="isnadResult" style="margin-top:16px"></div>
+</div>
+</div>
 <!-- RELIABILITY INDEX PANEL -->
 <div class="panel-overlay" id="reliabilityPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📐 Индекс надёжности</div>
-      <button class="panel-close" id="reliabilityClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Числовой балл (0–100) рассчитывается по совокупности шиитских и суннитских оценок, количеству источников и степени их согласованности.</p>
-    <div id="reliabilityContent"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">📐 Индекс надёжности</div>
+<button class="panel-close" id="reliabilityClose">✕</button>
 </div>
-
+<p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Числовой балл (0–100) рассчитывается по совокупности шиитских и суннитских оценок, количеству источников и степени их согласованности.</p>
+<div id="reliabilityContent"></div>
+</div>
+</div>
 <!-- QUIZ PANEL -->
 <div class="panel-overlay" id="quizPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">🎓 Викторина по Риджалю</div>
-      <button class="panel-close" id="quizClose">✕</button>
-    </div>
-    <div id="quizContent"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">🎓 Викторина по Риджалю</div>
+<button class="panel-close" id="quizClose">✕</button>
 </div>
-
+<div id="quizContent"></div>
+</div>
+</div>
 <!-- HILALI METHOD PANEL -->
 <div class="panel-overlay" id="hilaliPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📜 Метод аль-Хилли</div>
-      <button class="panel-close" id="hilaliClose">✕</button>
-    </div>
-    <div id="hilaliContent"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">📜 Метод аль-Хилли</div>
+<button class="panel-close" id="hilaliClose">✕</button>
 </div>
-
+<div id="hilaliContent"></div>
+</div>
+</div>
 <!-- CONFLICT MAP PANEL -->
 <div class="panel-overlay" id="conflictPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">⚡ Карта противоречий</div>
-      <button class="panel-close" id="conflictClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Передатчики, оценки которых расходятся в шиитском и суннитском риджале — с указанием причин расхождения.</p>
-    <div id="conflictContent"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">⚡ Карта противоречий</div>
+<button class="panel-close" id="conflictClose">✕</button>
 </div>
-
+<p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Передатчики, оценки которых расходятся в шиитском и суннитском риджале — с указанием причин расхождения.</p>
+<div id="conflictContent"></div>
+</div>
+</div>
 <!-- NOTES PANEL -->
 <div class="panel-overlay" id="notesPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📝 Личные заметки</div>
-      <button class="panel-close" id="notesClose">✕</button>
-    </div>
-    <div id="notesCurrentTitle" style="font-size:13px;color:var(--text-3);margin-bottom:10px;font-family:var(--font-mono)">Глобальные заметки</div>
-    <textarea id="notesTextarea" placeholder="Ваши заметки по риджалю, личные наблюдения, вопросы..." style="width:100%;min-height:200px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:14px;outline:none;resize:vertical;line-height:1.7;transition:border-color .2s"></textarea>
-    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-      <button class="cmp-btn" id="notesSave" style="margin-bottom:0">💾 Сохранить заметку</button>
-      <button class="cmp-btn" id="notesClear" style="margin-bottom:0;background:var(--ink-3);color:var(--text-2)">🗑 Очистить</button>
-    </div>
-    <div id="notesСписок" style="margin-top:20px;display:flex;flex-direction:column;gap:8px"></div>
-  </div>
+<div class="panel-box">
+<div class="panel-head">
+<div class="panel-title">📝 Личные заметки</div>
+<button class="panel-close" id="notesClose">✕</button>
 </div>
-
+<div id="notesCurrentTitle" style="font-size:13px;color:var(--text-3);margin-bottom:10px;font-family:var(--font-mono)">Глобальные заметки</div>
+<textarea id="notesTextarea" placeholder="Ваши заметки по риджалю, личные наблюдения, вопросы..." style="width:100%;min-height:200px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:14px;outline:none;resize:vertical;line-height:1.7;transition:border-color .2s"></textarea>
+<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+<button class="cmp-btn" id="notesSave" style="margin-bottom:0">💾 Сохранить заметку</button>
+<button class="cmp-btn" id="notesClear" style="margin-bottom:0;background:var(--ink-3);color:var(--text-2)">🗑 Очистить</button>
+</div>
+<div id="notesСписок" style="margin-top:20px;display:flex;flex-direction:column;gap:8px"></div>
+</div>
+</div>
 <!-- SORT PANEL -->
 <div class="panel-overlay" id="sortPanel">
-  <div class="panel-box" style="width:min(380px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">↕ Сортировка списка</div>
-      <button class="panel-close" id="sortClose">✕</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px" id="sortOptions">
-      <button class="sort-opt active" data-sort="default">📋 По умолчанию (порядок в базе)</button>
-      <button class="sort-opt" data-sort="name-az">А→Я По имени</button>
-      <button class="sort-opt" data-sort="name-za">Я→А По имени</button>
-      <button class="sort-opt" data-sort="score-desc">⬆ Самые надёжные первыми</button>
-      <button class="sort-opt" data-sort="score-asc">⬇ Самые слабые первыми</button>
-      <button class="sort-opt" data-sort="sources-desc">📚 Больше источников первыми</button>
-    </div>
-  </div>
+<div class="panel-box" style="width:min(380px,96vw)">
+<div class="panel-head">
+<div class="panel-title">↕ Сортировка списка</div>
+<button class="panel-close" id="sortClose">✕</button>
 </div>
-
+<div id="sortOptions" style="display:flex;flex-direction:column;gap:8px">
+<button class="sort-opt active" data-sort="default">📋 По умолчанию (порядок в базе)</button>
+<button class="sort-opt" data-sort="name-az">А→Я По имени</button>
+<button class="sort-opt" data-sort="name-za">Я→А По имени</button>
+<button class="sort-opt" data-sort="score-desc">⬆ Самые надёжные первыми</button>
+<button class="sort-opt" data-sort="score-asc">⬇ Самые слабые первыми</button>
+<button class="sort-opt" data-sort="sources-desc">📚 Больше источников первыми</button>
+</div>
+</div>
+</div>
 <!-- GEOGRAPHY PANEL -->
 <div class="panel-overlay" id="geographyPanel">
-  <div class="panel-box" style="width:min(720px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">🗺 Карта географии передатчиков</div>
-      <button class="panel-close" id="geographyClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Распределение передатчиков по основным историческим центрам исламской учёности. Нажмите на город, чтобы увидеть связанных с ним передатчиков.</p>
-    <div id="geographyMap" style="margin-bottom:16px"></div>
-    <div id="geographyCityСписок"></div>
-  </div>
+<div class="panel-box" style="width:min(720px,96vw)">
+<div class="panel-head">
+<div class="panel-title">🗺 Карта географии передатчиков</div>
+<button class="panel-close" id="geographyClose">✕</button>
 </div>
-
+<p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Распределение передатчиков по основным историческим центрам исламской учёности. Нажмите на город, чтобы увидеть связанных с ним передатчиков.</p>
+<div id="geographyMap" style="margin-bottom:16px"></div>
+<div id="geographyCityСписок"></div>
+</div>
+</div>
 <!-- GРУEALOGY PANEL -->
 <div class="panel-overlay" id="genealogyPanel">
-  <div class="panel-box" style="width:min(820px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">🌳 Генеалогическое дерево передачи хадисов</div>
-      <button class="panel-close" id="genealogyClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Документированные цепочки передачи знания от Имамов через ближайших сподвижников к составителям «Четырёх книг» шиитского хадиса. Нажмите на имя передатчика, чтобы открыть его карточку.</p>
-    <div id="genealogyTree"></div>
-  </div>
+<div class="panel-box" style="width:min(820px,96vw)">
+<div class="panel-head">
+<div class="panel-title">🌳 Генеалогическое дерево передачи хадисов</div>
+<button class="panel-close" id="genealogyClose">✕</button>
 </div>
-
+<p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Документированные цепочки передачи знания от Имамов через ближайших сподвижников к составителям «Четырёх книг» шиитского хадиса. Нажмите на имя передатчика, чтобы открыть его карточку.</p>
+<div id="genealogyTree"></div>
+</div>
+</div>
 <!-- Reading progress bar -->
 <div id="readingProgress" style="width:0"></div>
-
 <!-- Scroll to top button -->
-<button id="btnScrollTop" aria-label="Наверх">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-    <polyline points="18 15 12 9 6 15"/>
-  </svg>
+<button aria-label="Наверх" id="btnScrollTop">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="16">
+<polyline points="18 15 12 9 6 15"></polyline>
+</svg>
 </button>
-
 <!-- Toast container -->
-
 <div class="toast-wrap" id="toastWrap"></div>
-
 <script>
 // ═══════════════════════════════════════
 // I18N
@@ -5731,129 +5671,212 @@ function detectQueryTradition(query) {
 // Глобальный лог статусов поиска для передачи в промт
 let lastSearchLog = [];
 
-async function searchDDG(query, label) {
+
+const _webSearchCache = new Map();
+const _webSearchInFlight = new Map();
+const _WEB_SEARCH_TTL_MS = 5 * 60 * 1000;
+const _WEB_SEARCH_MAX_CACHE = 40;
+
+function _webCacheGet(key) {
+  const entry = _webSearchCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    _webSearchCache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function _webCacheSet(key, value, ttlMs = _WEB_SEARCH_TTL_MS) {
+  if (_webSearchCache.size >= _WEB_SEARCH_MAX_CACHE) {
+    const oldest = _webSearchCache.keys().next();
+    if (!oldest.done) _webSearchCache.delete(oldest.value);
+  }
+  _webSearchCache.set(key, { value, expiresAt: Date.now() + ttlMs });
+}
+
+function _normalizeSnippet(text, maxLen = 240) {
+  const s = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  return s.length > maxLen ? s.slice(0, maxLen).trimEnd() + '…' : s;
+}
+
+function _hostOrder(tradition) {
+  const core = [
+    'lib.eshia.ir',
+    'shamela.ws',
+    'noorlib.ir',
+    'hawzah.net',
+    'al-islam.org',
+    'wikishia.net',
+    'islamquest.net',
+    'aqaed.com',
+    'alkafeel.net',
+    'archive.org',
+    'imam-us.org',
+  ];
+  const forums = ['shiachat.com', 'shiatent.com', 'twelvers.com'];
+  if (tradition === 'sunni') {
+    return [
+      'shamela.ws',
+      'hawzah.net',
+      'al-islam.org',
+      'wikishia.net',
+      'islamquest.net',
+      'aqaed.com',
+      'alkafeel.net',
+      'archive.org',
+      'imam-us.org',
+      ...forums,
+    ];
+  }
+  return [...core, ...forums];
+}
+
+async function _fetchJsonWithTimeout(url, options = {}, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(query) + '&format=json&no_html=1&skip_disambig=1';
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const parts = [];
-    if (data.AbstractText) parts.push(data.AbstractText);
-    if (data.Answer) parts.push(data.Answer);
-    if (data.Definition) parts.push(data.Definition);
-    if (data.RelatedTopics) data.RelatedTopics.slice(0, 4).forEach(t => { if (t.Text) parts.push(t.Text); });
-    if (data.Results) data.Results.slice(0, 3).forEach(r => { if (r.Text) parts.push(r.Text); });
-    return parts.filter(Boolean).map(p => (label ? `[${label}] ` : '') + String(p).trim());
-  } catch(e) { return []; }
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return text ? JSON.parse(text) : null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function _searchWorkerHost(query, host = '', limit = 3) {
+  const url = new URL('/ai/search', window.location.origin);
+  url.searchParams.set('q', query);
+  if (host) url.searchParams.set('host', host);
+  url.searchParams.set('limit', String(limit));
+  const data = await _fetchJsonWithTimeout(url.toString(), { method: 'GET' }, 12000);
+  return Array.isArray(data?.results) ? data.results : [];
+}
+
+async function _openWorkerUrl(url) {
+  const target = new URL('/ai/open', window.location.origin);
+  target.searchParams.set('url', url);
+  const data = await _fetchJsonWithTimeout(target.toString(), { method: 'GET' }, 12000);
+  return data && !data.error ? data : null;
 }
 
 async function searchWeb(query) {
   const baseQuery = (query || '').trim();
   if (!baseQuery) return '';
 
-  lastSearchLog = [];
-  const snippets = [];
   const tradition = detectQueryTradition(baseQuery);
+  const cacheKey = `${state.lang || 'ru'}|${tradition}|${baseQuery}`;
+  const cached = _webCacheGet(cacheKey);
+  if (cached) return cached;
 
-  // ── 1. ШИИТСКИЕ ИСТОЧНИКИ ──────────────────────────────────────
-  if (tradition === 'shia' || tradition === 'both') {
+  if (_webSearchInFlight.has(cacheKey)) {
+    return _webSearchInFlight.get(cacheKey);
+  }
 
-    // 1a. lib.eshia.ir — главный приоритет
-    let eshiaResults = await searchDDG(baseQuery + ' site:lib.eshia.ir', 'شيعي | lib.eshia.ir');
-    if (eshiaResults.length > 0) {
-      eshiaResults.forEach(p => snippets.push(p));
-      lastSearchLog.push('✓ lib.eshia.ir: найдено ' + eshiaResults.length + ' результатов');
-    } else {
-      // Fallback — другие шиитские сайты
-      lastSearchLog.push('⚠ lib.eshia.ir: недоступен или результатов нет — переключаюсь на запасные шиитские источники');
-      const fallbackShia = [
-        baseQuery + ' site:shiaonlinelibrary.com',
-        baseQuery + ' site:al-islam.org',
-        baseQuery + ' site:erfan.ir',
-        baseQuery + ' site:hawzah.net',
-        baseQuery + ' site:rasekhoon.net',
-        baseQuery + ' site:ghbook.ir',
-        baseQuery + ' الكافي OR بحار الأنوار OR وسائل الشيعة OR تهذيب الأحكام شيعي',
-      ];
-      let fallbackFound = 0;
-      for (const fq of fallbackShia) {
-        const parts = await searchDDG(fq, 'شيعي | запасной');
-        parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
-        fallbackFound += parts.length;
-        if (snippets.filter(s => s.includes('شيعي')).length >= 5) break;
+  const pending = (async () => {
+    lastSearchLog = [];
+    const snippets = [];
+    const seen = new Set();
+
+    const addSnippet = (text, label) => {
+      const snippet = _normalizeSnippet(text, 260);
+      if (!snippet) return false;
+      const dedupeKey = snippet.slice(0, 80).toLowerCase();
+      if (seen.has(dedupeKey)) return false;
+      seen.add(dedupeKey);
+      snippets.push(label ? `[${label}] ${snippet}` : snippet);
+      return true;
+    };
+
+    const localMatches = findLocalTransmitters(baseQuery).slice(0, 5);
+    if (localMatches.length) {
+      lastSearchLog.push('✓ local dataset: найдено ' + localMatches.length + ' совпадений');
+      for (const tx of localMatches.slice(0, 3)) {
+        const parts = [
+          tx.name || '',
+          tx.arabicName ? ` / ${tx.arabicName}` : '',
+          tx.shiaStatus ? ` · ${tx.shiaStatus}` : '',
+          tx.sunniStatus ? ` · ${tx.sunniStatus}` : '',
+          tx.bio ? ` · ${tx.bio}` : '',
+        ];
+        addSnippet(parts.join(''), 'Локальная база');
       }
-      if (fallbackFound > 0) {
-        lastSearchLog.push('✓ Запасные шиитские источники: найдено ' + fallbackFound + ' фрагментов');
-      } else {
-        lastSearchLog.push('✗ Все шиитские сайты недоступны — ответ из памяти модели');
+    }
+
+    const hosts = _hostOrder(tradition);
+    for (const host of hosts) {
+      if (snippets.length >= 8) break;
+
+      try {
+        const results = await _searchWorkerHost(baseQuery, host, 3);
+        if (!results.length) {
+          lastSearchLog.push('⚠ ' + host + ': результатов нет');
+          continue;
+        }
+
+        lastSearchLog.push('✓ ' + host + ': найдено ' + results.length + ' результатов');
+
+        const opened = await Promise.all(
+          results.slice(0, 2).map((item) =>
+            _openWorkerUrl(item.url).catch(() => null)
+          )
+        );
+
+        for (const item of opened) {
+          if (!item) continue;
+          addSnippet(item.text || item.title || item.url, item.host || host);
+          if (snippets.length >= 8) break;
+        }
+      } catch {
+        lastSearchLog.push('⚠ ' + host + ': поиск недоступен');
       }
     }
 
-    // 1b. Дополнительные шиитские сайты
-    const extraShia = [
-      baseQuery + ' site:islamquest.net',
-      baseQuery + ' site:valiasr-aj.com',
-      baseQuery + ' site:alseraj.net',
-      baseQuery + ' site:al-shia.org',
-    ];
-    for (const eq of extraShia) {
-      const parts = await searchDDG(eq, 'شيعي | доп.');
-      parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
-      if (snippets.filter(s => s.includes('شيعي')).length >= 8) break;
+    if (snippets.length < 3) {
+      try {
+        lastSearchLog.push('⚠ основных источников мало — запускаю общий поиск');
+        const fallback = await _searchWorkerHost(baseQuery, '', 4);
+        const opened = await Promise.all(
+          fallback.slice(0, 3).map((item) =>
+            _openWorkerUrl(item.url).catch(() => null)
+          )
+        );
+        for (const item of opened) {
+          if (!item) continue;
+          addSnippet(item.text || item.title || item.url, item.host || 'общий');
+        }
+      } catch {
+        lastSearchLog.push('✗ общий поиск недоступен');
+      }
     }
+
+    if (!snippets.length) {
+      lastSearchLog.push('✗ поддерживаемые источники ничего не нашли');
+    }
+
+    const logLine = lastSearchLog.length ? '\n[ПОИСКОВЫЙ ЛОГ]: ' + lastSearchLog.join(' | ') : '';
+    const out = (snippets.join('\n') + logLine).slice(0, 2500);
+    _webCacheSet(cacheKey, out);
+    return out;
+  })();
+
+  _webSearchInFlight.set(cacheKey, pending);
+  try {
+    return await pending;
+  } finally {
+    _webSearchInFlight.delete(cacheKey);
   }
-
-  // ── 2. СУННИТСКИЕ ИСТОЧНИКИ ────────────────────────────────────
-  if (tradition === 'sunni' || tradition === 'both') {
-
-    // 2a. shamela.ws — главный приоритет
-    let shamelaResults = await searchDDG(baseQuery + ' site:shamela.ws', 'سني | shamela.ws');
-    if (shamelaResults.length > 0) {
-      shamelaResults.forEach(p => snippets.push(p));
-      lastSearchLog.push('✓ shamela.ws: найдено ' + shamelaResults.length + ' результатов');
-    } else {
-      lastSearchLog.push('⚠ shamela.ws: нет результатов — переключаюсь на islamweb.net и dorar.net');
-    }
-
-    // 2b. islamweb + dorar + остальные суннитские
-    const sunniExtra = [
-      baseQuery + ' site:islamweb.net',
-      baseQuery + ' site:dorar.net',
-      baseQuery + ' site:ahlalhdeeth.com',
-      baseQuery + ' site:alukah.net',
-      baseQuery + ' تهذيب الكمال OR ميزان الاعتدال OR الجرح والتعديل رجال سني',
-    ];
-    for (const sq of sunniExtra) {
-      const parts = await searchDDG(sq, 'سني');
-      parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
-      if (snippets.filter(s => s.includes('سني')).length >= 8) break;
-    }
-
-    if (snippets.filter(s => s.includes('سني')).length > 0) {
-      lastSearchLog.push('✓ Суннитские источники: найдено фрагментов');
-    }
-  }
-
-  // ── 3. ОБЩИЙ РИДЖАЛЬНЫЙ ПОИСК (если мало результатов) ──────────
-  if (snippets.length < 3) {
-    lastSearchLog.push('⚠ Основные источники дали мало результатов — запускаю общий поиск');
-    const general = [
-      baseQuery + ' علم الرجال حديث إسناد',
-      baseQuery + ' hadith rijal isnad transmitter',
-      baseQuery + ' islamic hadith scholarship',
-    ];
-    for (const gq of general) {
-      const parts = await searchDDG(gq, 'общий');
-      parts.forEach(p => { if (!snippets.some(s => s.includes(p.slice(0,40)))) snippets.push(p); });
-      if (snippets.length >= 6) break;
-    }
-  }
-
-  // ── Итоговый лог ────────────────────────────────────────────────
-  const logLine = lastSearchLog.length ? '\n[ПОИСКОВЫЙ ЛОГ]: ' + lastSearchLog.join(' | ') : '';
-  return (snippets.join('\n') + logLine).slice(0, 2500);
 }
 
+// ── Итоговый лог ────────────────────────────────────────────────
 // ── Detect language of user message ──────────────────────────────
 function detectUserLang(text) {
   if (!text) return state.lang || 'ru';
