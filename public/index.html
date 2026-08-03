@@ -3195,8 +3195,25 @@ document.addEventListener("DOMContentLoaded",()=>{
       </svg>
       <span id="btnAiChatLabel">ИИ-чат</span>
     </button>
+    <button class="tab-btn" id="btnHadis" title="Хадисы">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+      <span id="btnHadisLabel">Хадисы</span>
+    </button>
   </div>
 </nav>
+
+<script>
+  (function(){
+    var btn = document.getElementById('btnHadis');
+    if (btn) {
+      btn.addEventListener('click', function(){
+        window.location.href = 'https://shiaisnad.ru/hadis';
+      });
+    }
+  })();
+</script>
 
 <!-- App Body -->
 <div class="app-body">
@@ -7572,6 +7589,11 @@ function fallbackCopy(text) {
 // EXTRA ANIMATIONS + RUSSIAN-ONLY ENFORCEMENT
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  try {
+    if (window.location.hash === '#ai-chat' && typeof openAiChat === 'function') {
+      setTimeout(openAiChat, 50);
+    }
+  } catch (e) {}
   try {
     // lang управляется через loadНастройки
 
