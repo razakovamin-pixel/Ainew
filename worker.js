@@ -697,30 +697,57 @@ async function collectSourceContext(userText) {
 
   if (sources.length < MAX_SOURCES_PER_ANSWER) {
     const hostPlan = inferHosts(rawText);
-    const hosts = hostPlan.length
-      ? hostPlan
-      : [
-          'shiaisnad.ru',
-          'lib.eshia.ir',
-          'shamela.ws',
-          'noorlib.ir',
-          'hawzah.net',
-          'al-islam.org',
-          'islamquest.net',
-          'wikishia.net',
-          'shiachat.com',
-          'shiatent.com',
-          'twelvers.com',
-        ];
+    const hosts = (
+      hostPlan.length
+        ? hostPlan
+        : [
+            'shiaisnad.ru',
+            'lib.eshia.ir',
+            'shamela.ws',
+            'noorlib.ir',
+            'hawzah.net',
+            'al-islam.org',
+            'islamquest.net',
+            'wikishia.net',
+            'shiachat.com',
+            'shiatent.com',
+            'twelvers.com',
+          ]
+    ).slice(0, 6);
 
-    const searchTasks = [];
-    for (const host of hosts) {
-      for (const q of queryVariants) {
-        searchTasks.push(
-          searchDuckDuckGo(q, host, SEARCH_LIMIT).catch(() => []),
-        );
-      }
-    }
+    // ── Subrequest budget guard ──────────────────────────────────
+    // Cloudflare caps the number of fetch() subrequests a single Worker
+    // invocation may issue (as low as 50 on some plans). The previous
+    // version looped `for (host of hosts) for (q of queryVariants)`,
+    // firing one searchDuckDuckGo() call PER HOST — up to 11 hosts ×
+    // 5 query variants = 55 calls, each doing up to 2 fetches (primary
+    // + lite.duckduckgo.com fallback) = up to ~110 fetch subrequests
+    // for search alone, plus up to 8 more to open result pages.
+    // Once that budget is exhausted, every fetch() after it — including
+    // the real call to the AI provider below — throws immediately,
+    // which is exactly what produced "502 Upstream request failed" on
+    // every chat message.
+    //
+    // Fix: combine all candidate hosts into ONE DuckDuckGo query per
+    // query variant using an OR'd site: filter, and cap the number of
+    // variants actually sent over the network. This turns "hosts ×
+    // variants" fetches into just "variants" fetches (≤ 2), leaving
+    // plenty of headroom for the upstream AI request.
+    const siteFilter =
+      hosts.length > 1
+        ? '(' + hosts.map((h) => `site:${h}`).join(' OR ') + ')'
+        : hosts[0]
+          ? `site:${hosts[0]}`
+          : '';
+
+    const searchVariants = queryVariants.slice(0, 2);
+    const searchTasks = searchVariants.map((q) =>
+      searchDuckDuckGo(
+        siteFilter ? `${siteFilter} ${q}` : q,
+        null,
+        SEARCH_LIMIT * hosts.length,
+      ).catch(() => []),
+    );
 
     const searchResults = (await Promise.all(searchTasks)).flat();
 
@@ -740,7 +767,7 @@ async function collectSourceContext(userText) {
     }
 
     const opened = await Promise.all(
-      uniqueResults.slice(0, 8).map((item) =>
+      uniqueResults.slice(0, MAX_SOURCES_PER_ANSWER).map((item) =>
         openAllowedUrl(item.url, item.title).catch(() => null),
       ),
     );
