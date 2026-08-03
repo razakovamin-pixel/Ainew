@@ -11,9 +11,13 @@
  *   - поддержка нескольких вариантов поискового запроса.
  *
  * Env:
- *   AI_API_KEY   — Secret
- *   AI_BASE_URL  — Variable (например: https://smartapi.shop/backend)
- *   AI_MODEL     — Variable
+ *   AI_API_KEY        — Secret
+ *   AI_BASE_URL       — Variable (например: https://smartapi.shop/backend)
+ *   AI_MODEL          — Variable
+ *   TRANSLATE_MODEL_AI — Secret/Variable, optional. Модель, используемая
+ *                        специально для перевода интерфейса/карточек/хадисов
+ *                        (запросы с заголовком X-Translate: 1). Если не задана,
+ *                        используется AI_MODEL.
  *   AI_TIMEOUT_MS — optional, default 58000
  *   AI_PATH      — optional, default /v1/messages
  */
@@ -856,7 +860,11 @@ async function handleChat(request, env) {
     safePayload.system = mergeSystemText(safePayload.system, sourceContext);
   }
 
-  safePayload.model = env.AI_MODEL;
+  const wantsTranslateModel =
+    request.headers.get('x-translate') === '1' ||
+    request.headers.get('X-Translate') === '1';
+  safePayload.model =
+    (wantsTranslateModel && env.TRANSLATE_MODEL_AI) || env.AI_MODEL;
 
   let targetUrl;
   try {

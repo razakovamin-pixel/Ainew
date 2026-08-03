@@ -11,5 +11,11 @@ binding = "ASSETS"
 #   wrangler secret put AI_API_KEY
 #   wrangler secret put AI_BASE_URL
 #   wrangler secret put AI_MODEL
-# (все три можно хранить как secrets, а не просто vars, если не хотите
+#   wrangler secret put TRANSLATE_MODEL_AI
+# (все можно хранить как secrets, а не просто vars, если не хотите
 # светить даже провайдера и модель в конфиге репозитория)
+#
+# TRANSLATE_MODEL_AI — отдельная модель специально для перевода интерфейса,
+# карточек передатчиков и хадисов на азербайджанский (и другие) язык.
+# Используется только запросами с заголовком X-Translate: 1.
+# Если секрет не задан — воркер просто использует AI_MODEL и для перевода тоже.
