@@ -2259,242 +2259,6 @@ html[lang="fa"] .tx-arabic { font-family: var(--font-arabic); }
 html[lang="fa"] .det-arabic { direction: ltr; }
 html[lang="fa"] .det-top { flex-direction: row-reverse; }
 
-/* ═══════════════════════════════════════
-   DONATION MODAL
-═══════════════════════════════════════ */
-.donate-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(58,40,16,.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  animation: donateOverlayIn .3s ease;
-}
-@keyframes donateOverlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.donate-overlay.hiding {
-  animation: donateOverlayOut .25s ease forwards;
-}
-@keyframes donateOverlayOut {
-  to { opacity: 0; }
-}
-
-.donate-box {
-  background: linear-gradient(160deg, #241a0d 0%, #201708 60%, #1a1206 100%);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 20px;
-  width: min(520px, 100%);
-  max-height: min(90dvh, 720px);
-  overflow-y: auto;
-  box-shadow: 0 32px 80px rgba(58,40,16,.7), 0 0 0 1px rgba(138,106,31,.15);
-  animation: donateBoxIn .35s cubic-bezier(.22,1,.36,1);
-  position: relative;
-  scrollbar-width: thin;
-  scrollbar-color: #3a2a16 transparent;
-}
-.donate-box::-webkit-scrollbar { width: 3px; }
-.donate-box::-webkit-scrollbar-thumb { background: #3a2a16; border-radius: 2px; }
-
-@keyframes donateBoxIn {
-  from { opacity: 0; transform: translateY(28px) scale(.96); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Top accent bar */
-.donate-accent {
-  height: 3px;
-  background: linear-gradient(90deg, #8a6a1f, #c9a227, #8a6a1f);
-  background-size: 200% 100%;
-  animation: accentFlow 3s linear infinite;
-  border-radius: 20px 20px 0 0;
-}
-@keyframes accentFlow {
-  0%   { background-position: 0% 0%; }
-  100% { background-position: 200% 0%; }
-}
-
-.donate-inner { padding: 24px 24px 28px; }
-
-/* Header row */
-.donate-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-.donate-title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #f2e8d0;
-  line-height: 1.25;
-  flex: 1;
-}
-.donate-title span { color: #c9a227; }
-.donate-close-btn {
-  flex-shrink: 0;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #8a7a5c;
-  font-size: 16px;
-  line-height: 1;
-  transition: all .2s;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.donate-close-btn:hover {
-  background: rgba(139,58,46,.18);
-  border-color: rgba(139,58,46,.35);
-  color: #c97a68;
-  transform: rotate(90deg);
-}
-
-/* Body text */
-.donate-body {
-  font-size: 14px;
-  color: #8a7a5c;
-  line-height: 1.75;
-  margin-bottom: 22px;
-  border-left: 2px solid rgba(138,106,31,.4);
-  padding-left: 14px;
-}
-
-/* Wallets section */
-.donate-wallets {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.wallet-row {
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 12px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  transition: border-color .2s;
-  cursor: pointer;
-  position: relative;
-}
-.wallet-row:hover { border-color: rgba(138,106,31,.4); }
-.wallet-row:active { background: rgba(138,106,31,.06); }
-
-.wallet-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #c9a227;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-}
-.wallet-gem { font-size: 13px; }
-
-.wallet-addr {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: #6b5c42;
-  word-break: break-all;
-  line-height: 1.5;
-  transition: color .2s;
-  user-select: all;
-}
-.wallet-row:hover .wallet-addr { color: #8a7a5c; }
-
-.wallet-copy {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: rgba(138,106,31,.12);
-  border: 1px solid rgba(138,106,31,.25);
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 10px;
-  color: #c9a227;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity .15s;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 600;
-  touch-action: manipulation;
-}
-.wallet-row:hover .wallet-copy { opacity: 1; }
-
-/* Card row */
-.card-row {
-  background: linear-gradient(135deg, rgba(184,134,58,.08), rgba(184,134,58,.06));
-  border: 1px solid rgba(184,134,58,.22);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 20px;
-}
-.card-row .wallet-label { color: #c08a2e; }
-.card-row .wallet-addr { font-size: 15px; letter-spacing: .1em; color: #8a7a5c; font-family: 'IBM Plex Mono', monospace; }
-.card-recipient {
-  font-size: 11px;
-  color: #6b5c42;
-  margin-top: 3px;
-}
-
-/* Footer */
-.donate-footer {
-  text-align: center;
-  font-size: 13px;
-  color: #4a3d24;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,.06);
-  font-family: 'Amiri', serif;
-  line-height: 1.7;
-}
-.donate-footer em { color: #c9a227; font-style: normal; }
-
-/* Close button at bottom */
-.donate-dismiss {
-  display: block;
-  width: 100%;
-  margin-top: 16px;
-  background: rgba(138,106,31,.1);
-  border: 1px solid rgba(138,106,31,.25);
-  border-radius: 10px;
-  padding: 10px;
-  color: #c9a227;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-  transition: all .2s;
-  touch-action: manipulation;
-}
-.donate-dismiss:hover { background: rgba(138,106,31,.2); border-color: rgba(181,146,47,.4); }
-
-@media (max-width: 480px) {
-  .donate-inner { padding: 18px 16px 22px; }
-  .donate-title { font-size: 16px; }
-  .donate-body { font-size: 13px; }
-  .wallet-addr { font-size: 10px; }
-  .card-row .wallet-addr { font-size: 13px; }
-  .wallet-copy { opacity: 1; }
-}
-
 
 /* ═══════════════════════════════════════
    RUSSIAN-ONLY UI + EXTRA ANIMATIONS
@@ -2777,22 +2541,8 @@ select:focus {
 
 
 /* ═══════════════════════════════════════
-   PERFORMANCE + INTRO + DONATE BUTTON
+   PERFORMANCE + INTRO
 ═══════════════════════════════════════ */
-.btn-donate {
-  color: #c97a68;
-  background: rgba(139,58,46,.08);
-  border: 1px solid rgba(139,58,46,.22);
-}
-.btn-donate:hover {
-  background: rgba(139,58,46,.18);
-  color: #e8c9b8;
-}
-.btn-donate svg { stroke: currentColor; }
-
-.donate-overlay { display: none; }
-.donate-overlay.open { display: flex; }
-.donate-overlay.hiding { display: flex; }
 
 .loading-overlay { display: none; }
 .loading-overlay.open { display: flex; }
@@ -2910,81 +2660,10 @@ select:focus {
 #aiChatMessages::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
 </style>
 
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
- try{
-   let visits=parseInt(localStorage.getItem("archive_visits")||"0")+1;
-   localStorage.setItem("archive_visits",visits);
-
-   if(visits % 3 === 0){
-      setTimeout(()=>{
-        const modal=document.querySelector(".donate-box,.support-modal,.donation-modal,[id*=donat],[class*=donat]");
-        if(modal){
-          modal.style.display="block";
-          modal.classList.add("open","active","show");
-        }
-      },1200);
-   }
- }catch(e){}
-});
-</script>
-
 </head>
 <body class="app-intro">
 
 <div class="body-ambient-layer" aria-hidden="true"></div>
-
-
-<!-- DONATION MODAL -->
-<div class="donate-overlay" id="donateOverlay" role="dialog" aria-modal="true" aria-label="Поддержать проект" style="display:none">
-  <div class="donate-box" id="donateBox" tabindex="-1">
-    <div class="donate-accent"></div>
-    <div class="donate-inner">
-      <div class="donate-head">
-        <div class="donate-title">📚 Поддержать <span>ShiaIsnad</span></div>
-        <button class="donate-close-btn" id="donateDismissTop" aria-label="Закрыть">✕</button>
-      </div>
-
-      <div class="donate-body">
-        Проект <strong style="color:#f2e8d0">ShiaIsnad</strong> развивается исключительно благодаря энтузиазму и поддержке неравнодушных людей.<br><br>
-        Сайт полностью бесплатный и останется таким, однако его развитие, поддержка домена, хостинга и добавление новых материалов требуют времени и средств.<br><br>
-        Если вы хотите поддержать проект любой суммой, мы будем искренне благодарны. Поддержка является исключительно <strong style="color:#c9a227">добровольной</strong>.
-      </div>
-
-      <div class="donate-wallets">
-        <div class="wallet-row" onclick="copyWallet(this, 'UQAyLRTWh4BXSYpH0SvIvTHlW-aFazWNckhRALaQx6thPoau')">
-          <div class="wallet-label"><span class="wallet-gem">💎</span> TON</div>
-          <div class="wallet-addr">UQAyLRTWh4BXSYpH0SvIvTHlW-aFazWNckhRALaQx6thPoau</div>
-          <span class="wallet-copy">Копировать</span>
-        </div>
-
-        <div class="wallet-row" onclick="copyWallet(this, 'TB2mj3BotRRaA6knJpA2FYRgMZqMGDpaZR')">
-          <div class="wallet-label"><span class="wallet-gem">💎</span> TRC20&nbsp;<span style="font-size:10px;opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">(USDT / TRX)</span></div>
-          <div class="wallet-addr">TB2mj3BotRRaA6knJpA2FYRgMZqMGDpaZR</div>
-          <span class="wallet-copy">Копировать</span>
-        </div>
-
-        <div class="wallet-row" onclick="copyWallet(this, '0xd15758F5B14798EE37cDE73992A550118c593F62')">
-          <div class="wallet-label"><span class="wallet-gem">💎</span> ERC20 / BEP20&nbsp;<span style="font-size:10px;opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">(ETH, BNB, USDT...)</span></div>
-          <div class="wallet-addr">0xd15758F5B14798EE37cDE73992A550118c593F62</div>
-          <span class="wallet-copy">Копировать</span>
-        </div>
-      </div>
-
-      <div class="card-row">
-        <div class="wallet-label">💳 Сбербанк</div>
-        <div class="wallet-addr" style="cursor:pointer" onclick="copyWallet(this.parentElement, '2202208585323547')">2202 2085 8532 3547</div>
-        <div class="card-recipient">Получатель: Разаков Аминджон</div>
-        <span class="wallet-copy" style="opacity:1">Копировать</span>
-      </div>
-
-      <div class="donate-footer">
-        <em>Да вознаградит Аллах всех, кто помогает развитию проекта и распространению полезных знаний.</em>
-        <button class="donate-dismiss" id="donateDismissBottom">Закрыть</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 <!-- Загрузка -->
@@ -3030,11 +2709,6 @@ document.addEventListener("DOMContentLoaded",()=>{
         <polyline points="17 15 21 19 17 23" transform="translate(0,-3)"/>
       </svg>
     </button>
-    <button class="btn-icon btn-donate" id="btnDonate" title="Поддержать проект" aria-label="Поддержать проект">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.8 4.6c-1.5-1.6-4-1.7-5.7-.2L12 7.3 8.9 4.4c-1.7-1.5-4.2-1.4-5.7.2-1.7 1.8-1.6 4.6.1 6.3L12 19l8.7-8.1c1.7-1.7 1.8-4.5.1-6.3z"/>
-      </svg>
-    </button>
     <button class="btn-icon" id="btnTheme" title="Переключить тему">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
@@ -3045,6 +2719,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     </button>
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="ru" title="Русский язык">РУ</button>
+      <button class="lang-btn" data-lang="az" title="Azərbaycan dili">AZ</button>
     </div>
   </div>
 </header>
@@ -4866,7 +4541,7 @@ Yalnız etibarlı JSON ilə cavab verin:
   try {
     res = await fetch('/ai/chat', {
       method: 'POST',
-      headers: aiRequestHeaders(),
+      headers: aiRequestHeaders(true),
       signal: controller.signal,
       body: JSON.stringify({
         max_tokens: 4000,
@@ -4951,7 +4626,7 @@ async function batchTranslateAzNames() {
     try {
       const res = await fetch('/ai/chat', {
         method: 'POST',
-        headers: aiRequestHeaders(),
+        headers: aiRequestHeaders(true),
         body: JSON.stringify({
             max_tokens: 2500,
           messages: [{ role: 'user', content: prompt }]
@@ -6404,8 +6079,10 @@ function setMarja(name) {
 }
 
 // Заголовки для запросов к бэкенду ИИ. Никаких ключей клиент не отправляет.
-function aiRequestHeaders() {
-  return { 'Content-Type': 'application/json' };
+function aiRequestHeaders(isTranslate) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (isTranslate) headers['X-Translate'] = '1';
+  return headers;
 }
 
 
@@ -7516,78 +7193,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loading) loading.style.display = 'none';
   });
 });
-
-
-// ═══════════════════════════════════════
-// DONATION MODAL
-// ═══════════════════════════════════════
-
-function openDonateModal() {
-  const ov = document.getElementById('donateOverlay');
-  if (!ov) return;
-  ov.style.display = 'flex';
-  ov.classList.remove('hiding');
-  ov.classList.add('open');
-  requestAnimationFrame(() => {
-    const box = document.getElementById('donateBox');
-    if (box) box.focus();
-  });
-}
-
-function closeDonateModal() {
-  const ov = document.getElementById('donateOverlay');
-  if (!ov) return;
-  ov.classList.remove('open');
-  ov.classList.add('hiding');
-  setTimeout(() => { ov.style.display = 'none'; ov.classList.remove('hiding'); }, 260);
-}
-
-function copyWallet(rowEl, addr) {
-
-  const cleanAddr = addr.replace(/\s/g, '');
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(cleanAddr).catch(() => fallbackCopy(cleanAddr));
-  } else {
-    fallbackCopy(cleanAddr);
-  }
-  // Visual feedback on the row
-  const orig = rowEl.style.borderColor;
-  rowEl.style.borderColor = 'rgba(20,168,119,.7)';
-  rowEl.style.background = 'rgba(20,168,119,.08)';
-  const copyBtn = rowEl.querySelector('.wallet-copy');
-  if (copyBtn) { const t = copyBtn.textContent; copyBtn.textContent = '✓ Скопировано'; setTimeout(() => { copyBtn.textContent = t; }, 2000); }
-  setTimeout(() => { rowEl.style.borderColor = orig; rowEl.style.background = ''; }, 1800);
-}
-
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text; ta.style.cssText = 'position:fixed;top:-9999px';
-  document.body.appendChild(ta); ta.focus(); ta.select();
-  try { document.execCommand('copy'); } catch(e) {}
-  ta.remove();
-}
-
-
-(function initDonateModal() {
-  const openBtn = document.getElementById('btnDonate');
-  if (openBtn) openBtn.addEventListener('click', openDonateModal);
-
-  const closeIds = ['donateDismissTop', 'donateDismissBottom'];
-  closeIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('click', closeDonateModal);
-  });
-
-  const ov = document.getElementById('donateOverlay');
-  if (ov) ov.addEventListener('click', function(e) {
-    if (e.target === ov) closeDonateModal();
-  });
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeDonateModal();
-  });
-})();
-
 
 
 // ═══════════════════════════════════════
