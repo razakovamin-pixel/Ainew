@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#3a2a16">
-<meta name="description" content="Аль-Кафи — 2800 хадисов по главам">
-<title>الكافي — Аль-Кафи | 2800 хадисов</title>
+<meta name="description" content="Библиотека хадисов — Аль-Кафи и другие шиитские источники">
+<title>Библиотека хадисов | ShiaIsnad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -306,8 +306,10 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   function renderBooks(){
-    hdTitle.textContent = 'الكافي — Аль-Кафи';
-    hdSub.textContent = '2800 хадисов · 35 книг';
+    var totalBooks = DATA.length;
+    var totalH = DATA.reduce(function(sum, b){ return sum + b.chapters.reduce(function(a,c){return a + c.h.length;}, 0); }, 0);
+    hdTitle.textContent = 'Библиотека хадисов';
+    hdSub.textContent = totalH + ' ' + pluralize(totalH,'хадис','хадиса','хадисов') + ' · ' + totalBooks + ' ' + pluralize(totalBooks,'книга','книги','книг');
     setCrumb([{label:'Все книги'}]);
     var html = '';
     DATA.forEach(function(book){
