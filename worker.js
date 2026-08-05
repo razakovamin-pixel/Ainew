@@ -1,13 +1,21 @@
 /**
- * Cloudflare Worker — Ilm al-Rijal
+ * Cloudflare Worker — Ilm al-Rijal / ShiaIsnad
  * ---------------------------------
  * Бесплатные улучшения:
+ *   - ЛОКАЛЬНЫЙ поиск по собственной базе хадисов (/public/hadis/hadis_data.json)
+ *     и базе передатчиков (/public/transmitters*.json) — без единого сетевого
+ *     запроса, читается через ASSETS-биндинг и кэшируется в памяти воркера;
+ *   - для хадисных/риджальных вопросов локальная база проверяется ПЕРВОЙ
+ *     (это и есть "shiaisnad.ru/hadis") и, если найдено достаточно, веб-поиск
+ *     вообще пропускается — заметно быстрее для самых частых запросов;
+ *   - поиск в интернете идёт параллельно по DuckDuckGo И Bing (searchWeb),
+ *     результаты сливаются и дедуплицируются — легко добавить ещё движки;
  *   - кэш Cloudflare + in-memory fallback;
- *   - параллельный поиск по нескольким источникам;
  *   - приоритет ShiaIsnad и локальных источников;
  *   - больше бесплатных источников и форумов;
  *   - более аккуратное извлечение текста из HTML;
- *   - endpoints /ai/search, /ai/open, /health;
+ *   - endpoints /ai/search, /ai/open, /health (health прогревает и
+ *     показывает статус локальных баз);
  *   - поддержка нескольких вариантов поискового запроса.
  *
  * Env:
@@ -44,6 +52,40 @@ const MAX_SOURCES_PER_ANSWER = 4;
 const SEARCH_LIMIT = 4;
 const MEMORY_CACHE_TTL_MS = 10 * 60_000;
 const MEMORY_CTX_TTL_MS = 5 * 60_000;
+
+// Тайм-ауты сети уменьшены относительно прежней версии — цель ускорить
+// ответ. html.duckduckgo.com и bing теперь опрашиваются ПАРАЛЛЕЛЬНО
+// (Promise.allSettled), а не один за другим, поэтому агрессивно короткий
+// тайм-аут на каждый из них не увеличивает общее время ответа.
+const WEB_SEARCH_TIMEOUT_MS = 6000;
+const WEB_SEARCH_FALLBACK_TIMEOUT_MS = 5000;
+
+// ── Локальные базы (папка /public/hadis и файлы /public/transmitters*.json) ──
+// Эти файлы отдаются как статика через ASSETS-биндинг, но воркер тоже может
+// прочитать их через env.ASSETS.fetch() и искать по ним локально — без
+// единого сетевого запроса наружу. Это и быстрее, и является тем самым
+// "shiaisnad.ru/hadis" источником: это ЕГО собственная база хадисов/иснадов.
+const LOCAL_HADITH_PATH = '/hadis/hadis_data.json';
+const LOCAL_TRANSMITTER_PATHS = [
+  '/transmitters.json',
+  '/transmitters2.json',
+  '/transmitters3.json',
+  '/transmitters4.json',
+  '/transmitters5.json',
+];
+const MAX_LOCAL_HADITH_RESULTS = 4;
+const MAX_LOCAL_TRANSMITTER_RESULTS = 3;
+const LOCAL_SOURCE_BASE_SCORE = 1000; // выше любого веб-источника
+
+// Кэш разобранных локальных баз на время жизни изолята воркера (парсим
+// один раз — 17MB JSON парсится быстро, но незачем делать это на каждый
+// запрос). Если воркер работает на бесплатном тарифе Cloudflare с лимитом
+// CPU ~10ms/запрос, первый запрос, разбирающий эти файлы, может упереться
+// в лимит — для этого функционала рекомендован Workers Paid (Unbound).
+let localHadithCache = null; // { records: [...] } | null
+let localHadithLoading = null; // Promise
+let localTransmittersCache = null; // [...] | null
+let localTransmittersLoading = null; // Promise
 
 const ALLOWED_SOURCE_HOSTS = new Set([
   'lib.eshia.ir',
@@ -260,10 +302,7 @@ function inferHosts(queryText) {
     if (rule.test.test(t)) hosts.push(...rule.hosts);
   }
 
-  const hadithish =
-    /хадис|хадисы|иснад|риджаль|передатчик|передатчиков|rijal|hadith|rawi|narrator/i.test(
-      t,
-    );
+  const hadithish = isHadithQuery(t);
 
   if (hosts.length === 0 && hadithish) {
     hosts.push(
@@ -457,12 +496,14 @@ async function fetchDdgPage(url, init, timeoutMs = 12000) {
   }
 }
 
-// Parses DuckDuckGo result links without depending on a specific CSS
-// class (DDG changes its markup often — the previous code only matched
-// class="result__a", which silently returns zero matches whenever that
+// Parses result links from a search-engine results page without depending
+// on a specific CSS class (both DDG and Bing change their markup often —
+// matching one fixed class silently returns zero matches whenever that
 // class name isn't present). Instead we scan every <a href> and rely on
 // the allowed-host whitelist to filter out navigation/ad/internal links.
-function parseDdgLinks(html, siteHost, limit) {
+// Works for DuckDuckGo (decodes /l/?uddg= redirect) and Bing (direct
+// hrefs) alike, and for any future engine added the same way.
+function parseSearchResultLinks(html, siteHost, limit, skipHostSuffixes = []) {
   const results = [];
   if (!html) return results;
 
@@ -471,9 +512,9 @@ function parseDdgLinks(html, siteHost, limit) {
 
   while ((match = re.exec(html)) && results.length < limit) {
     const rawHref = match[1];
-    // Skip DuckDuckGo's own chrome (nav, ads, "About", etc.) — real result
-    // links either redirect via /l/?uddg=... or point straight at the
-    // target site.
+    // Skip engine chrome (nav, ads, "About", etc.) — real result links
+    // either redirect via /l/?uddg=... (DDG) or point straight at the
+    // target site (Bing, DDG-lite).
     if (/^\/(y|l)\.js/i.test(rawHref)) continue;
 
     const url = decodeDuckDuckGoUrl(rawHref);
@@ -487,7 +528,7 @@ function parseDdgLinks(html, siteHost, limit) {
       continue;
     }
 
-    if (host.endsWith('duckduckgo.com')) continue;
+    if (skipHostSuffixes.some((s) => host.endsWith(s))) continue;
     if (siteHost && !(host === siteHost || host.endsWith('.' + siteHost))) continue;
     if (!isAllowedHost(host)) continue;
 
@@ -495,6 +536,14 @@ function parseDdgLinks(html, siteHost, limit) {
   }
 
   return results;
+}
+
+// Kept as a thin alias so any external references / old name still work.
+const parseDdgLinks = (html, siteHost, limit) =>
+  parseSearchResultLinks(html, siteHost, limit, ['duckduckgo.com']);
+
+function parseBingLinks(html, siteHost, limit) {
+  return parseSearchResultLinks(html, siteHost, limit, ['bing.com', 'microsoft.com']);
 }
 
 async function searchDuckDuckGo(query, siteHost, limit = SEARCH_LIMIT) {
@@ -533,19 +582,20 @@ async function searchDuckDuckGo(query, siteHost, limit = SEARCH_LIMIT) {
       },
       body: `q=${encodeURIComponent(q)}`,
     },
-    12000,
+    WEB_SEARCH_TIMEOUT_MS,
   );
   if (primary.ok && primary.body) {
     results = parseDdgLinks(primary.body, siteHost, limit);
   }
 
   // Fallback: lite.duckduckgo.com — simpler markup, sometimes reachable
-  // when the html endpoint is challenged.
+  // when the html endpoint is challenged. Only tried if the primary
+  // attempt yielded nothing, to keep the common case at one round trip.
   if (results.length === 0) {
     const fallback = await fetchDdgPage(
       `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(q)}`,
       { method: 'GET', headers: commonHeaders },
-      12000,
+      WEB_SEARCH_FALLBACK_TIMEOUT_MS,
     );
     if (fallback.ok && fallback.body) {
       results = parseDdgLinks(fallback.body, siteHost, limit);
@@ -569,6 +619,87 @@ async function searchDuckDuckGo(query, siteHost, limit = SEARCH_LIMIT) {
     );
   } catch {}
   return finalResults;
+}
+
+// Second search engine, queried IN PARALLEL with DuckDuckGo (see
+// searchWeb below) rather than as a sequential fallback — this adds
+// coverage ("и так далее") without adding latency, since both requests
+// race concurrently and results are merged.
+async function searchBing(query, siteHost, limit = SEARCH_LIMIT) {
+  const q = siteHost ? `site:${siteHost} ${query}` : query;
+  const cacheKey = `bing:${siteHost || 'all'}:${q}:${limit}`;
+
+  const cachedMem = cacheGet(cacheKey);
+  if (cachedMem) return cachedMem;
+
+  const cached = await cacheMatchText('search', cacheKey);
+  if (cached) {
+    try {
+      return await cached.json();
+    } catch {}
+  }
+
+  const res = await fetchDdgPage(
+    `https://www.bing.com/search?q=${encodeURIComponent(q)}&setlang=ru`,
+    {
+      method: 'GET',
+      headers: {
+        'user-agent': DDG_BROWSER_USER_AGENT,
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'ru,en;q=0.8',
+      },
+    },
+    WEB_SEARCH_TIMEOUT_MS,
+  );
+
+  let results = [];
+  if (res.ok && res.body) {
+    results = parseBingLinks(res.body, siteHost, limit);
+  }
+
+  results.sort((a, b) => (b.score || 0) - (a.score || 0));
+  const finalResults = results.slice(0, limit);
+
+  cacheSet(cacheKey, finalResults, MEMORY_CACHE_TTL_MS);
+  try {
+    await cachePutText(
+      'search',
+      cacheKey,
+      new Response(JSON.stringify(finalResults), {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'public, max-age=600',
+        },
+      }),
+    );
+  } catch {}
+  return finalResults;
+}
+
+// Runs every configured search engine concurrently and merges the
+// deduplicated, priority-sorted results. Adding a third/fourth engine
+// later only means adding one more entry to `engines` — the rest of the
+// pipeline (dedupe, scoring, budget guard) stays the same.
+async function searchWeb(query, siteHost, limit = SEARCH_LIMIT) {
+  const engines = [searchDuckDuckGo, searchBing];
+
+  const settled = await Promise.allSettled(
+    engines.map((engine) => engine(query, siteHost, limit)),
+  );
+
+  const seen = new Set();
+  const merged = [];
+  for (const outcome of settled) {
+    if (outcome.status !== 'fulfilled' || !Array.isArray(outcome.value)) continue;
+    for (const item of outcome.value) {
+      if (!item?.url || seen.has(item.url)) continue;
+      seen.add(item.url);
+      merged.push(item);
+    }
+  }
+
+  merged.sort((a, b) => (b.score || 0) - (a.score || 0));
+  return merged.slice(0, limit);
 }
 
 async function openAllowedUrl(url, fallbackTitle = '') {
@@ -649,12 +780,206 @@ async function openAllowedUrl(url, fallbackTitle = '') {
   return result;
 }
 
+// ── Локальный поиск: хадисы (public/hadis/hadis_data.json) ──────────────
+
+function splitQueryTerms(text) {
+  return normalizeText(text)
+    .toLowerCase()
+    // разделители — всё, что не буква (латиница/кириллица/арабский) и не цифра
+    .split(/[^\p{L}\p{N}]+/u)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 2);
+}
+
+async function loadLocalHadith(request, env) {
+  if (localHadithCache) return localHadithCache;
+  if (localHadithLoading) return localHadithLoading;
+  if (!env.ASSETS) return null;
+
+  localHadithLoading = (async () => {
+    try {
+      const assetUrl = new URL(LOCAL_HADITH_PATH, request.url);
+      const res = await env.ASSETS.fetch(new Request(assetUrl.toString()));
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!Array.isArray(data)) return null;
+
+      const records = [];
+      for (const book of data) {
+        if (!book || !Array.isArray(book.chapters)) continue;
+        for (const ch of book.chapters) {
+          if (!ch || !Array.isArray(ch.h)) continue;
+          for (const h of ch.h) {
+            if (!h || !h.text) continue;
+            records.push({
+              bookId: book.id,
+              bookTitle: normalizeText(book.title),
+              chapterN: ch.n,
+              chapterName: normalizeText(ch.name),
+              hadithId: h.id,
+              text: normalizeText(h.text),
+            });
+          }
+        }
+      }
+
+      localHadithCache = { records };
+      return localHadithCache;
+    } catch {
+      return null;
+    } finally {
+      localHadithLoading = null;
+    }
+  })();
+
+  return localHadithLoading;
+}
+
+async function loadLocalTransmitters(request, env) {
+  if (localTransmittersCache) return localTransmittersCache;
+  if (localTransmittersLoading) return localTransmittersLoading;
+  if (!env.ASSETS) return null;
+
+  localTransmittersLoading = (async () => {
+    try {
+      const results = await Promise.all(
+        LOCAL_TRANSMITTER_PATHS.map(async (path) => {
+          try {
+            const assetUrl = new URL(path, request.url);
+            const res = await env.ASSETS.fetch(new Request(assetUrl.toString()));
+            if (!res.ok) return [];
+            const data = await res.json();
+            return Array.isArray(data) ? data : [];
+          } catch {
+            return [];
+          }
+        }),
+      );
+
+      const all = [];
+      for (const arr of results) {
+        for (const t of arr) {
+          if (!t || !t.name) continue;
+          all.push({
+            name: normalizeText(t.name),
+            arabicName: normalizeText(t.arabicName),
+            bio: normalizeText(t.bio || t.originalBio),
+            shiaStatus: normalizeText(t.shiaStatus),
+            sunniStatus: normalizeText(t.sunniStatus),
+            analysis: normalizeText(t.analysis),
+            sources: normalizeText(t.sources),
+          });
+        }
+      }
+
+      localTransmittersCache = all;
+      return localTransmittersCache;
+    } catch {
+      return null;
+    } finally {
+      localTransmittersLoading = null;
+    }
+  })();
+
+  return localTransmittersLoading;
+}
+
+function scoreTextAgainstTerms(text, terms, weight = 1) {
+  if (!text) return 0;
+  const lower = text.toLowerCase();
+  let score = 0;
+  for (const term of terms) {
+    let idx = lower.indexOf(term);
+    while (idx !== -1) {
+      score += weight;
+      idx = lower.indexOf(term, idx + term.length);
+    }
+  }
+  return score;
+}
+
+function phraseBonus(text, phrase, weight) {
+  if (!text || !phrase || phrase.length < 3) return 0;
+  return text.toLowerCase().includes(phrase.toLowerCase()) ? weight : 0;
+}
+
+function searchLocalHadith(dataset, queryText, limit = MAX_LOCAL_HADITH_RESULTS) {
+  if (!dataset || !Array.isArray(dataset.records)) return [];
+  const terms = splitQueryTerms(queryText);
+  if (terms.length === 0) return [];
+  const phrase = stripCommandWords(queryText).trim();
+
+  const scored = [];
+  for (const rec of dataset.records) {
+    const score =
+      scoreTextAgainstTerms(rec.text, terms, 3) +
+      scoreTextAgainstTerms(rec.chapterName, terms, 2) +
+      scoreTextAgainstTerms(rec.bookTitle, terms, 1) +
+      phraseBonus(rec.text, phrase, 20);
+    if (score > 0) scored.push({ rec, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map(({ rec, score }) => ({
+    url: 'https://shiaisnad.ru/hadis',
+    title: `${rec.bookTitle} · Глава ${rec.chapterN} (${rec.chapterName}) · Хадис ${rec.hadithId}`,
+    text: rec.text,
+    status: 200,
+    host: 'shiaisnad.ru',
+    score: LOCAL_SOURCE_BASE_SCORE + score,
+    local: true,
+  }));
+}
+
+function searchLocalTransmitters(
+  dataset,
+  queryText,
+  limit = MAX_LOCAL_TRANSMITTER_RESULTS,
+) {
+  if (!Array.isArray(dataset)) return [];
+  const terms = splitQueryTerms(queryText);
+  if (terms.length === 0) return [];
+  const phrase = stripCommandWords(queryText).trim();
+
+  const scored = [];
+  for (const t of dataset) {
+    const score =
+      scoreTextAgainstTerms(t.name, terms, 5) +
+      scoreTextAgainstTerms(t.arabicName, terms, 5) +
+      scoreTextAgainstTerms(t.bio, terms, 2) +
+      scoreTextAgainstTerms(t.analysis, terms, 2) +
+      phraseBonus(t.name, phrase, 40) +
+      phraseBonus(t.arabicName, phrase, 40);
+    if (score > 0) scored.push({ t, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map(({ t, score }) => ({
+    url: 'https://shiaisnad.ru',
+    title: `Передатчик: ${t.name}${t.arabicName ? ' (' + t.arabicName + ')' : ''}`,
+    text: [
+      `Имя: ${t.name} ${t.arabicName ? '/ ' + t.arabicName : ''}`,
+      `Статус у шиитов: ${t.shiaStatus || '—'}`,
+      `Статус у суннитов: ${t.sunniStatus || '—'}`,
+      `Биография: ${t.bio || '—'}`,
+      `Анализ: ${t.analysis || '—'}`,
+      `Источники: ${t.sources || '—'}`,
+    ].join('\n'),
+    status: 200,
+    host: 'shiaisnad.ru',
+    score: LOCAL_SOURCE_BASE_SCORE + score,
+    local: true,
+  }));
+}
+
 function buildSourceContext(sources) {
   if (!Array.isArray(sources) || sources.length === 0) return '';
 
+  const hasLocal = sources.some((s) => s.local);
+
   const blocks = sources.map((src, idx) => {
     return [
-      `Источник ${idx + 1}: ${src.title || src.url}`,
+      `Источник ${idx + 1}${src.local ? ' [ЛОКАЛЬНАЯ БАЗА shiaisnad.ru]' : ''}: ${src.title || src.url}`,
       `URL: ${src.url}`,
       `HTTP: ${src.status || 'unknown'}`,
       `Текст:`,
@@ -666,11 +991,28 @@ function buildSourceContext(sources) {
     'СЕРВЕРНЫЕ ИСТОЧНИКИ',
     'Используй этот текст как приоритетный контекст для ответа.',
     'Если источники расходятся, скажи об этом прямо и не выдумывай.',
+    hasLocal
+      ? 'Источники с пометкой [ЛОКАЛЬНАЯ БАЗА shiaisnad.ru] — это собственная база хадисов/иснадов сайта (раздел /hadis) и база передатчиков. Для вопросов о хадисах и передатчиках отдавай им приоритет перед любыми другими источниками.'
+      : '',
     ...blocks,
-  ].join('\n\n');
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 }
 
-async function collectSourceContext(userText) {
+const HADITH_QUERY_RE =
+  /хадис|хадисы|хадиса|хадисов|иснад|риджаль|передатчик|передатчиков|rijal|hadith|rawi|narrator/i;
+
+function isHadithQuery(text) {
+  return HADITH_QUERY_RE.test(normalizeText(text));
+}
+
+// Общий бюджет источников в контексте увеличен, когда есть локальные
+// (мгновенные, бесплатные по сети) результаты — они не в счёт "дорогих"
+// веб-запросов.
+const MAX_TOTAL_SOURCES = MAX_SOURCES_PER_ANSWER + 2;
+
+async function collectSourceContext(userText, request, env) {
   const rawText = normalizeText(userText);
   if (!rawText) return '';
 
@@ -680,6 +1022,7 @@ async function collectSourceContext(userText) {
 
   const directUrls = extractUrls(rawText);
   const queryVariants = buildSearchQueries(rawText);
+  const hadithQuery = isHadithQuery(rawText);
 
   const sources = [];
   const seen = new Set();
@@ -691,15 +1034,48 @@ async function collectSourceContext(userText) {
     return true;
   };
 
+  // ── 1) ЛОКАЛЬНАЯ БАЗА — всегда проверяется первой для хадисных
+  // запросов, это буквально "shiaisnad.ru/hadis" и база передатчиков.
+  // Никакой сети — почти мгновенно, поэтому не задерживает ответ.
+  let localHitCount = 0;
+  if (hadithQuery && request && env) {
+    try {
+      const [hadithDataset, transmitterDataset] = await Promise.all([
+        loadLocalHadith(request, env),
+        loadLocalTransmitters(request, env),
+      ]);
+
+      const hadithMatches = searchLocalHadith(hadithDataset, rawText);
+      const transmitterMatches = searchLocalTransmitters(
+        transmitterDataset,
+        rawText,
+      );
+
+      for (const src of [...hadithMatches, ...transmitterMatches]) {
+        if (pushSource(src)) localHitCount++;
+      }
+    } catch {
+      // Локальная база недоступна (например, ASSETS не забинжен) —
+      // просто продолжаем обычным веб-поиском ниже.
+    }
+  }
+
+  // ── 2) Прямые ссылки из сообщения пользователя ───────────────────
   for (const url of directUrls) {
     try {
       const opened = await openAllowedUrl(url);
       if (opened) pushSource(opened);
     } catch {}
-    if (sources.length >= MAX_SOURCES_PER_ANSWER) break;
+    if (sources.length >= MAX_TOTAL_SOURCES) break;
   }
 
-  if (sources.length < MAX_SOURCES_PER_ANSWER) {
+  // ── 3) Веб-поиск — пропускается, если по хадисному вопросу уже
+  // нашлось достаточно локальных совпадений и прямых ссылок не было:
+  // это и есть главное ускорение для самого частого типа запросов.
+  const canSkipWeb =
+    hadithQuery && localHitCount >= 2 && directUrls.length === 0;
+
+  if (!canSkipWeb && sources.length < MAX_TOTAL_SOURCES) {
     const hostPlan = inferHosts(rawText);
     const hosts = (
       hostPlan.length
@@ -721,22 +1097,15 @@ async function collectSourceContext(userText) {
 
     // ── Subrequest budget guard ──────────────────────────────────
     // Cloudflare caps the number of fetch() subrequests a single Worker
-    // invocation may issue (as low as 50 on some plans). The previous
-    // version looped `for (host of hosts) for (q of queryVariants)`,
-    // firing one searchDuckDuckGo() call PER HOST — up to 11 hosts ×
-    // 5 query variants = 55 calls, each doing up to 2 fetches (primary
-    // + lite.duckduckgo.com fallback) = up to ~110 fetch subrequests
-    // for search alone, plus up to 8 more to open result pages.
-    // Once that budget is exhausted, every fetch() after it — including
-    // the real call to the AI provider below — throws immediately,
-    // which is exactly what produced "502 Upstream request failed" on
-    // every chat message.
+    // invocation may issue (as low as 50 on some plans). Looping
+    // `for (host of hosts) for (q of queryVariants)` and firing one
+    // search call PER HOST would blow through that budget fast.
     //
-    // Fix: combine all candidate hosts into ONE DuckDuckGo query per
-    // query variant using an OR'd site: filter, and cap the number of
-    // variants actually sent over the network. This turns "hosts ×
-    // variants" fetches into just "variants" fetches (≤ 2), leaving
-    // plenty of headroom for the upstream AI request.
+    // Fix: combine all candidate hosts into ONE query per variant using
+    // an OR'd site: filter, and cap the number of variants sent over
+    // the network. searchWeb() itself fans out to 2 engines (DDG+Bing)
+    // per variant, run concurrently — so total fetches stay bounded
+    // and latency stays close to a single round trip.
     const siteFilter =
       hosts.length > 1
         ? '(' + hosts.map((h) => `site:${h}`).join(' OR ') + ')'
@@ -746,7 +1115,7 @@ async function collectSourceContext(userText) {
 
     const searchVariants = queryVariants.slice(0, 2);
     const searchTasks = searchVariants.map((q) =>
-      searchDuckDuckGo(
+      searchWeb(
         siteFilter ? `${siteFilter} ${q}` : q,
         null,
         SEARCH_LIMIT * hosts.length,
@@ -770,21 +1139,26 @@ async function collectSourceContext(userText) {
       if (uniqueResults.length >= 12) break;
     }
 
+    const remainingBudget = Math.max(
+      0,
+      MAX_SOURCES_PER_ANSWER - Math.max(0, sources.length - localHitCount),
+    );
+
     const opened = await Promise.all(
-      uniqueResults.slice(0, MAX_SOURCES_PER_ANSWER).map((item) =>
-        openAllowedUrl(item.url, item.title).catch(() => null),
-      ),
+      uniqueResults
+        .slice(0, remainingBudget || MAX_SOURCES_PER_ANSWER)
+        .map((item) => openAllowedUrl(item.url, item.title).catch(() => null)),
     );
 
     for (const item of opened) {
       if (item) pushSource(item);
-      if (sources.length >= MAX_SOURCES_PER_ANSWER) break;
+      if (sources.length >= MAX_TOTAL_SOURCES) break;
     }
   }
 
   sources.sort((a, b) => (b.score || 0) - (a.score || 0));
 
-  const context = buildSourceContext(sources.slice(0, MAX_SOURCES_PER_ANSWER));
+  const context = buildSourceContext(sources.slice(0, MAX_TOTAL_SOURCES));
   if (context) cacheSet(cacheKey, context, MEMORY_CTX_TTL_MS);
   return context;
 }
@@ -854,7 +1228,7 @@ async function handleChat(request, env) {
   }
 
   const lastUserText = getLastUserText(safePayload.messages);
-  const sourceContext = await collectSourceContext(lastUserText);
+  const sourceContext = await collectSourceContext(lastUserText, request, env);
 
   if (sourceContext) {
     safePayload.system = mergeSystemText(safePayload.system, sourceContext);
@@ -940,7 +1314,7 @@ async function handleSearch(request) {
     return json({ error: 'host is not allowed' }, 400);
   }
 
-  const results = await searchDuckDuckGo(query, host || undefined, limit);
+  const results = await searchWeb(query, host || undefined, limit);
   return json({ query, host: host || null, results });
 }
 
@@ -997,10 +1371,33 @@ export default {
     }
 
     if (url.pathname === '/health') {
+      // Прогреваем локальные базы, чтобы health-check показывал их
+      // фактический статус и чтобы первый реальный чат-запрос не платил
+      // за парсинг JSON сам.
+      let hadithStatus = 'not_loaded';
+      let transmittersStatus = 'not_loaded';
+      if (env.ASSETS) {
+        try {
+          const ds = await loadLocalHadith(request, env);
+          hadithStatus = ds ? `ok (${ds.records.length} хадисов)` : 'failed';
+        } catch {
+          hadithStatus = 'failed';
+        }
+        try {
+          const ds = await loadLocalTransmitters(request, env);
+          transmittersStatus = ds ? `ok (${ds.length} передатчиков)` : 'failed';
+        } catch {
+          transmittersStatus = 'failed';
+        }
+      }
+
       return json({
         ok: true,
         aiConfigured: Boolean(env.AI_API_KEY && env.AI_BASE_URL && env.AI_MODEL),
         sources: [...ALLOWED_SOURCE_HOSTS],
+        searchEngines: ['duckduckgo', 'bing'],
+        localHadithDatabase: hadithStatus,
+        localTransmittersDatabase: transmittersStatus,
       });
     }
 
