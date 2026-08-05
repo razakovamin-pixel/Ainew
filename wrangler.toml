@@ -7,20 +7,6 @@ compatibility_date = "2025-01-01"
 directory = "./public"
 binding = "ASSETS"
 
-# ---------------------------------------------------------------------------
-# Админ-панель (/admin) — база данных Cloudflare D1
-# ---------------------------------------------------------------------------
-# 1) Создать базу:      wrangler d1 create ilm-al-rijal-db
-#    Скопировать выданный database_id сюда вместо "REPLACE_WITH_YOUR_D1_DATABASE_ID".
-# 2) Применить схему:   wrangler d1 execute ilm-al-rijal-db --remote --file=migrations/0001_init.sql
-# 3) Задать секрет JWT: wrangler secret put JWT_SECRET   (любая длинная случайная строка)
-# 4) Деплой:            wrangler deploy
-# 5) Открыть /admin — при пустой таблице users будет предложено создать первого администратора.
-[[d1_databases]]
-binding = "DB"
-database_name = "ilm-al-rijal-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-
 # Секреты и реальные значения НЕ прописывайте здесь. После деплоя:
 #   wrangler secret put AI_API_KEY
 #   wrangler secret put AI_BASE_URL

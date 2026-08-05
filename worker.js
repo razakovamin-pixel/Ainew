@@ -20,14 +20,7 @@
  *                        используется AI_MODEL.
  *   AI_TIMEOUT_MS — optional, default 58000
  *   AI_PATH      — optional, default /v1/messages
- *
- * Admin-панель (добавлено):
- *   DB          — D1 binding (см. [[d1_databases]] в wrangler.toml)
- *   JWT_SECRET  — Secret, wrangler secret put JWT_SECRET
  */
-
-import { handleAdminApi } from './src/admin/routes.js';
-import { incrementCounter } from './src/admin/db.js';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -901,7 +894,6 @@ async function handleChat(request, env) {
     });
 
     const text = await upstream.text();
-    if (env && env.DB) ctxSafe(() => incrementCounter(env.DB, 'ai_chat_count'));
     return new Response(text, {
       status: upstream.status,
       headers: {
@@ -921,7 +913,7 @@ async function handleChat(request, env) {
   }
 }
 
-async function handleSearch(request, env) {
+async function handleSearch(request) {
   const url = new URL(request.url);
   let query = url.searchParams.get('q') || '';
   let host = url.searchParams.get('host') || '';
@@ -949,17 +941,7 @@ async function handleSearch(request, env) {
   }
 
   const results = await searchDuckDuckGo(query, host || undefined, limit);
-  if (env && env.DB) ctxSafe(() => incrementCounter(env.DB, 'search_count'));
   return json({ query, host: host || null, results });
-}
-
-function ctxSafe(fn) {
-  try {
-    const p = fn();
-    if (p && typeof p.catch === 'function') p.catch(() => {});
-  } catch {
-    // счётчики не должны ронять основной запрос
-  }
 }
 
 async function handleOpen(request) {
@@ -1004,7 +986,7 @@ export default {
       if (request.method !== 'GET' && request.method !== 'POST') {
         return json({ error: 'Method not allowed' }, 405);
       }
-      return handleSearch(request, env);
+      return handleSearch(request);
     }
 
     if (url.pathname === '/ai/open' || url.pathname === '/api/open') {
@@ -1012,33 +994,6 @@ export default {
         return json({ error: 'Method not allowed' }, 405);
       }
       return handleOpen(request);
-    }
-
-    // ---------- Админ-панель: API ----------
-    if (url.pathname.startsWith('/api/admin/')) {
-      if (url.pathname === '/api/admin/login' || url.pathname === '/api/admin/bootstrap') {
-        // доп. защита от брутфорса на уровне edge (детальный лимит по логину — в handleLogin через D1)
-        const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-        if (isRateLimited(ip)) return json({ error: 'Too many requests' }, 429);
-      }
-      const res = await handleAdminApi(request, env, ctx);
-      if (res) {
-        const headers = new Headers(res.headers);
-        headers.set('X-Frame-Options', 'DENY');
-        headers.set('X-Content-Type-Options', 'nosniff');
-        headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        return new Response(res.body, { status: res.status, headers });
-      }
-    }
-
-    // ---------- Админ-панель: SPA ----------
-    // Любой путь /admin или /admin/что-то (кроме статических файлов вроде /admin/app.js)
-    // отдаёт public/admin/index.html, чтобы работали "красивые" маршруты типа /admin/transmitters.
-    if ((url.pathname === '/admin' || url.pathname === '/admin/' || /^\/admin\/(?!.*\.[a-z0-9]+$)/i.test(url.pathname)) && env.ASSETS) {
-      const assetUrl = new URL(request.url);
-      assetUrl.pathname = '/admin/index.html';
-      const assetReq = new Request(assetUrl.toString(), request);
-      return env.ASSETS.fetch(assetReq);
     }
 
     if (url.pathname === '/health') {
