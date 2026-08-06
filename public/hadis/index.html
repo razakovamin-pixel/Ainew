@@ -203,6 +203,22 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   box-shadow:var(--shadow);display:none;align-items:center;justify-content:center;
 }
 .fab-top.show{display:flex;}
+
+/* ── ИИ-ЧАТ ПО ЛОКАЛЬНОЙ БИБЛИОТЕКЕ ХАДИСОВ (строго hadis_data.json) ── */
+.chat-wrap{display:flex;flex-direction:column;min-height:calc(100vh - var(--header-h) - var(--tabbar-h) - 40px);}
+.chat-msgs{flex:1;padding:12px 2px 10px;display:flex;flex-direction:column;gap:10px;}
+.chat-bubble{max-width:88%;padding:10px 13px;border-radius:14px;font-size:14.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;box-shadow:var(--shadow-sm);}
+.chat-bubble.user{align-self:flex-end;background:var(--teal);color:#fdf6e3;border-bottom-right-radius:4px;}
+.chat-bubble.ai{align-self:flex-start;background:var(--ink-2);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
+.chat-bubble.ai.thinking{color:var(--text-3);font-style:italic;box-shadow:none;}
+.chat-bubble.ai.err{color:var(--rose);border-color:var(--rose);}
+.chat-hint{font-size:11.5px;color:var(--text-3);text-align:center;padding:4px 20px 8px;}
+.chat-input-bar{position:fixed;left:0;right:0;bottom:var(--tabbar-h);display:none;align-items:flex-end;gap:8px;padding:9px 12px;background:var(--ink);border-top:1px solid var(--border);z-index:18;}
+.chat-input-bar.open{display:flex;}
+.chat-input-bar textarea{flex:1;resize:none;max-height:110px;border-radius:12px;border:1px solid var(--border-bright);background:var(--ink-2);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;line-height:1.4;}
+.chat-input-bar textarea:focus{outline:none;border-color:var(--teal-light);}
+.chat-send-btn{width:42px;height:42px;border-radius:50%;border:none;background:var(--teal);color:#fdf6e3;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-send-btn:disabled{opacity:.45;}
 </style>
 </head>
 <body>
@@ -255,6 +271,13 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   </div>
 </nav>
 
+<div class="chat-input-bar" id="chatInputBar">
+  <textarea id="chatInput" rows="1" placeholder="Спросите про хадис из этой библиотеки…"></textarea>
+  <button class="chat-send-btn" id="chatSendBtn" title="Отправить" aria-label="Отправить">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+  </button>
+</div>
+
 <script>
 (function(){
   var DATA = null;
@@ -271,6 +294,8 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   var state = { view: 'books', bookId: null, chapterN: null, query: '', lang: getLang() };
+  var chatHistory = []; // { role: 'user'|'assistant', content: string, thinking?: bool }
+  var flatHadithCache = null;
 
   var mainArea = document.getElementById('mainArea');
   var crumbEl = document.getElementById('crumb');
@@ -393,10 +418,171 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     });
   }
 
+  // ── ИИ-чат: строго по локальному hadis_data.json, без веба и без риджаля ──
+  function getFlatHadith(){
+    if (flatHadithCache) return flatHadithCache;
+    flatHadithCache = [];
+    if (!DATA) return flatHadithCache;
+    DATA.forEach(function(book){
+      (book.chapters || []).forEach(function(ch){
+        (ch.h || []).forEach(function(h){
+          if (!h || !h.text) return;
+          flatHadithCache.push({
+            bookTitle: book.title || '',
+            chapterN: ch.n,
+            chapterName: ch.name || '',
+            hadithId: h.id,
+            text: h.text,
+          });
+        });
+      });
+    });
+    return flatHadithCache;
+  }
+
+  function findLocalHadith(query, limit){
+    var flat = getFlatHadith();
+    var words = String(query || '').toLowerCase().split(/[^a-zа-яёàâ0-9]+/i).filter(function(w){ return w.length >= 3; });
+    if (!flat.length || !words.length) return [];
+    var scored = [];
+    flat.forEach(function(item){
+      var hay = (item.text + ' ' + item.bookTitle + ' ' + item.chapterName).toLowerCase();
+      var score = 0;
+      words.forEach(function(w){ if (hay.indexOf(w) !== -1) score++; });
+      if (score > 0) scored.push({ item: item, score: score });
+    });
+    scored.sort(function(a, b){ return b.score - a.score; });
+    return scored.slice(0, limit || 6).map(function(s){ return s.item; });
+  }
+
+  function buildStrictHadithSystemPrompt(matches){
+    var flat = getFlatHadith();
+    var books = [];
+    (DATA || []).forEach(function(b){ if (b.title) books.push(b.title); });
+    var matchesBlock;
+    if (matches.length) {
+      matchesBlock = '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ (' + matches.length + ') ===\n' +
+        matches.map(function(h){
+          var loc = (h.bookTitle || '') + ', глава ' + h.chapterN + (h.chapterName ? ' («' + h.chapterName + '»)' : '') + ', №' + h.hadithId;
+          var text = h.text.length > 900 ? h.text.slice(0, 900) + '…' : h.text;
+          return '• ' + loc + ':\n  ' + text;
+        }).join('\n\n');
+    } else {
+      matchesBlock = '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ ===\nНичего не найдено по этому запросу в hadis_data.json.';
+    }
+
+    return (
+      'Ты — узкоспециализированный ИИ-ассистент раздела «Библиотека хадисов» проекта ShiaIsnad ' +
+      '(страница /hadis). Твой ЕДИНСТВЕННЫЙ источник данных — локальный файл hadis_data.json, ' +
+      'загруженный на этой странице: ' + flat.length + ' хадисов из книг: ' + (books.join(', ') || '—') + '.\n\n' +
+      'СТРОГИЕ ПРАВИЛА (нарушать запрещено):\n' +
+      '✓ Отвечай ТОЛЬКО на основе блока «НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ» ниже — это реальные фрагменты, ' +
+      'найденные по запросу пользователя в hadis_data.json.\n' +
+      '✗ ЗАПРЕЩЕНО искать в интернете, использовать знания модели о хадисах вне этого блока, ' +
+      'выдумывать текст, номер хадиса, главу или книгу, которых нет ниже.\n' +
+      '✗ ЗАПРЕЩЕНО отвечать на вопросы не о хадисах из этой библиотеки: оценка передатчиков/риджаль, ' +
+      'фикх и фетвы, общие исламские вопросы, любые посторонние темы — на них коротко и дружелюбно ' +
+      'скажи, что этот чат ограничен только текстами хадисов из локальной библиотеки, и предложи ' +
+      'общий ИИ-чат на shiaisnad.ru для таких вопросов.\n' +
+      '✓ Если блок «НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ» пуст — прямо и честно скажи, что подходящего хадиса ' +
+      'в этой библиотеке не нашлось, и предложи переформулировать запрос. Не выдумывай ответ и не ' +
+      'отправляй на внешние сайты.\n' +
+      '✓ Ссылайся на источник в формате «Книга, глава X, №Y» — только из блока ниже.\n' +
+      '✓ Пиши на языке вопроса пользователя. Коротко и по делу (обычно 3–8 предложений), подробнее — ' +
+      'только если прямо просят.\n\n' +
+      matchesBlock
+    );
+  }
+
+  function scrollChatToBottom(){
+    var el = document.getElementById('chatMsgs');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  function renderChatMessages(){
+    var el = document.getElementById('chatMsgs');
+    if (!el) return;
+    if (!chatHistory.length) {
+      el.innerHTML = '<div class="chat-bubble ai">Спрашивайте о любом хадисе из этой библиотеки — отвечаю строго по её текстам, с указанием книги, главы и номера.</div>';
+      return;
+    }
+    el.innerHTML = chatHistory.map(function(m){
+      var cls = 'chat-bubble ' + (m.role === 'user' ? 'user' : 'ai') + (m.thinking ? ' thinking' : '') + (m.err ? ' err' : '');
+      return '<div class="' + cls + '">' + esc(m.content) + '</div>';
+    }).join('');
+    scrollChatToBottom();
+  }
+
+  function renderChat(){
+    hdTitle.textContent = 'ИИ-чат по хадисам';
+    hdSub.textContent = 'Строго по локальной библиотеке (' + getFlatHadith().length + ')';
+    setCrumb([{ label: 'Хадисы', action: 'books' }, { label: 'ИИ-чат' }]);
+    mainArea.innerHTML =
+      '<div class="chat-wrap"><div class="chat-msgs" id="chatMsgs"></div>' +
+      '<div class="chat-hint">Отвечает только по текстам из этой библиотеки — не по риджалю и не по фикху.</div></div>';
+    renderChatMessages();
+  }
+
+  async function sendChatMessage(){
+    var input = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('chatSendBtn');
+    var text = (input.value || '').trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    chatHistory.push({ role: 'user', content: text });
+    var thinkingIdx = chatHistory.length;
+    chatHistory.push({ role: 'assistant', content: 'Ищу в локальной библиотеке…', thinking: true });
+    renderChatMessages();
+
+    var matches = findLocalHadith(text, 6);
+    var systemText = buildStrictHadithSystemPrompt(matches);
+    var apiMessages = chatHistory
+      .filter(function(m){ return !m.thinking; })
+      .slice(-12)
+      .map(function(m){ return { role: m.role, content: m.content }; });
+
+    try {
+      var res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Hadith-Strict': '1' },
+        body: JSON.stringify({ max_tokens: 900, temperature: 0.3, system: systemText, messages: apiMessages }),
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      var reply =
+        (data && data.content && data.content[0] && data.content[0].text) ||
+        (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
+        '';
+      reply = String(reply || '').trim();
+      if (!res.ok || !reply) {
+        chatHistory[thinkingIdx] = { role: 'assistant', content: (data && data.error) || 'Не удалось получить ответ. Попробуйте ещё раз.', err: true };
+      } else {
+        chatHistory[thinkingIdx] = { role: 'assistant', content: reply };
+      }
+    } catch (e) {
+      chatHistory[thinkingIdx] = { role: 'assistant', content: 'Ошибка сети. Попробуйте ещё раз.', err: true };
+    }
+
+    sendBtn.disabled = false;
+    renderChatMessages();
+  }
+
   function render(){
     if (!DATA) return;
     window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
 
+    var chatBar = document.getElementById('chatInputBar');
+    var searchBtn = document.getElementById('searchToggle');
+    var isChat = state.view === 'chat';
+    if (chatBar) chatBar.classList.toggle('open', isChat);
+    if (searchBtn) searchBtn.style.display = isChat ? 'none' : '';
+    document.getElementById('navHadis').classList.toggle('active', !isChat);
+    document.getElementById('navChat').classList.toggle('active', isChat);
+
+    if (isChat) return renderChat();
     if (state.query) return renderSearch();
     if (state.view === 'books') return renderBooks();
     if (state.view === 'chapters') return renderChapters();
@@ -557,6 +743,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
   // Back button
   document.getElementById('backBtn').addEventListener('click', function(){
+    if (state.view === 'chat') { state.view = 'books'; return render(); }
     if (state.query) { state.query=''; searchInput.value=''; searchBar.classList.remove('open'); return render(); }
     if (state.view === 'hadiths') { state.view = 'chapters'; state.chapterN=null; return render(); }
     if (state.view === 'chapters') { state.view = 'books'; state.bookId=null; return render(); }
@@ -566,7 +753,19 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   // Bottom nav
   document.getElementById('navRijal').addEventListener('click', function(){ window.location.href = '/'; });
   document.getElementById('navHadis').addEventListener('click', function(){ state.view='books'; state.bookId=null; state.chapterN=null; state.query=''; render(); });
-  document.getElementById('navChat').addEventListener('click', function(){ window.location.href = '/#ai-chat'; });
+  document.getElementById('navChat').addEventListener('click', function(){ state.view='chat'; render(); });
+
+  // Чат: отправка сообщения
+  var chatInput = document.getElementById('chatInput');
+  var chatSendBtn = document.getElementById('chatSendBtn');
+  chatSendBtn.addEventListener('click', sendChatMessage);
+  chatInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+  });
+  chatInput.addEventListener('input', function(){
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 110) + 'px';
+  });
 
   // Scroll-to-top FAB
   var fab = document.getElementById('fabTop');
