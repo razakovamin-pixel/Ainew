@@ -355,7 +355,11 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     }
   }
 
-  fetch('/hadis/hadis_data.json').then(function(r){
+  // dataReadyPromise разрешается, когда DATA полностью загружена (успешно
+  // или нет). Чат-функции (sendChatMessage) дожидаются его перед поиском по
+  // локальной базе, чтобы никогда не сообщать пользователю «ничего не
+  // найдено» просто из-за того, что 18 МБ ещё не успели докачаться.
+  var dataReadyPromise = fetch('/hadis/hadis_data.json').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(json){
@@ -363,7 +367,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     render();
   }).catch(function(){
     // Фолбэк: пробуем относительный путь (на случай другого расположения)
-    fetch('hadis_data.json').then(function(r){
+    return fetch('hadis_data.json').then(function(r){
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function(json){
@@ -521,6 +525,11 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     var thinkingIdx = chatHistory.length;
     chatHistory.push({ role: 'assistant', content: 'Ищу в локальной библиотеке…', thinking: true });
     renderChatMessages();
+
+    // Дожидаемся полной загрузки базы хадисов, если пользователь успел
+    // написать сообщение раньше, чем она докачалась — иначе поиск ниже
+    // мог бы ошибочно вернуть «ничего не найдено».
+    try { await dataReadyPromise; } catch (e) {}
 
     var matches = findLocalHadith(text, 6);
     var systemText = buildStrictHadithSystemPrompt(matches);
