@@ -3,55 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#3a2a16">
+<meta name="theme-color" content="#080909">
 <meta name="description" content="Библиотека хадисов — Аль-Кафи и другие шиитские источники">
 <title>Библиотека хадисов | ShiaIsnad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #f2e7cd;
-  --ink-1: #e8d8ac;
-  --ink-2: #faf3e2;
-  --ink-3: #e3cd97;
-  --teal: #8a6a1f;
-  --teal-glow: rgba(138,106,31,.18);
-  --teal-light: #ad8425;
-  --amber: #b8863a;
-  --amber-glow: rgba(184,134,58,.16);
-  --rose: #8b3a2e;
-  --gold: #a9791b;
-  --gold-glow: rgba(169,121,27,.18);
-  --text: #2b1c0f;
-  --text-2: #6b5636;
-  --text-3: #93794f;
-  --border: rgba(90,62,20,.20);
-  --border-bright: rgba(90,62,20,.36);
-  --radius: 8px;
-  --radius-lg: 14px;
-  --shadow: 0 10px 30px rgba(58,40,16,.20), 0 2px 8px rgba(58,40,16,.14);
-  --shadow-sm: 0 2px 10px rgba(58,40,16,.16);
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-serif-body: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
-  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  /* Same dark red/black tokens as the main index (SHIAWAY VISUAL OVERRIDES) —
+     keeps this page visually part of the same site. */
+  --ink: #080909;
+  --ink-1: #0d0f0f;
+  --ink-2: #111313;
+  --ink-3: #151717;
+  --teal: #e21b30;
+  --teal-glow: rgba(226,27,48,.16);
+  --teal-light: #ff3948;
+  --amber: #ff6b76;
+  --amber-glow: rgba(255,107,118,.16);
+  --rose: #ff3948;
+  --gold: #e21b30;
+  --gold-glow: rgba(226,27,48,.18);
+  --text: #f4f2ef;
+  --text-2: #b7b7bc;
+  --text-3: #777;
+  --border: #242626;
+  --border-bright: rgba(255,255,255,.10);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 20px 60px rgba(0,0,0,.36);
+  --shadow-sm: 0 6px 18px rgba(0,0,0,.22);
+  --font-display: 'Inter', Arial, sans-serif;
+  --font-serif-body: 'Inter', Arial, sans-serif;
+  --font-body: 'Inter', Arial, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
   --header-h: 60px;
-  --tabbar-h: 62px;
-  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --tabbar-h: 82px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{height:100%;font-size:16px;scroll-behavior:smooth;overscroll-behavior:none;}
+html{height:100%;font-size:16px;scroll-behavior:smooth;overscroll-behavior:none;overflow-x:hidden;}
 body{
   font-family:var(--font-body);
   background:var(--ink);
   color:var(--text);
   min-height:100%;
   position:relative;
+  overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
 }
 body::before{
-  content:"";position:fixed;inset:0;background-image:var(--paper-grain);
-  opacity:.35;pointer-events:none;z-index:0;mix-blend-mode:multiply;
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(30deg,#fff 1px,transparent 1px),
+    linear-gradient(150deg,#fff 1px,transparent 1px);
+  background-size:90px 52px;
+  mask-image:linear-gradient(90deg,black,transparent 65%);
+  opacity:.035;
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(226,27,48,.14), transparent 60%),
+    radial-gradient(ellipse 120% 90% at 50% 110%, rgba(255,57,72,.08), transparent 55%);
 }
 a{color:inherit;text-decoration:none;}
 button{font-family:inherit;cursor:pointer;}
@@ -78,17 +92,6 @@ button{font-family:inherit;cursor:pointer;}
   background:var(--ink-2);display:flex;align-items:center;justify-content:center;color:var(--text-2);
 }
 
-/* LANGUAGE TOGGLE */
-.lang-toggle{
-  display:flex;align-items:center;gap:2px;background:var(--ink-2);
-  border:1px solid var(--border-bright);border-radius:8px;padding:3px;flex-shrink:0;
-}
-.lang-btn{
-  background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px 8px;
-  border-radius:6px;font-family:var(--font-body);font-size:11px;font-weight:500;
-  transition:all .2s;white-space:nowrap;
-}
-.lang-btn.active{background:var(--teal);color:#fdf6e3;}
 .hadith-text.hd-loading{color:var(--text-3);font-style:italic;font-family:var(--font-body);font-size:14px;}
 
 /* SEARCH BAR */
@@ -194,7 +197,8 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   background:none;border:none;color:var(--text-3);font-size:11px;font-family:var(--font-body);
 }
 .tab-btn.active{color:var(--gold);}
-.tab-btn svg{width:20px;height:20px;}
+.tab-btn svg{width:26px;height:26px;stroke-width:1.8;transition:transform .2s;}
+.tab-btn.active svg{transform:scale(1.1);filter:drop-shadow(0 0 5px rgba(226,27,48,.16));}
 
 /* SCROLL TOP FAB */
 .fab-top{
@@ -230,10 +234,6 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   <div class="hd-titles">
     <div class="hd-title" id="hdTitle">الكافي — Аль-Кафи</div>
     <div class="hd-sub" id="hdSub">2800 хадисов · 35 книг</div>
-  </div>
-  <div class="lang-toggle" id="langToggle">
-    <button class="lang-btn" data-lang="ru" title="Русский язык">РУ</button>
-    <button class="lang-btn" data-lang="az" title="Azərbaycan dili">AZ</button>
   </div>
   <button class="hd-search-btn" id="searchToggle" title="Поиск" aria-label="Поиск">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -354,22 +354,6 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
       });
     }
   }
-
-  function applyLangUI(){
-    document.querySelectorAll('#langToggle .lang-btn').forEach(function(b){
-      b.classList.toggle('active', b.dataset.lang === state.lang);
-    });
-  }
-  applyLangUI();
-  document.querySelectorAll('#langToggle .lang-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      if (state.lang === btn.dataset.lang) return;
-      state.lang = btn.dataset.lang;
-      setLang(state.lang);
-      applyLangUI();
-      if (DATA) render();
-    });
-  });
 
   fetch('/hadis/hadis_data.json').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
