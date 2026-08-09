@@ -5417,37 +5417,33 @@ async function init() {
   const loadingEl = $('loading');
   if (loadingEl) loadingEl.style.display = 'flex';
 
-  // Load data from transmitters.json + transmitters2/3/4.json (если есть)
+  // Все передатчики объединены в один файл transmitters.json — один запрос
+  // вместо девяти (раньше index.html пытался загрузить transmitters.json
+  // .. transmitters9.json, из которых реально существовали только 5, а
+  // остальные запросы просто впустую тратили время на гарантированные 404).
   let raw = [];
   try {
-    const loadJsonIfExists = async (filename) => {
-      try {
-        const res = await fetch(filename);
-        if (!res.ok) return [];
-        return await res.json();
-      } catch (err) {
-        console.info(`${filename} не найден или не удалось загрузить`);
-        return [];
-      }
-    };
+    const res = await fetch('transmitters.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    raw = await res.json();
+  } catch(e) {
+    console.error('Failed to load transmitters.json:', e);
+    const loadingErrorEl = $('loading');
+    if (loadingErrorEl) {
+      loadingErrorEl.innerHTML = '<div style="color:#fb7185;font-size:14px;text-align:center;padding:20px">⚠ Не удалось загрузить transmitters.json<br><small style="color:#475569">Убедитесь что файл transmitters.json находится рядом с index.html</small></div>';
+    }
+    return;
+  }
 
-    // Load all transmitter files found nearby (transmitters.json through transmitters9.json)
-    const [data1, data2, data3, data4, data5, data6, data7, data8, data9] = await Promise.all([
-      loadJsonIfExists('transmitters.json'),
-      loadJsonIfExists('transmitters2.json'),
-      loadJsonIfExists('transmitters3.json'),
-      loadJsonIfExists('transmitters4.json'),
-      loadJsonIfExists('transmitters5.json'),
-      loadJsonIfExists('transmitters6.json'),
-      loadJsonIfExists('transmitters7.json'),
-      loadJsonIfExists('transmitters8.json'),
-      loadJsonIfExists('transmitters9.json'),
-    ]);
-
-    // Объединяем все найденные базы
-    raw = [...data1, ...data2, ...data3, ...data4, ...data5, ...data6, ...data7, ...data8, ...data9];
-
-    // Загружаем базу хадисов (Аль-Кафи) из папки hadis/, если она есть рядом с index.html
+  // База хадисов (Аль-Кафи и др.) весит ~18 МБ, поэтому грузим её в фоне,
+  // НЕ блокируя показ основного списка передатчиков — интерфейс становится
+  // отзывчивым сразу. Но чтобы у ИИ-ассистента ВСЕГДА был полный доступ ко
+  // всем хадисам (а не только к тем, что успели догрузиться), sendAiChatMessage
+  // перед каждым обращением к модели дожидается state.hadithReadyPromise —
+  // то есть либо использует уже готовые данные мгновенно, либо один раз
+  // дожидается их полной загрузки. Так поиск по хадисам для ИИ никогда не
+  // будет "пустым" из-за гонки с фоновой загрузкой.
+  state.hadithReadyPromise = (async () => {
     try {
       const hadithRes = await fetch('hadis/hadis_data.json');
       if (hadithRes.ok) {
@@ -5457,14 +5453,7 @@ async function init() {
     } catch (err) {
       console.info('hadis/hadis_data.json не найден или не удалось загрузить — поиск по хадисам будет недоступен');
     }
-  } catch(e) {
-    console.error('Failed to load transmitters.json:', e);
-    const loadingErrorEl = $('loading');
-    if (loadingErrorEl) {
-      loadingErrorEl.innerHTML = '<div style="color:#fb7185;font-size:14px;text-align:center;padding:20px">⚠ Не удалось загрузить transmitters.json<br><small style="color:#475569">Убедитесь что transmitters.json (и, если нужны, transmitters2/3/4.json) находятся рядом с index.html</small></div>';
-    }
-    return;
-  }
+  })();
   // Назначаем ID по индексу — гарантирует уникальность
   raw.forEach((item, i) => { item.id = i; });
   state.data = raw;
@@ -6258,6 +6247,16 @@ async function sendAiChatMessage(userText) {
     // автоматически на каждый запрос к /ai/chat — здесь ничего делать
     // не нужно, лишний клиентский поиск убран.
 
+    // Гарантируем, что вся база хадисов (~18 МБ) уже загружена, прежде чем
+    // ИИ будет искать по ней. Она грузится в фоне с самого init(), поэтому
+    // в подавляющем большинстве случаев этот await разрешится мгновенно;
+    // если пользователь успел написать в чат за первые секунды после
+    // открытия страницы, здесь произойдёт короткое ожидание — но зато ИИ
+    // всегда видит полную базу передатчиков и хадисов, а не её часть.
+    if (state.hadithReadyPromise) {
+      try { await state.hadithReadyPromise; } catch (e) {}
+    }
+
     // Build enhanced system prompt with user text for lang detection + web results
     const sysPrompt = buildSystemPrompt(userText);
 
@@ -6526,20 +6525,21 @@ function openSort() {
 // Service Worker inline via blob
 
 if ('serviceWorker' in navigator) {
-  const swCode = `const CACHE_NAME = 'rijal-v1';
+  const swCode = `const CACHE_NAME = 'rijal-v2';
 const ASSETS = [
   './',
   './index.html',
-  './transmitters.json',
-  './transmitters2.json',
-  './transmitters3.json',
-  './transmitters4.json',
-  './manifest.json'
+  './transmitters.json'
 ];
 
 self.addEventListener('install', e => {
+  // Кэшируем каждый файл по отдельности: если один запрос вдруг не
+  // удастся (например, файла нет), это не должно ломать установку SW
+  // целиком, как это было раньше с несуществующим manifest.json.
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(ASSETS.map(url => cache.add(url).catch(() => {})))
+    )
   );
   self.skipWaiting();
 });
