@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090909">
+<title>Ilm al-Rijal — Админ-панель</title>
+<style>
+:root{--bg:#100d08;--card:#1a150d;--line:#4d3b1b;--gold:#c79a38;--text:#f4e8cc;--muted:#b6a98e;--red:#a83b32}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#151108ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:19px;margin:0}.wrap{max-width:1200px;margin:auto;padding:16px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}.stat b{font-size:25px;color:var(--gold)}.tabs{display:flex;gap:8px;overflow:auto;margin:16px 0}.tabs button,.btn{border:1px solid var(--line);background:#221a0d;color:var(--text);padding:10px 13px;border-radius:9px;white-space:nowrap}.tabs .on,.btn.primary{background:#7b5b18;border-color:#c79a38}.btn.danger{background:#531c19;border-color:#9b4137}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.toolbar input{flex:1;min-width:180px;background:#0e0b07;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px}.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid #332914;padding:12px 0}.row:last-child{border-bottom:0}.title{font-weight:700}.meta{font-size:12px;color:var(--muted);margin-top:4px}.actions{display:flex;gap:6px}.actions button{padding:7px 9px;border-radius:7px}.login{max-width:400px;margin:14vh auto}.login input{width:100%;padding:13px;margin:10px 0;background:#0e0b07;color:var(--text);border:1px solid var(--line);border-radius:9px}.hidden{display:none!important}.progress{height:8px;background:#2a2114;border-radius:9px;overflow:hidden;margin:10px 0}.progress i{display:block;height:100%;width:0;background:var(--gold);transition:.2s}.small{font-size:12px;color:var(--muted)}dialog{background:#1b150d;color:var(--text);border:1px solid var(--line);border-radius:14px;width:min(760px,94vw)}dialog::backdrop{background:#0009}textarea{width:100%;min-height:160px;background:#0e0b07;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px}label{display:block;font-size:12px;color:var(--muted);margin:9px 0 4px}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}.actions{justify-content:flex-start}.wrap{padding:10px}}
+</style>
+</head>
+<body>
+<div id="login" class="login card">
+<h1>🔐 Админ-панель Ilm al-Rijal</h1>
+<p class="small">Доступ к передатчикам, хадисам, книгам и главам.</p>
+<input id="password" type="password" placeholder="Пароль администратора">
+<button class="btn primary" style="width:100%" onclick="login()">Войти</button>
+<p id="loginErr" class="small"></p>
+</div>
+
+<div id="app" class="hidden">
+<header><h1>علم الرجال · Admin</h1><button class="btn" onclick="logout()">Выйти</button></header>
+<main class="wrap">
+<div class="grid">
+<div class="stat">Передатчики<br><b id="sT">—</b></div>
+<div class="stat">Хадисы<br><b id="sH">—</b></div>
+<div class="stat">Книги<br><b id="sB">—</b></div>
+<div class="stat">Главы<br><b id="sC">—</b></div>
+</div>
+
+<div class="card" style="margin-top:12px">
+<h3>⚡ Перенос локальной базы в D1</h3>
+<p class="small">Данные берутся прямо из файлов, уже лежащих на сайте. Телефон не нужен Termux: импорт запускается из этой панели и идёт пакетами.</p>
+<button class="btn primary" onclick="importAll()">Импортировать всё в D1</button>
+<div class="progress"><i id="bar"></i></div><div id="importStatus" class="small">Готово к запуску.</div>
+</div>
+
+<div class="tabs">
+<button class="on" data-tab="transmitters" onclick="tab('transmitters',this)">Передатчики</button>
+<button data-tab="hadiths" onclick="tab('hadiths',this)">Хадисы</button>
+<button data-tab="books" onclick="tab('books',this)">Книги</button>
+<button data-tab="chapters" onclick="tab('chapters',this)">Главы</button>
+</div>
+<div class="card">
+<div class="toolbar"><input id="q" placeholder="Поиск..." oninput="debouncedLoad()"><button class="btn primary" onclick="openEditor()">＋ Добавить</button><button class="btn" onclick="load()">Обновить</button></div>
+<div id="list"></div>
+</div>
+</main>
+</div>
+
+<dialog id="dlg"><form method="dialog" onsubmit="return false">
+<h3 id="dlgTitle">Редактор</h3><div id="form"></div>
+<div class="toolbar" style="margin-top:12px"><button class="btn primary" onclick="save()">Сохранить</button><button class="btn" onclick="dlg.close()">Отмена</button></div>
+</form></dialog>
+
+<script>
+let current='transmitters', editId=null, timer;
+const $=id=>document.getElementById(id);
+async function api(path,opt={}){let r=await fetch('/api/admin/'+path,{credentials:'same-origin',...opt});if(r.status===401){showLogin();throw Error('unauthorized')}let d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка');return d}
+function showLogin(){$('login').classList.remove('hidden');$('app').classList.add('hidden')}
+async function check(){try{await api('stats');$('login').classList.add('hidden');$('app').classList.remove('hidden');refresh()}catch(e){showLogin()}}
+async function login(){try{await api('login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:$('password').value})});$('password').value='';check()}catch(e){$('loginErr').textContent=e.message}}
+async function logout(){await fetch('/api/admin/logout',{method:'POST'});showLogin()}
+async function refresh(){let s=await api('stats');$('sT').textContent=s.transmitters.toLocaleString();$('sH').textContent=s.hadiths.toLocaleString();$('sB').textContent=s.books.toLocaleString();$('sC').textContent=s.chapters.toLocaleString();load()}
+function tab(t,el){current=t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));el.classList.add('on');load()}
+function debouncedLoad(){clearTimeout(timer);timer=setTimeout(load,250)}
+async function load(){let q=encodeURIComponent($('q').value||'');let rows=await api(`list?table=${current}&limit=80&offset=0&q=${q}`);$('list').innerHTML=rows.results.map(render).join('')||'<div class="small">Ничего не найдено.</div>'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(r){
+ if(current==='transmitters')return `<div class="row"><div><div class="title">${esc(r.name)}</div><div class="meta">${esc(r.arabic_name)} · score ${r.score??'—'} · ID ${r.id}</div></div><div class="actions"><button class="btn" onclick='openEditor(${JSON.stringify(r)})'>✎</button><button class="btn danger" onclick="del(${r.id})">Удалить</button></div></div>`;
+ if(current==='hadiths')return `<div class="row"><div><div class="title">#${r.id} · ${esc(r.book_title)} / ${esc(r.chapter_name)}</div><div class="meta">${esc(r.text).slice(0,260)}</div></div><div class="actions"><button class="btn" onclick='openEditor(${JSON.stringify(r)})'>✎</button><button class="btn danger" onclick="del(${r.id})">Удалить</button></div></div>`;
+ if(current==='books')return `<div class="row"><div><div class="title">${esc(r.title)}</div><div class="meta">${esc(r.author)} · ID ${r.id}</div></div><div class="actions"><button class="btn" onclick='openEditor(${JSON.stringify(r)})'>✎</button><button class="btn danger" onclick="del(${r.id})">Удалить</button></div></div>`;
+ return `<div class="row"><div><div class="title">${esc(r.name)}</div><div class="meta">Book ${r.book_id} · ID ${r.id}</div></div><div class="actions"><button class="btn danger" onclick="del(${r.id},${r.book_id})">Удалить</button></div></div>`;
+}
+function openEditor(r=null){editId=r?.id??null;$('dlgTitle').textContent=(r?'Редактировать ':'Добавить ')+current;
+ let f='';
+ if(current==='transmitters') f=[['id',r?.id??'',1],['name',r?.name??''],['arabic_name',r?.arabic_name??''],['shia_status',r?.shia_status??''],['sunni_status',r?.sunni_status??''],['score',r?.score??''],['bio',r?.bio??'',0],['analysis',r?.analysis??'',0],['sources',r?.sources??'[]',0]].map(x=>field(x[0],x[1],x[2])).join('');
+ else if(current==='hadiths') f=[['id',r?.id??''],['book_id',r?.book_id??''],['book_title',r?.book_title??''],['chapter_id',r?.chapter_id??''],['chapter_name',r?.chapter_name??''],['text',r?.text??'',0]].map(x=>field(x[0],x[1],x[2])).join('');
+ else if(current==='books') f=[['id',r?.id??''],['title',r?.title??''],['author',r?.author??''],['original_title',r?.original_title??''],['known_as',r?.known_as??'']].map(x=>field(x[0],x[1],x[2])).join('');
+ else f='<p class="small">Главы пока редактируются через структуру книги. Хадисы можно переназначать на любую существующую главу.</p>';
+ $('form').innerHTML=f;$('dlg').showModal()}
+function field(k,v,input=1){return `<label>${k}</label>${input?`<input id="f_${k}" style="width:100%;padding:10px;background:#0e0b07;color:#fff;border:1px solid #4d3b1b;border-radius:8px" value="${esc(v)}">`:`<textarea id="f_${k}">${esc(v)}</textarea>`}`}
+async function save(){let data={};document.querySelectorAll('[id^=f_]').forEach(x=>data[x.id.slice(2)]=x.value);if(current==='transmitters')data.id=Number(data.id);else if(current==='hadiths'||current==='books')data.id=Number(data.id);await api('save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({table:current,data})});$('dlg').close();refresh()}
+async function del(id,book_id){if(!confirm('Удалить запись? Это действие нельзя отменить.'))return;await api('delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({table:current,id,book_id})});refresh()}
+async function importAll(){
+ try{
+  $('importStatus').textContent='Структура книг и глав...'; await api('import/structure',{method:'POST'});
+  let off=0,res,total=0; do{res=await api('import/transmitters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset:off})});off=res.offset;total=res.total;$('bar').style.width=Math.min(100,off/total*50)+'%';$('importStatus').textContent=`Передатчики: ${off.toLocaleString()} / ${total.toLocaleString()}`}while(!res.done);
+  off=0; do{res=await api('import/hadiths',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset:off})});off=res.offset;total=res.total;$('bar').style.width=(50+off/total*50)+'%';$('importStatus').textContent=`Хадисы: ${off.toLocaleString()} / ${total.toLocaleString()}`}while(!res.done);
+  $('bar').style.width='100%';$('importStatus').textContent='✓ Всё перенесено в D1.';refresh();
+ }catch(e){$('importStatus').textContent='Ошибка: '+e.message}
+}
+check();
+</script>
+</body></html>
