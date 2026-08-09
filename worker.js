@@ -4,7 +4,7 @@
  * Бесплатные улучшения:
  *   - кэш Cloudflare + in-memory fallback;
  *   - параллельный поиск по нескольким источникам;
- *   - приоритет Ilm al-Rijal и локальных источников;
+ *   - приоритет ShiaIsnad и локальных источников;
  *   - больше бесплатных источников и форумов;
  *   - более аккуратное извлечение текста из HTML;
  *   - endpoints /ai/search, /ai/open, /health;
@@ -25,7 +25,7 @@
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
 const USER_AGENT =
-  'Mozilla/5.0 (compatible; IlmAlRijalBot/3.0; +https://example.invalid)';
+  'Mozilla/5.0 (compatible; IlmAlRijalBot/3.0; +https://shiaisnad.ru)';
 
 // DuckDuckGo's html.duckduckgo.com endpoint aggressively blocks/challenges
 // requests that look like bot/datacenter traffic (custom bot UA, GET query
@@ -48,7 +48,7 @@ const MEMORY_CTX_TTL_MS = 5 * 60_000;
 const ALLOWED_SOURCE_HOSTS = new Set([
   'lib.eshia.ir',
   'shamela.ws',
-  'локальная база проекта',
+  'shiaisnad.ru',
   'islamweb.net',
   'shiachat.com',
   'shiatent.com',
@@ -89,7 +89,7 @@ const SOURCE_KEYWORDS = [
   { test: /(islamweb|исламвеб)/i, hosts: ['islamweb.net'] },
   {
     test: /(shiaisnad|shia\s*isnad|риджаль|иснад|хадис|хадисы|передатчик)/i,
-    hosts: ['локальная база проекта'],
+    hosts: ['shiaisnad.ru'],
   },
   {
     test: /(ya\s*husayn|yahusayn|ya-husayn|йа\s*хусейн|я\s*хусейн)/i,
@@ -102,7 +102,7 @@ const SOURCE_KEYWORDS = [
 ];
 
 const SOURCE_PRIORITY = {
-  'локальная база проекта': 100,
+  'shiaisnad.ru': 100,
   'lib.eshia.ir': 96,
   'shamela.ws': 92,
   'noorlib.ir': 90,
@@ -276,7 +276,7 @@ function inferHosts(queryText) {
 
   if (hosts.length === 0 && hadithish) {
     hosts.push(
-      'локальная база проекта',
+      'shiaisnad.ru',
       'lib.eshia.ir',
       'shamela.ws',
       'noorlib.ir',
@@ -679,19 +679,19 @@ function buildSourceContext(sources) {
   ].join('\n\n');
 }
 
-// ── Хадисный поиск: СТРОГО по приоритету локальная база проекта → arsh313.com ─────
-// Раньше все хадисные хосты (локальная база проекта + ~10 других) уходили одним
+// ── Хадисный поиск: СТРОГО по приоритету shiaisnad.ru → arsh313.com ─────
+// Раньше все хадисные хосты (shiaisnad.ru + ~10 других) уходили одним
 // OR'нутым запросом в DuckDuckGo. На практике это означало, что при
-// малейшей проблеме с локальная база проекта (сайт недоступен, DDG ничего не
+// малейшей проблеме с shiaisnad.ru (сайт недоступен, DDG ничего не
 // проиндексировал по конкретному запросу) результат просто терялся среди
 // остальных хостов — либо наоборот, other-host darkhorses забивали
-// релевантный локальная база проекта. Это и есть тот самый "баг с поиском": для
-// хадисных вопросов не было гарантии, что локальная база проекта реально проверяется
+// релевантный shiaisnad.ru. Это и есть тот самый "баг с поиском": для
+// хадисных вопросов не было гарантии, что shiaisnad.ru реально проверяется
 // первым и что при его неудаче происходит осмысленный переход на запасной
 // источник.
 //
 // Теперь для хадисных вопросов — отдельный, последовательный каскад:
-//   1) ищем ТОЛЬКО на локальная база проекта;
+//   1) ищем ТОЛЬКО на shiaisnad.ru;
 //   2) если пусто — ищем ТОЛЬКО на arsh313.com (раздел /hadiths/);
 //   3) если и там пусто — падаем в общий многохостовый поиск (как раньше).
 async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
@@ -724,8 +724,8 @@ async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
 }
 
 async function searchHadithCascade(queryVariants, pushSource, seen) {
-  // 1) Строго локальная база проекта — собственная база проекта, приоритет №1.
-  if (await searchSingleHostHadith('локальная база проекта', queryVariants, pushSource, seen)) {
+  // 1) Строго shiaisnad.ru — собственная база проекта, приоритет №1.
+  if (await searchSingleHostHadith('shiaisnad.ru', queryVariants, pushSource, seen)) {
     return true;
   }
   // 2) Не получилось — строго arsh313.com (раздел /hadiths/).
@@ -767,7 +767,7 @@ async function collectSourceContext(userText) {
   if (sources.length < MAX_SOURCES_PER_ANSWER) {
     const hadithQuery = isHadithQuery(rawText);
 
-    // Хадисный вопрос → сначала строгий каскад локальная база проекта → arsh313.com.
+    // Хадисный вопрос → сначала строгий каскад shiaisnad.ru → arsh313.com.
     // Если он реально что-то нашёл — общий многохостовый поиск ниже
     // пропускается (нет смысла тратить на него подзапросный бюджет).
     let hadithCascadeHit = false;
@@ -785,7 +785,7 @@ async function collectSourceContext(userText) {
       hostPlan.length
         ? hostPlan
         : [
-            'локальная база проекта',
+            'shiaisnad.ru',
             'lib.eshia.ir',
             'shamela.ws',
             'noorlib.ir',
@@ -939,7 +939,7 @@ async function handleChat(request, env) {
   // Строгий режим "только локальная база хадисов" — используется чатом на
   // странице /hadis (см. public/hadis/index.html). Там система уже сама
   // передаёт найденные фрагменты из hadis_data.json прямо в system-промпте,
-  // и веб-поиск (локальная база проекта/arsh313.com/и т.д.) специально пропускается —
+  // и веб-поиск (shiaisnad.ru/arsh313.com/и т.д.) специально пропускается —
   // и чтобы не тратить время/подзапросы, и чтобы модель не подмешивала
   // внешние источники там, где просили отвечать строго по локальному файлу.
   const strictLocalHadith =
@@ -1061,129 +1061,8 @@ async function handleOpen(request) {
   return json(opened);
 }
 
-
-// ================================================================
-// D1 ADMIN API
-// ================================================================
-const ADMIN_COOKIE = 'ilm_admin_session';
-
-function adminCorsHeaders() {
-  return {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
-  };
-}
-
-function adminJson(data, status=200) {
-  return new Response(JSON.stringify(data), {status, headers: adminCorsHeaders()});
-}
-
-async function adminToken(env) {
-  const secret = env.ADMIN_PASSWORD || env.ADMIN_SECRET;
-  if (!secret) throw new Error('ADMIN_PASSWORD is not configured');
-  const data = new TextEncoder().encode(secret);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function adminAuthorized(request, env) {
-  const token = request.headers.get('X-Admin-Token') ||
-    (request.headers.get('Cookie')||'').match(/(?:^|;\s*)ilm_admin_session=([^;]+)/)?.[1];
-  if (!token) return false;
-  return token === await adminToken(env);
-}
-
-function bodyJSON(request) {
-  return request.json().catch(()=>({}));
-}
-
-async function adminRoute(request, env) {
-  if (!env.DB) return adminJson({ok:false,error:'D1 binding DB is not configured'},500);
-  const url = new URL(request.url);
-  const path = url.pathname;
-  if (request.method === 'OPTIONS') return new Response(null,{status:204,headers:adminCorsHeaders()});
-
-  if (path === '/api/admin/login' && request.method === 'POST') {
-    const body = await bodyJSON(request);
-    const password = String(body.password || '');
-    if (!env.ADMIN_PASSWORD || password !== env.ADMIN_PASSWORD)
-      return adminJson({ok:false,error:'Неверный пароль'},401);
-    const token = await adminToken(env);
-    return new Response(JSON.stringify({ok:true,token}),{
-      headers:{...adminCorsHeaders(),'Set-Cookie':`${ADMIN_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`}
-    });
-  }
-
-  if (!(await adminAuthorized(request,env))) return adminJson({ok:false,error:'Unauthorized'},401);
-
-  const tables = {
-    narrators: {table:'narrators', fields:['name_ru','name_ar','reliability','sunni_status','biography','sources','score']},
-    books: {table:'books', fields:['title','author','original_title']},
-    chapters: {table:'chapters', fields:['book_id','name']},
-    hadiths: {table:'hadiths', fields:['book_id','chapter_id','text','source_id']}
-  };
-
-  if (path === '/api/admin/stats' && request.method === 'GET') {
-    const out={};
-    for (const [k,v] of Object.entries(tables)) {
-      out[k]=(await env.DB.prepare(`SELECT COUNT(*) c FROM ${v.table}`).first()).c;
-    }
-    return adminJson({ok:true,stats:out});
-  }
-
-  const m=path.match(/^\/api\/admin\/(narrators|books|chapters|hadiths)(?:\/(\d+))?$/);
-  if (!m) return adminJson({ok:false,error:'Not found'},404);
-  const key=m[1], id=m[2] ? Number(m[2]) : null, cfg=tables[key];
-
-  if (request.method==='GET') {
-    const limit=Math.min(Number(url.searchParams.get('limit')||200),1000);
-    const offset=Math.max(Number(url.searchParams.get('offset')||0),0);
-    const q=(url.searchParams.get('q')||'').trim();
-    let sql=`SELECT * FROM ${cfg.table}`;
-    const params=[];
-    if(q) {
-      const f=cfg.fields.filter(x=>x!=='book_id'&&x!=='chapter_id'&&x!=='score'&&x!=='source_id');
-      if(f.length){sql+=` WHERE `+f.map(x=>`${x} LIKE ?`).join(' OR '); for(const x of f) params.push(`%${q}%`);}
-    }
-    sql+=` ORDER BY id DESC LIMIT ? OFFSET ?`; params.push(limit,offset);
-    const rows=await env.DB.prepare(sql).bind(...params).all();
-    return adminJson({ok:true,items:rows.results||[]});
-  }
-
-  if (request.method==='POST') {
-    const b=await bodyJSON(request);
-    const fields=cfg.fields.filter(f=>Object.prototype.hasOwnProperty.call(b,f));
-    if(!fields.length) return adminJson({ok:false,error:'Нет полей для записи'},400);
-    const vals=fields.map(f=>b[f]);
-    const marks=fields.map(()=>'?').join(',');
-    const r=await env.DB.prepare(`INSERT INTO ${cfg.table} (${fields.join(',')}) VALUES (${marks})`).bind(...vals).run();
-    return adminJson({ok:true,id:r.meta?.last_row_id});
-  }
-
-  if (request.method==='PUT' && id) {
-    const b=await bodyJSON(request);
-    const fields=cfg.fields.filter(f=>Object.prototype.hasOwnProperty.call(b,f));
-    if(!fields.length) return adminJson({ok:false,error:'Нет полей для обновления'},400);
-    const vals=fields.map(f=>b[f]);
-    const set=fields.map(f=>`${f}=?`).join(',');
-    await env.DB.prepare(`UPDATE ${cfg.table} SET ${set} WHERE id=?`).bind(...vals,id).run();
-    return adminJson({ok:true});
-  }
-
-  if (request.method==='DELETE' && id) {
-    await env.DB.prepare(`DELETE FROM ${cfg.table} WHERE id=?`).bind(id).run();
-    return adminJson({ok:true});
-  }
-
-  return adminJson({ok:false,error:'Method not allowed'},405);
-}
-
-
 export default {
   async fetch(request, env, ctx) {
-    if (new URL(request.url).pathname.startsWith('/api/admin/')) return adminRoute(request, env);
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
