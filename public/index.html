@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#3a2a16">
+<meta name="theme-color" content="#090909">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Аналитическая база данных науки ар-Риджаль">
 <title>علم الرجال — Ilm al-Rijal | Ильм ар-Риджаль</title>
 <!-- manifest.json not available in single-file mode -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet" onerror="console.warn('Fonts blocked')">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet" onerror="console.warn('Fonts blocked')">
 
 <style>
 /* ═══════════════════════════════════════
@@ -58,8 +59,8 @@
 ═══════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { height: 100%; font-size: 16px; scroll-behavior: smooth; overscroll-behavior: none; max-width: 100%; }
-body { max-width: 100vw; }
+html { height: 100%; font-size: 16px; scroll-behavior: smooth; overscroll-behavior: none; max-width: 100%; overflow-x: hidden; }
+body { max-width: 100vw; overflow-x: hidden; }
 
 body {
   font-family: var(--font-body);
@@ -171,9 +172,6 @@ html[lang="ar"] .app-header {
   flex-direction: row-reverse;
 }
 html[lang="ar"] .header-left {
-  flex-direction: row-reverse;
-}
-html[lang="ar"] .action-bar {
   flex-direction: row-reverse;
 }
 html[lang="ar"] .welcome {
@@ -347,135 +345,6 @@ body::after {
 }
 .btn-icon:hover { background: var(--ink-3); color: var(--teal); }
 .btn-icon.active { color: var(--teal); background: var(--teal-glow); }
-
-/* Language toggle */
-.lang-toggle {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--ink-2);
-  border: 1px solid var(--border-bright);
-  border-radius: 8px;
-  padding: 3px;
-}
-.lang-btn {
-  background: none;
-  border: none;
-  color: var(--text-3);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 500;
-  transition: all .2s;
-  white-space: nowrap;
-}
-.lang-btn.active {
-  background: var(--teal);
-  color: #fdf6e3;
-}
-
-/* ═══════════════════════════════════════
-   ACTION BAR (кнопки с подписями)
-═══════════════════════════════════════ */
-.action-bar {
-  background: linear-gradient(180deg, var(--ink-2) 0%, var(--ink-1) 100%);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  position: relative;
-  z-index: 90;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.action-bar::-webkit-scrollbar { display: none; }
-
-.action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  border-right: 1px solid var(--border);
-  color: var(--text-3);
-  cursor: pointer;
-  padding: 10px 18px;
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  transition: all .2s;
-  white-space: nowrap;
-  min-width: 72px;
-  flex: 1;
-}
-.action-btn:last-child { border-right: none; }
-.action-btn svg { color: var(--text-3); transition: color .2s; }
-.action-btn:hover {
-  background: var(--teal-glow);
-  color: var(--teal-light);
-}
-.action-btn:hover svg { color: var(--teal); }
-.action-btn:hover .action-label { color: var(--teal-light); }
-.action-btn.active {
-  background: var(--teal-glow);
-  color: var(--teal-light);
-}
-.action-btn.active svg { color: var(--teal); }
-
-.action-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--ink-2);
-  border: 1px solid var(--border);
-  transition: all .2s;
-}
-.action-btn:hover .action-icon {
-  background: rgba(138,106,31,.15);
-  border-color: rgba(138,106,31,.4);
-}
-.action-btn.active .action-icon {
-  background: rgba(138,106,31,.2);
-  border-color: rgba(138,106,31,.5);
-}
-
-.action-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  transition: color .2s;
-}
-
-/* Action bar label bottom */
-.action-bar-wrap {
-  display: flex;
-  flex-direction: column;
-}
-.action-bar-title {
-  text-align: center;
-  font-size: 9px;
-  font-family: var(--font-mono);
-  color: var(--text-3);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  padding: 4px 0 5px;
-  background: var(--ink-1);
-  border-bottom: 1px solid var(--border);
-  opacity: .7;
-}
 
 /* ═══════════════════════════════════════
    LAYOUT
@@ -1293,11 +1162,6 @@ html[lang="ar"] .analysis-box {
     min-width: 58px;
     font-size: 9px;
   }
-  .action-icon {
-    width: 28px;
-    height: 28px;
-  }
-  .action-bar-title { display: none; }
 
   /* Panels full-screen on mobile */
   .panel-box {
@@ -1337,8 +1201,6 @@ html[lang="ar"] .analysis-box {
 
 @media (max-width: 400px) {
   :root { --actionbar-h: 44px; }
-  .action-label { display: none; }
-  .action-btn { min-width: 44px; padding: 8px 6px; }
 }
 
 @media (min-width: 769px) {
@@ -1351,7 +1213,6 @@ html[lang="ar"] .analysis-box {
 /* Tablet */
 @media (min-width: 769px) and (max-width: 1024px) {
   :root { --sidebar-w: 280px; }
-  .action-btn { padding: 10px 12px; min-width: 64px; }
   .app-subtitle { display: none; }
   .detail { padding: 20px 24px; }
 }
@@ -1378,6 +1239,15 @@ html[lang="ar"] .sidebar { border-right: none; border-left: 1px solid var(--bord
 html[lang="ar"] .analysis-box { border-left: none; border-right: 3px solid var(--rose); }
 html[lang="ar"] .src-item { flex-direction: row-reverse; }
 
+/* Detail visibility control — fixes welcome blocking detail on select */
+body.detail-open .welcome {
+  display: none !important;
+}
+body.detail-open #detailView,
+body.detail-open .detail {
+  display: block !important;
+}
+
 /* Print-safe */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1386,20 +1256,6 @@ html[lang="ar"] .src-item { flex-direction: row-reverse; }
 /* ═══════════════════════════════════════
    LIGHT THEME
 ═══════════════════════════════════════ */
-body.light-theme {
-  --ink: #faf3e2; --ink-1: #f2e8d0; --ink-2: #e3d4ac; --ink-3: #8a7a5c;
-  --text: #1f160b; --text-2: #3a2f1a; --text-3: #6b5c42;
-  --border: rgba(58,40,16,.1); --border-bright: rgba(58,40,16,.18);
-  --shadow: 0 8px 32px rgba(58,40,16,.15); --shadow-sm: 0 2px 12px rgba(58,40,16,.1);
-}
-body.light-theme .app-header { background: rgba(250,240,214,.92); }
-body.light-theme .sidebar { background: var(--ink-1); }
-body.light-theme .tx-item:hover { background: var(--ink-2); }
-body.light-theme .tx-item.active { background: var(--teal-glow); }
-body.light-theme .search-input { background: var(--ink); color: var(--text); }
-body.light-theme .filter-chip { background: var(--ink-2); color: var(--text-2); }
-body.light-theme .status-card { background: var(--ink-1); }
-body.light-theme .bio-box, body.light-theme .analysis-box { background: var(--ink-1); }
 
 /* ═══════════════════════════════════════
    MODAL / PANEL OVERLAY
@@ -2316,9 +2172,6 @@ body::after {
   backdrop-filter: blur(12px);
   animation: topSlideIn .6s ease both;
 }
-.action-bar {
-  animation: topSlideIn .7s ease both;
-}
 .sidebar {
   animation: slideInLeft .7s cubic-bezier(.2,.8,.2,1) both;
 }
@@ -2633,7 +2486,6 @@ select:focus {
   transform: translateY(12px);
 }
 .app-intro .app-header { animation: introDrop .55s ease forwards .05s; }
-.app-intro .action-bar-wrap { animation: introDrop .55s ease forwards .12s; }
 .app-intro .sidebar { animation: introSide .7s cubic-bezier(.22,1,.36,1) forwards .14s; }
 .app-intro .content { animation: introMain .7s cubic-bezier(.22,1,.36,1) forwards .18s; }
 @keyframes introDrop {
@@ -2658,13 +2510,1132 @@ select:focus {
 }
 #aiChatMessages::-webkit-scrollbar { width: 3px; }
 #aiChatMessages::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
+
+/* ═══════════════════════════════════════
+   SHIAWAY VISUAL OVERRIDES
+   (preserve existing Rijal logic, replace visual system)
+═══════════════════════════════════════ */
+:root{
+  --bg:#080909;
+  --ink:#080909;
+  --ink-1:#0d0f0f;
+  --ink-2:#111313;
+  --ink-3:#151717;
+  --teal:#e21b30;
+  --teal-glow:rgba(226,27,48,.16);
+  --teal-light:#ff3948;
+  --amber:#ff6b76;
+  --amber-glow:rgba(255,107,118,.16);
+  --rose:#ff3948;
+  --rose-glow:rgba(255,57,72,.14);
+  --gold:#e21b30;
+  --gold-glow:rgba(226,27,48,.18);
+  --karbala:#8c1724;
+  --karbala-glow:rgba(226,27,48,.12);
+  --text:#f4f2ef;
+  --text-2:#b7b7bc;
+  --text-3:#777;
+  --border:#242626;
+  --border-bright:rgba(255,255,255,.10);
+  --radius:10px;
+  --radius-lg:16px;
+  --shadow:0 20px 60px rgba(0,0,0,.36);
+  --shadow-sm:0 6px 18px rgba(0,0,0,.22);
+  --font-display:'Inter',Arial,sans-serif;
+  --font-serif-body:'Inter',Arial,sans-serif;
+  --font-body:'Inter',Arial,sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-arabic:'Amiri','Traditional Arabic',serif;
+  --sidebar-w:360px;
+  --header-h:76px;
+}
+
+html, body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+}
+
+body{
+  overflow:hidden;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    linear-gradient(30deg,#fff 1px,transparent 1px),
+    linear-gradient(150deg,#fff 1px,transparent 1px);
+  background-size:90px 52px;
+  mask-image:linear-gradient(90deg,black,transparent 65%);
+  opacity:.035;
+}
+
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(226,27,48,.14), transparent 60%),
+    radial-gradient(ellipse 120% 90% at 50% 110%, rgba(255,57,72,.08), transparent 55%);
+}
+
+.bg-glow{
+  position:fixed;
+  width:700px;
+  height:700px;
+  right:-200px;
+  top:100px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(circle, rgba(226,27,48,.18) 0, rgba(226,27,48,.05) 40%, transparent 68%);
+  border:1px solid rgba(226,27,48,.14);
+  box-shadow:
+    0 0 0 100px rgba(226,27,48,.04),
+    0 0 0 200px rgba(226,27,48,.02);
+}
+
+#loading, .loading-overlay{
+  background:rgba(8,10,14,.84) !important;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+
+.loading-card{
+  background:linear-gradient(145deg,#111313,#0d0f0f) !important;
+  border:1px solid var(--border) !important;
+  border-radius:24px !important;
+  box-shadow:0 30px 90px rgba(0,0,0,.55) !important;
+}
+
+.loading-emblem{
+  border:1px solid rgba(226,27,48,.55) !important;
+  box-shadow:0 0 32px rgba(226,27,48,.12) !important;
+  color:var(--teal) !important;
+}
+
+.loading-title{
+  font-family:var(--font-display) !important;
+  letter-spacing:-.03em;
+}
+
+.loading-subtitle{
+  color:var(--text-3) !important;
+}
+
+/* App shell */
+.app-body{
+  position:relative;
+  z-index:1;
+  display:flex;
+  width:100%;
+  max-width:var(--max);
+  height:calc(100dvh - var(--header-h));
+  margin:0 auto;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.02);
+}
+
+.app-header{
+  height:var(--header-h) !important;
+  max-width:var(--max);
+  margin:0 auto;
+  padding:0 24px !important;
+  background:rgba(8,9,9,.84) !important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid #222525 !important;
+  box-shadow:none !important;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.app-header::after{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(226,27,48,.35) 15%, rgba(255,57,72,.8) 50%, rgba(226,27,48,.35) 85%, transparent);
+  opacity:.55;
+}
+
+.btn-menu{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  transition:.2s ease;
+}
+.btn-menu:hover{
+  background:rgba(255,255,255,.14);
+  color:#fff;
+}
+
+.header-left{
+  gap:10px !important;
+}
+.app-emblem{
+  width:38px !important;
+  height:38px !important;
+  border-radius:10px !important;
+  border:1px solid rgba(226,27,48,.45) !important;
+  box-shadow:0 0 30px rgba(226,27,48,.12) !important;
+  background:transparent !important;
+  color:var(--teal) !important;
+  font:25px Amiri !important;
+}
+.app-title{
+  font-family:var(--font-display) !important;
+  font-size:15px !important;
+  font-weight:800 !important;
+  letter-spacing:.15em !important;
+  text-transform:uppercase;
+}
+.app-title span{
+  color:var(--teal) !important;
+}
+.app-subtitle{
+  color:var(--text-3) !important;
+  font-size:10px !important;
+  letter-spacing:.04em !important;
+}
+
+.btn-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);
+  color:var(--text-2);
+  transition:.2s ease;
+}
+.btn-icon:hover{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+.btn-icon.active{
+  background:rgba(226,27,48,.12);
+  color:var(--teal);
+  border-color:rgba(226,27,48,.22);
+}
+
+/* Sidebar / drawer */
+.drawer-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(8,10,14,.72);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  z-index:200;
+}
+.drawer-overlay.active{
+  display:block;
+  animation:overlayIn .18s ease;
+}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+
+.sidebar{
+  width:var(--sidebar-w) !important;
+  min-width:320px;
+  background:linear-gradient(180deg,#0d0f0f 0%,#0a0b0b 100%) !important;
+  border-right:1px solid var(--border) !important;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  z-index:50;
+  overflow:hidden;
+}
+.sidebar-top{
+  padding:16px !important;
+  border-bottom:1px solid var(--border) !important;
+  gap:10px !important;
+}
+.search-wrap{
+  position:relative;
+}
+.search-icon{
+  left:12px !important;
+  color:var(--text-3) !important;
+}
+.search-input{
+  width:100%;
+  background:#0b0b0c !important;
+  border:1px solid var(--border) !important;
+  border-radius:10px !important;
+  color:var(--text) !important;
+  font-family:var(--font-body) !important;
+  font-size:14px !important;
+  padding:11px 12px 11px 38px !important;
+  outline:none;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.search-input::placeholder{
+  color:var(--text-3) !important;
+}
+.search-input:focus{
+  border-color:var(--teal) !important;
+  box-shadow:0 0 0 3px rgba(226,27,48,.14) !important;
+}
+.search-clear{
+  color:var(--text-3) !important;
+}
+.search-clear:hover{
+  color:#fff !important;
+}
+.kbd-hint{
+  border:1px solid #2a2a2e !important;
+  border-radius:5px !important;
+  color:#777 !important;
+}
+
+.filter-bar, .epoch-bar, .sect-bar{
+  gap:6px !important;
+  flex-wrap:wrap;
+}
+.filter-section-label{
+  color:var(--text-3) !important;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+.filter-chip, .epoch-chip, .sect-chip{
+  background:#111313 !important;
+  border:1px solid var(--border) !important;
+  border-radius:999px !important;
+  color:var(--text-3) !important;
+  font-size:11px !important;
+  font-weight:600 !important;
+  padding:6px 12px !important;
+  transition:.2s ease !important;
+}
+.filter-chip:hover, .epoch-chip:hover, .sect-chip:hover{
+  border-color:rgba(226,27,48,.35) !important;
+  color:#fff !important;
+}
+.filter-chip.active, .epoch-chip.active, .sect-chip.active,
+.filter-chip.fav-active{
+  background:rgba(226,27,48,.14) !important;
+  border-color:rgba(226,27,48,.50) !important;
+  color:#fff !important;
+  box-shadow:0 0 0 1px rgba(226,27,48,.08), 0 0 18px rgba(226,27,48,.10) !important;
+}
+
+.btn-quick{
+  background:#0d0f0f !important;
+  border:1px solid var(--border-bright) !important;
+  border-radius:10px !important;
+  color:var(--text-2) !important;
+  transition:.2s ease !important;
+}
+.btn-quick:hover{
+  border-color:rgba(226,27,48,.35) !important;
+  color:#fff !important;
+  background:rgba(226,27,48,.10) !important;
+}
+
+.stats-bar{
+  border-bottom:1px solid var(--border) !important;
+}
+.stats-count{
+  color:var(--text-3) !important;
+  font-family:var(--font-mono) !important;
+}
+.stats-count strong{
+  color:var(--teal) !important;
+}
+
+.transmitter-list{
+  background:transparent !important;
+}
+#txСписок{
+  padding:8px !important;
+  gap:4px !important;
+}
+
+.tx-item{
+  border-radius:6px !important;
+  border:1px solid transparent !important;
+  border-left:3px solid transparent !important;
+  transition:transform .15s ease, background .15s ease, border-color .15s ease !important;
+}
+.tx-item:hover{
+  background:#111313 !important;
+  border-color:var(--border) !important;
+  border-left-color:var(--teal) !important;
+  transform:translateX(2px);
+}
+.tx-item.active{
+  background:rgba(226,27,48,.08) !important;
+  border-color:rgba(226,27,48,.45) !important;
+  border-left-color:var(--teal) !important;
+}
+.tx-name{
+  font-size:14px !important;
+  font-weight:600 !important;
+  color:var(--text) !important;
+}
+.tx-arabic{
+  color:var(--text-3) !important;
+}
+.tx-item.active .tx-name,
+.tx-item.active .tx-arabic{
+  color:#fff !important;
+}
+.tx-meta{
+  gap:6px !important;
+}
+.tx-id{
+  color:var(--text-3) !important;
+}
+.tx-badge{
+  background:#111313 !important;
+  border:1px solid var(--border) !important;
+  color:#d6d6da !important;
+}
+.tx-fav{
+  color:var(--teal) !important;
+}
+
+.empty-state{
+  color:var(--text-3) !important;
+}
+
+/* Content / hero */
+.content{
+  flex:1;
+  overflow-y:auto;
+  background:#080909 !important;
+  position:relative;
+  overscroll-behavior:contain;
+}
+.btn-back{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#0d0f0f !important;
+  border:1px solid var(--border-bright) !important;
+  color:#c9c9cd !important;
+  border-radius:14px !important;
+  padding:10px 14px !important;
+  transition:.2s ease !important;
+}
+.btn-back:hover{
+  background:rgba(226,27,48,.10) !important;
+  border-color:rgba(226,27,48,.35) !important;
+  color:#fff !important;
+}
+
+.welcome{
+  min-height:calc(100dvh - var(--header-h));
+  display:flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  padding:80px 40px !important;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  background:#090a0a !important;
+}
+.welcome::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(30deg,#fff 1px,transparent 1px),
+    linear-gradient(150deg,#fff 1px,transparent 1px);
+  background-size:90px 52px;
+  mask-image:linear-gradient(90deg,black,transparent 65%);
+  opacity:.07;
+}
+.welcome::after{
+  content:'';
+  position:absolute;
+  width:700px;
+  height:700px;
+  right:-200px;
+  top:-260px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(226,27,48,.18) 0, rgba(226,27,48,.05) 40%, transparent 68%);
+  border:1px solid rgba(226,27,48,.14);
+  box-shadow:0 0 0 100px rgba(226,27,48,.04), 0 0 0 200px rgba(226,27,48,.02);
+}
+.welcome-emblem{
+  width:96px !important;
+  height:96px !important;
+  border-radius:28px !important;
+  background:linear-gradient(145deg,#1b1b1d,#090909) !important;
+  border:1px solid #36363a !important;
+  box-shadow:0 0 70px rgba(226,27,48,.12) !important;
+  color:var(--teal) !important;
+  font-size:52px !important;
+}
+.welcome h2{
+  font-family:var(--font-display) !important;
+  font-size:clamp(44px,7vw,96px) !important;
+  line-height:.92 !important;
+  letter-spacing:-4px !important;
+  color:#fff !important;
+}
+.welcome p{
+  max-width:560px !important;
+  font-size:15px !important;
+  line-height:1.7 !important;
+  color:var(--text-2) !important;
+}
+.welcome-stats{
+  gap:28px !important;
+  margin-top:8px !important;
+}
+.ws-num{
+  color:var(--teal) !important;
+  font-family:var(--font-display) !important;
+}
+.ws-label{
+  color:var(--text-3) !important;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.welcome-quick{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+}
+.welcome-quick-btn{
+  background:#0d0f0f !important;
+  border:1px solid var(--border-bright) !important;
+  border-radius:999px !important;
+  color:var(--text-2) !important;
+  padding:10px 14px !important;
+  transition:.2s ease !important;
+}
+.welcome-quick-btn:hover{
+  background:rgba(226,27,48,.10) !important;
+  border-color:rgba(226,27,48,.35) !important;
+  color:#fff !important;
+}
+
+/* Detail view */
+.detail{
+  width:min(920px,calc(100% - 48px));
+  margin:0 auto;
+  padding:32px 0 64px !important;
+  animation:fadeIn .25s ease;
+}
+.det-header{
+  padding-bottom:24px !important;
+  margin-bottom:28px !important;
+  border-bottom:1px solid var(--border) !important;
+  position:relative;
+}
+.det-header::after{
+  content:'';
+  position:absolute;
+  bottom:-1px;
+  left:0;
+  width:64px;
+  height:2px;
+  background:linear-gradient(90deg, var(--teal), transparent);
+}
+.det-top{
+  gap:16px !important;
+  flex-wrap:wrap;
+}
+.det-name{
+  font-family:var(--font-display) !important;
+  font-size:clamp(26px,4vw,38px) !important;
+  line-height:1.15 !important;
+  color:#fff !important;
+  letter-spacing:-.03em;
+}
+.det-arabic{
+  font-family:var(--font-arabic) !important;
+  color:var(--teal) !important;
+  margin-top:6px !important;
+}
+.det-id{
+  color:var(--text-3) !important;
+}
+.det-actions{
+  gap:8px !important;
+}
+.det-score-badge{
+  margin-top:12px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#0d0f0f;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:220px;
+}
+.det-score-label{
+  color:var(--text-3);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:10px;
+  font-weight:700;
+}
+.det-score-bar{
+  height:6px;
+  background:#111313;
+  border:1px solid var(--border);
+  border-radius:999px;
+  overflow:hidden;
+}
+.det-score-fill{
+  height:100%;
+  background:linear-gradient(90deg, var(--teal), var(--teal-light));
+  box-shadow:0 0 18px rgba(226,27,48,.35);
+}
+.det-score-val{
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:11px;
+}
+
+.status-grid{
+  gap:12px !important;
+  margin-bottom:28px !important;
+}
+.status-card{
+  background:#0d0f0f !important;
+  border:1px solid var(--border) !important;
+  border-radius:16px !important;
+  padding:16px !important;
+  box-shadow:var(--shadow-sm);
+}
+.sc-label{
+  color:var(--text-3) !important;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:11px !important;
+}
+.sc-value{
+  color:#fff !important;
+  font-size:15px !important;
+}
+.sc-dot{
+  box-shadow:none !important;
+}
+.dot-trust{ background:var(--teal) !important; }
+.dot-weak{ background:#777 !important; }
+.dot-disputed{ background:var(--amber) !important; }
+.sc-value.trust{ color:#cce8d6 !important; }
+.sc-value.weak{ color:#d9b2ad !important; }
+.sc-value.disputed{ color:#ead3a3 !important; }
+
+.section{
+  margin-bottom:28px !important;
+}
+.sec-title{
+  color:var(--teal) !important;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-size:11px !important;
+}
+.sec-title::after{
+  background:var(--border-bright) !important;
+}
+
+.bio-box,
+.analysis-box{
+  background:#0d0f0f !important;
+  border:1px solid var(--border-bright) !important;
+  border-radius:16px !important;
+  color:var(--text-2) !important;
+  box-shadow:var(--shadow-sm) !important;
+}
+.bio-box{
+  font-family:var(--font-serif-body) !important;
+  line-height:1.75 !important;
+}
+.analysis-box{
+  border-left:3px solid var(--teal) !important;
+  background:linear-gradient(135deg, #0d0f0f 0%, #111313 100%) !important;
+  line-height:1.75 !important;
+}
+.sources-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.src-item{
+  background:#0d0f0f !important;
+  border:1px solid var(--border) !important;
+  border-radius:14px !important;
+  padding:12px 14px !important;
+  transition:.2s ease !important;
+}
+.src-item:hover{
+  background:#111313 !important;
+  border-color:#3b3b40 !important;
+  transform:translateY(-1px);
+}
+.src-item, .src-item *{
+  color:var(--text-2);
+}
+.det-footer{
+  margin-top:18px;
+}
+.btn-copy-card{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  background:#f4f2ef !important;
+  color:#090909 !important;
+  border:none !important;
+  border-radius:10px !important;
+  padding:14px 19px !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  transition:.25s ease !important;
+}
+.btn-copy-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(255,255,255,.08);
+}
+
+.quick-actions{
+  gap:8px !important;
+}
+.btn-quick{
+  flex:1;
+  justify-content:center;
+}
+
+/* Generic cards / panels */
+.card,
+.panel-box,
+.geo-city-card,
+.note-card,
+.gloss-item,
+.method-card,
+.conflict-item,
+.isnad-link,
+.quiz-option{
+  background:#0d0f0f !important;
+  border:1px solid var(--border) !important;
+  border-radius:16px !important;
+  box-shadow:var(--shadow-sm) !important;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease !important;
+}
+.card:hover,
+.panel-box:hover,
+.geo-city-card:hover,
+.note-card:hover,
+.gloss-item:hover,
+.method-card:hover,
+.conflict-item:hover,
+.isnad-link:hover,
+.quiz-option:hover{
+  transform:translateY(-2px);
+  border-color:#3b3b40 !important;
+  box-shadow:0 10px 26px rgba(0,0,0,.30) !important;
+}
+
+.panel-overlay{
+  background:rgba(8,10,14,.72) !important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.panel-box{
+  width:min(640px,96vw);
+  border-radius:24px !important;
+  background:linear-gradient(180deg,#17191f 0%,#111318 100%) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:0 30px 90px rgba(0,0,0,.50) !important;
+  color:#fff;
+}
+.panel-head{
+  padding:24px 24px 20px !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+}
+.panel-title{
+  font-family:var(--font-display) !important;
+  color:#fff !important;
+}
+.panel-close{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);
+  color:var(--text-2);
+  transition:.2s ease;
+}
+.panel-close:hover{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.cmp-select,
+select,
+textarea{
+  background:#0d0f0f !important;
+  border:1px solid var(--border-bright) !important;
+  border-radius:14px !important;
+  color:var(--text) !important;
+  outline:none !important;
+}
+.cmp-select:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--teal) !important;
+  box-shadow:0 0 0 3px rgba(226,27,48,.12) !important;
+}
+.cmp-btn{
+  background:#f4f2ef !important;
+  color:#090909 !important;
+  border:none !important;
+  border-radius:10px !important;
+  font-weight:700 !important;
+  padding:12px 16px !important;
+  transition:.2s ease !important;
+}
+.cmp-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(255,255,255,.08);
+}
+
+/* AI chat input row — compact icon send button, never affected by .cmp-btn */
+.ai-chat-inputrow{
+  display:flex;
+  gap:8px;
+  align-items:flex-end;
+  border-top:1px solid var(--border);
+  padding-top:12px;
+}
+.ai-chat-send{
+  flex:0 0 auto;
+  width:42px;
+  height:42px;
+  min-width:42px;
+  border-radius:50%;
+  border:none;
+  background:linear-gradient(180deg, var(--teal-light) 0%, var(--teal) 100%);
+  color:#fdf6e3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  padding:0;
+  margin:0;
+  transition:filter .15s, transform .15s, opacity .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.ai-chat-send:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+.ai-chat-send:disabled{ opacity:.5; cursor:default; transform:none; }
+.ai-chat-send svg{ display:block; }
+.ai-chat-send.sending svg{ animation:aiSendSpin .9s linear infinite; }
+@keyframes aiSendSpin{ to{ transform:rotate(360deg); } }
+@media (max-width:768px){
+  .ai-chat-inputrow{ width:100% !important; }
+  .ai-chat-send{ width:42px !important; }
+}
+
+.donut-wrap, .bar-section{
+  padding:0 24px 24px;
+}
+
+#aiChatMessages::-webkit-scrollbar-thumb{
+  background:var(--ink-3) !important;
+}
+
+#aiChatInput,
+#isnadInput,
+#aiChatMessages,
+#reliabilityContent,
+#cmpResult{
+  color:var(--text) !important;
+}
+#aiChatInput::placeholder,
+#isnadInput::placeholder{
+  color:var(--text-3) !important;
+}
+
+/* Badge colors tuned to dark-red system */
+.sb-trust,
+.tl-trust{
+  background:rgba(226,27,48,.10) !important;
+  color:#fff !important;
+  border:1px solid rgba(226,27,48,.22) !important;
+}
+.sb-disputed,
+.tl-disputed{
+  background:rgba(255,57,72,.08) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,57,72,.18) !important;
+}
+.sb-weak,
+.tl-weak{
+  background:#111313 !important;
+  color:var(--text-2) !important;
+  border:1px solid var(--border) !important;
+}
+
+/* Responsive behavior */
+@media (max-width: 980px){
+  .app-body{
+    height:calc(100dvh - var(--header-h));
+  }
+  .sidebar{
+    width:340px !important;
+  }
+}
+
+@media (max-width: 768px){
+  .btn-menu{ display:flex; }
+  .app-body{
+    max-width:none;
+    width:100%;
+  }
+  .sidebar{
+    position:fixed;
+    top:var(--header-h);
+    bottom:0;
+    left:0;
+    width:min(100%,420px) !important;
+    transform:translateX(-100%);
+    transition:transform .25s cubic-bezier(.2,.8,.2,1);
+    z-index:250;
+    box-shadow:0 30px 90px rgba(0,0,0,.50);
+  }
+  .sidebar.open{
+    transform:translateX(0);
+  }
+  .content{
+    width:100%;
+  }
+  .welcome{
+    padding:64px 24px 44px !important;
+  }
+  .welcome h2{
+    letter-spacing:-2px !important;
+    font-size:clamp(38px,12vw,72px) !important;
+  }
+  .welcome-stats{
+    gap:16px !important;
+  }
+  .welcome-quick{
+    display:none;
+  }
+  .detail{
+    width:calc(100% - 24px);
+    padding:24px 0 56px !important;
+  }
+  .status-grid{
+    grid-template-columns:1fr !important;
+  }
+  .panel-box{
+    width:min(560px,96vw) !important;
+  }
+}
+
+@media (max-width: 540px){
+  .app-header{
+    padding:0 14px !important;
+  }
+  .header-left{
+    gap:8px !important;
+  }
+  .app-title{
+    font-size:13px !important;
+    letter-spacing:.12em !important;
+  }
+  .app-subtitle{
+    display:none;
+  }
+  .welcome-emblem{
+    width:84px !important;
+    height:84px !important;
+    font-size:44px !important;
+  }
+  .welcome p{
+    font-size:14px !important;
+  }
+  .tx-item{
+    padding:11px 12px 11px 14px !important;
+  }
+  .det-name{
+    font-size:clamp(22px,9vw,30px) !important;
+  }
+  .btn-copy-card,
+  .cmp-btn{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+/* Motion */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes softRise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes topSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lineGlow{from{opacity:.35}to{opacity:.75}}
+@keyframes sweep{0%,65%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+
+
+</style>
+
+<!-- SHIAWAY BOTTOM NAV OVERRIDE -->
+<style>
+/* SHIAWAY BOTTOM NAV OVERRIDE */
+@media (max-width: 768px) {
+  .tab-bar {
+    display: flex !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+    background: #090a0a !important;
+    border-top: 0 !important;
+    box-shadow: none !important;
+    z-index: 4000 !important;
+  }
+
+  .tab-bar::after {
+    background: #090a0a !important;
+  }
+
+  .tab-bar-inner {
+    width: 100% !important;
+    height: 82px !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    align-items: center !important;
+    justify-content: stretch !important;
+  }
+
+  .tab-btn {
+    width: 100% !important;
+    height: 82px !important;
+    min-width: 0 !important;
+    padding: 7px 2px 5px !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #858585 !important;
+    font-family: Arial, Inter, sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.15 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .tab-btn svg {
+    width: 34px !important;
+    height: 34px !important;
+    display: block !important;
+    flex: 0 0 34px !important;
+    stroke-width: 1.8 !important;
+    color: #858585 !important;
+    transform: none !important;
+  }
+
+  .tab-btn span {
+    display: block !important;
+    color: inherit !important;
+    white-space: nowrap !important;
+  }
+
+  .tab-btn.active,
+  .tab-btn.active:hover,
+  .tab-btn.active:focus {
+    color: #e21b30 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .tab-btn.active svg {
+    color: #e21b30 !important;
+    transform: none !important;
+    filter: drop-shadow(0 0 5px rgba(226,27,48,.16));
+  }
+
+  .tab-btn:not(.active):hover,
+  .tab-btn:not(.active):focus {
+    color: #a0a0a0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .tab-btn:not(.active):hover svg,
+  .tab-btn:not(.active):focus svg {
+    color: #a0a0a0 !important;
+    transform: none !important;
+  }
+
+  .tab-badge {
+    display: none !important;
+  }
+
+  /* Keep page content above the navigation. */
+  .app-body {
+    padding-bottom: 0 !important;
+  }
+
+  #btnScrollTop {
+    bottom: 96px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .tab-bar, .tab-bar-inner, .tab-btn {
+    height: 78px !important;
+  }
+  .tab-btn {
+    font-size: 12px !important;
+    gap: 4px !important;
+  }
+  .tab-btn svg {
+    width: 32px !important;
+    height: 32px !important;
+    flex-basis: 32px !important;
+  }
+}
 </style>
 
 </head>
 <body class="app-intro">
 
 <div class="body-ambient-layer" aria-hidden="true"></div>
-
+<div class="bg-glow" aria-hidden="true"></div>
 
 <!-- Загрузка -->
 <div class="loading-overlay" id="loading">
@@ -2697,156 +3668,15 @@ select:focus {
   </div>
 
   <div class="header-actions">
-    <button class="btn-icon" id="btnSettings" title="Настройки">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-    </button>
     <button class="btn-icon" id="btnSort" title="Сортировка списка">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/>
         <polyline points="17 15 21 19 17 23" transform="translate(0,-3)"/>
       </svg>
     </button>
-    <button class="btn-icon" id="btnTheme" title="Переключить тему">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-    </button>
-    <div class="lang-toggle">
-      <button class="lang-btn active" data-lang="ru" title="Русский язык">РУ</button>
-      <button class="lang-btn" data-lang="az" title="Azərbaycan dili">AZ</button>
-    </div>
   </div>
 </header>
 
-<!-- Action Bar -->
-<div class="action-bar-wrap">
-  <nav class="action-bar" id="actionBar" aria-label="Действия">
-    <button class="action-btn" id="btnFavView" title="Избранное">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-      </div>
-      <span class="action-label">Избранное</span>
-    </button>
-    <button class="action-btn" id="btnRandom" title="Случайный передатчик">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-        </svg>
-      </div>
-      <span class="action-label">Случайный</span>
-    </button>
-    <button class="action-btn" id="btnStats" title="Статистика">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="2" y="13" width="4" height="8" rx="1"/>
-        </svg>
-      </div>
-      <span class="action-label">Статистика</span>
-    </button>
-    <button class="action-btn" id="btnСравнение" title="Сравнить двух передатчиков">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="3" x2="12" y2="21"/><polyline points="17 8 12 3 7 8"/><polyline points="7 16 12 21 17 16"/>
-        </svg>
-      </div>
-      <span class="action-label">Сравнение</span>
-    </button>
-    <button class="action-btn" id="btnХронология" title="Хронология">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <span class="action-label">Хронология</span>
-    </button>
-    <button class="action-btn" id="btnГлоссарий" title="Глоссарий терминов">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>
-      </div>
-      <span class="action-label">Глоссарий</span>
-    </button>
-    <button class="action-btn" id="btnIsnad" title="Анализатор иснада">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="5" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="20" r="2"/>
-          <line x1="5" y1="8" x2="12" y2="10"/><line x1="19" y1="8" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/>
-        </svg>
-      </div>
-      <span class="action-label">Иснад</span>
-    </button>
-    <button class="action-btn" id="btnReliability" title="Индекс надёжности">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      </div>
-      <span class="action-label">Рейтинг</span>
-    </button>
-    <button class="action-btn" id="btnТест" title="Викторина">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-      </div>
-      <span class="action-label">Викторина</span>
-    </button>
-    <button class="action-btn" id="btnConflict" title="Карта противоречий">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-        </svg>
-      </div>
-      <span class="action-label">Конфликты</span>
-    </button>
-    <button class="action-btn" id="btnHilali" title="Метод аль-Хилли">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
-      </div>
-      <span class="action-label">Методология</span>
-    </button>
-    <button class="action-btn" id="btnЗаметки" title="Личные заметки">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-      </div>
-      <span class="action-label">Заметки</span>
-    </button>
-    <button class="action-btn" id="btnGeography" title="Карта географии передатчиков">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.686-7-11a7 7 0 0 1 14 0c0 5.314-7 11-7 11z"/>
-        </svg>
-      </div>
-      <span class="action-label">География</span>
-    </button>
-    <button class="action-btn" id="btnGenealogy" title="Генеалогическое дерево передачи">
-      <div class="action-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="4" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/>
-          <path d="M12 6v3M12 9 6 11M12 9l6 2M6 14v4M18 14v4"/>
-        </svg>
-      </div>
-      <span class="action-label">Генеалогия</span>
-    </button>
-  </nav>
-  <div class="action-bar-title">Инструменты анализа риджаля</div>
-</div>
 
 <!-- Tab Bar (mobile) -->
 <nav class="tab-bar" id="tabBar" role="tablist">
@@ -2884,7 +3714,7 @@ select:focus {
     var btn = document.getElementById('btnHadis');
     if (btn) {
       btn.addEventListener('click', function(){
-        window.location.href = 'https://shiaisnad.ru/hadis';
+        window.location.href = 'hadis/';
       });
     }
   })();
@@ -2946,10 +3776,6 @@ select:focus {
 
       <!-- Quick actions -->
       <div class="quick-actions">
-        <button class="btn-quick" id="btnShowFav">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span id="favLabel">—</span>
-        </button>
         <button class="btn-quick" id="btnShowВсе">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           <span id="allLabel">—</span>
@@ -3000,10 +3826,6 @@ select:focus {
           <div class="ws-num" id="wsTrustNum">—</div>
           <div class="ws-label" id="wsTrustLabel">—</div>
         </div>
-        <div class="ws-item">
-          <div class="ws-num" id="wsFavNum">—</div>
-          <div class="ws-label" id="wsFavLabel">—</div>
-        </div>
       </div>
     </div>
 
@@ -3020,20 +3842,6 @@ select:focus {
             <div class="det-score-bar"><div class="det-score-fill" id="detScoreFill"></div></div>
             <span class="det-score-val" id="detScoreVal"></span>
           </div>
-          </div>
-          <div class="det-actions">
-    <button class="btn-icon" id="btnNoteDetail" title="Заметка к передатчику" style="position:relative">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              <span id="noteIndicator" style="position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--amber);border-radius:50%;display:none"></span>
-            </button>
-            <button class="btn-icon" id="btnFav" title="—">
-              <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -3082,70 +3890,12 @@ select:focus {
           <span id="copyCardLabel">Копировать карточку</span>
         </button>
       </div>
-      <div class="welcome-quick">
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnRandom').click()">🎲 Случайный передатчик</button>
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnГлоссарий').click()">📖 Глоссарий</button>
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnТест').click()">🎓 Викторина</button>
-        <button class="welcome-quick-btn" onclick="document.getElementById('btnStats').click()">📊 Статистика</button>
-      </div>
     </div>
 </div>
 
-<!-- STATS PANEL -->
-<div class="panel-overlay" id="statsPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title" id="statsPanelTitle">📊 Статистика базы данных</div>
-      <button class="panel-close" id="statsClose">✕</button>
-    </div>
-    <div class="donut-wrap">
-      <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160" id="donutSvg"></svg>
-      <div class="donut-legend" id="donutLegend"></div>
-    </div>
-    <div class="bar-section">
-      <div class="bar-section-title">Топ источников</div>
-      <div id="sourcesChart"></div>
-    </div>
-  </div>
-</div>
 
-<!-- COMPARE PANEL -->
-<div class="panel-overlay" id="comparePanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">⚖ Сравнение передатчиков</div>
-      <button class="panel-close" id="compareClose">✕</button>
-    </div>
-    <div class="cmp-selects">
-      <select class="cmp-select" id="cmpA"><option value="">— Выберите первого —</option></select>
-      <select class="cmp-select" id="cmpB"><option value="">— Выберите второго —</option></select>
-    </div>
-    <button class="cmp-btn" id="cmpGo">Сравнить</button>
-    <div id="cmpResult"></div>
-  </div>
-</div>
 
-<!-- TIMELINE PANEL -->
-<div class="panel-overlay" id="timelinePanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">🕐 Хронология передатчиков</div>
-      <button class="panel-close" id="timelineClose">✕</button>
-    </div>
-    <div id="timelineContent"></div>
-  </div>
-</div>
 
-<!-- GLOSSARY PANEL -->
-<div class="panel-overlay" id="glossaryPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📖 Глоссарий терминов ар-Риджаль</div>
-      <button class="panel-close" id="glossaryClose">✕</button>
-    </div>
-    <div class="gloss-list" id="glossaryСписок"></div>
-  </div>
-</div>
 
 <!-- AI CHAT PANEL -->
 <div class="panel-overlay" id="aiChatPanel">
@@ -3158,10 +3908,12 @@ select:focus {
       </div>
     </div>
     <div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;min-height:200px;max-height:52vh"></div>
-    <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--border);padding-top:12px">
+    <div class="ai-chat-inputrow">
       <textarea id="aiChatInput" rows="1" placeholder="Спросите про передатчика, риджаль, иснад, хадис или фикх…"
-        style="flex:1;resize:none;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;max-height:120px;outline:none"></textarea>
-      <button id="aiChatSend" class="cmp-btn" style="white-space:nowrap;margin:0">Отправить</button>
+        style="flex:1;min-width:0;resize:none;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:20px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 14px;max-height:120px;outline:none"></textarea>
+      <button id="aiChatSend" class="ai-chat-send" aria-label="Отправить" title="Отправить">
+        <svg id="aiChatSendIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
       <button id="aiChatClear" style="background:none;border:none;color:var(--text-3);font-size:12px;cursor:pointer;text-decoration:underline">Очистить чат</button>
@@ -3170,126 +3922,13 @@ select:focus {
   </div>
 </div>
 
-<!-- SETTINGS PANEL -->
-<div class="panel-overlay" id="settingsPanel">
-  <div class="panel-box" style="width:min(480px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">⚙️ Настройки</div>
-      <button class="panel-close" id="settingsClose">✕</button>
-    </div>
-    <p style="font-size:13.5px;color:var(--text-2);line-height:1.75;margin-bottom:14px">
-      Перевод карточек и ИИ-чат работают через сервер сайта. Никакие ключи доступа или адреса ИИ-сервиса на этой странице не хранятся и не настраиваются — это делается только на сервере.
-    </p>
 
-    <div style="margin-top:4px">
-      <label style="display:block;font-size:12px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:6px">МАРДЖА ТАКЛИДА (для вопросов по фикху)</label>
-      <select id="settingsMarjaSelect" style="width:100%;padding:11px 13px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:13.5px">
-        <option value="">Не выбрана (общий ответ)</option>
-        <option value="Аятолла Али аль-Систани">Аятолла Али аль-Систани</option>
-        <option value="Аятолла Али Хаменеи">Аятолла Али Хаменеи</option>
-        <option value="Аятолла Насир Макарем Ширази">Аятолла Насир Макарем Ширази</option>
-        <option value="Аятолла Мухаммад Саид ат-Табатабаи аль-Хаким">Аятолла Мухаммад Саид аль-Хаким</option>
-        <option value="Аятолла Башир ан-Наджафи">Аятолла Башир ан-Наджафи</option>
-        <option value="Аятолла Джавад Табризи (наследие)">Аятолла Джавад Табризи</option>
-      </select>
-      <p style="font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.6">Выбор марджи влияет только на ответы по фикху (فقه) в ИИ-чате — ассистент будет явно указывать, чью фетву приводит, и позволит спросить мнение другой марджи в любой момент.</p>
-    </div>
 
-    <button id="settingsClose2" class="cmp-btn" style="margin-top:18px;width:100%">Закрыть</button>
-  </div>
-</div>
 
-<!-- BOOKMARKS / ИЗБРАННОЕ PANEL -->
-<div class="panel-overlay" id="bookmarksPanel">
-  <div class="panel-box" style="width:min(560px,96vw);max-height:min(85dvh,720px);display:flex;flex-direction:column">
-    <div class="panel-head">
-      <div class="panel-title">⭐ Избранное</div>
-      <button class="panel-close" id="bookmarksClose">✕</button>
-    </div>
-    <div id="bookmarksList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px"></div>
-  </div>
-</div>
 
-<!-- ISNАД ANALYSER PANEL -->
-<div class="panel-overlay" id="isnadPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">⛓ Анализатор Иснада</div>
-      <button class="panel-close" id="isnadClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6">
-      Введите цепочку передатчиков через запятую — система оценит каждое звено и даст итоговое заключение о степени достоверности.
-    </p>
-    <div style="position:relative;margin-bottom:12px">
-      <textarea id="isnadInput" placeholder="Например: Мухаммад аль-Кулайни, Аль-Хусейн ибн Убайдуллах, Ибн Аби Умайр..." style="width:100%;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px;min-height:80px;resize:vertical;outline:none;line-height:1.6"></textarea>
-    </div>
-    <button class="cmp-btn" id="isnadGo">🔍 Анализировать цепочку</button>
-    <div id="isnadResult" style="margin-top:16px"></div>
-  </div>
-</div>
 
-<!-- RELIABILITY INDEX PANEL -->
-<div class="panel-overlay" id="reliabilityPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📐 Индекс надёжности</div>
-      <button class="panel-close" id="reliabilityClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Числовой балл (0–100) рассчитывается по совокупности шиитских и суннитских оценок, количеству источников и степени их согласованности.</p>
-    <div id="reliabilityContent"></div>
-  </div>
-</div>
 
-<!-- QUIZ PANEL -->
-<div class="panel-overlay" id="quizPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">🎓 Викторина по Риджалю</div>
-      <button class="panel-close" id="quizClose">✕</button>
-    </div>
-    <div id="quizContent"></div>
-  </div>
-</div>
 
-<!-- HILALI METHOD PANEL -->
-<div class="panel-overlay" id="hilaliPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📜 Метод аль-Хилли</div>
-      <button class="panel-close" id="hilaliClose">✕</button>
-    </div>
-    <div id="hilaliContent"></div>
-  </div>
-</div>
-
-<!-- CONFLICT MAP PANEL -->
-<div class="panel-overlay" id="conflictPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">⚡ Карта противоречий</div>
-      <button class="panel-close" id="conflictClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Передатчики, оценки которых расходятся в шиитском и суннитском риджале — с указанием причин расхождения.</p>
-    <div id="conflictContent"></div>
-  </div>
-</div>
-
-<!-- NOTES PANEL -->
-<div class="panel-overlay" id="notesPanel">
-  <div class="panel-box">
-    <div class="panel-head">
-      <div class="panel-title">📝 Личные заметки</div>
-      <button class="panel-close" id="notesClose">✕</button>
-    </div>
-    <div id="notesCurrentTitle" style="font-size:13px;color:var(--text-3);margin-bottom:10px;font-family:var(--font-mono)">Глобальные заметки</div>
-    <textarea id="notesTextarea" placeholder="Ваши заметки по риджалю, личные наблюдения, вопросы..." style="width:100%;min-height:200px;background:var(--ink-2);border:1px solid var(--border-bright);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:14px;outline:none;resize:vertical;line-height:1.7;transition:border-color .2s"></textarea>
-    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-      <button class="cmp-btn" id="notesSave" style="margin-bottom:0">💾 Сохранить заметку</button>
-      <button class="cmp-btn" id="notesClear" style="margin-bottom:0;background:var(--ink-3);color:var(--text-2)">🗑 Очистить</button>
-    </div>
-    <div id="notesСписок" style="margin-top:20px;display:flex;flex-direction:column;gap:8px"></div>
-  </div>
-</div>
 
 <!-- SORT PANEL -->
 <div class="panel-overlay" id="sortPanel">
@@ -3309,30 +3948,7 @@ select:focus {
   </div>
 </div>
 
-<!-- GEOGRAPHY PANEL -->
-<div class="panel-overlay" id="geographyPanel">
-  <div class="panel-box" style="width:min(720px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">🗺 Карта географии передатчиков</div>
-      <button class="panel-close" id="geographyClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Распределение передатчиков по основным историческим центрам исламской учёности. Нажмите на город, чтобы увидеть связанных с ним передатчиков.</p>
-    <div id="geographyMap" style="margin-bottom:16px"></div>
-    <div id="geographyCityСписок"></div>
-  </div>
-</div>
 
-<!-- GРУEALOGY PANEL -->
-<div class="panel-overlay" id="genealogyPanel">
-  <div class="panel-box" style="width:min(820px,96vw)">
-    <div class="panel-head">
-      <div class="panel-title">🌳 Генеалогическое дерево передачи хадисов</div>
-      <button class="panel-close" id="genealogyClose">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Документированные цепочки передачи знания от Имамов через ближайших сподвижников к составителям «Четырёх книг» шиитского хадиса. Нажмите на имя передатчика, чтобы открыть его карточку.</p>
-    <div id="genealogyTree"></div>
-  </div>
-</div>
 
 <!-- Reading progress bar -->
 <div id="readingProgress" style="width:0"></div>
@@ -3389,170 +4005,35 @@ const i18n = {
     weak: 'Слабый (Даиф)',
     disputed: 'Спорный',
   },
-  ar: {
-    appTitle: 'علم الرجال',
-    appSubtitle: 'تحليل نقدي مقارن للرواة',
-    searchPlaceholder: 'ابحث عن راوٍ...',
-    filterВсе: 'الكل',
-    filterTrust: 'ثقة',
-    filterСпорный: 'مختلف فيه',
-    filterСлабый: 'ضعيف',
-    favLabel: 'المفضلة',
-    allLabel: 'جميع السجلات',
-    backLabel: 'رجوع',
-    tabСписокLabel: 'القائمة',
-    tabDetailLabel: 'البطاقة',
-    statsOf: (n, t) => `<strong>${n}</strong> من ${t} راوٍ`,
-    welcomeTitle: 'قاعدة بيانات تحليلية لعلم الرجال',
-    welcomeDesc: 'تحليل نقدي لرواة الحديث في التراثين الشيعي والسني. اختر راوياً من القائمة لعرض التحليل الكامل.',
-    wsTotalLabel: 'رواةٍ',
-    wsTrustLabel: 'ثقة',
-    wsFavLabel: 'مفضّل',
-    scShiaLabel: 'المذهب الشيعي (الجعفري)',
-    scSunniLabel: 'المذهب السني (علوم الحديث)',
-    secBioLabel: 'السيرة الذاتية',
-    secAnalysisLabel: 'تحليل الازدواجية والجدل العلمي',
-    secSourcesLabel: 'المصادر الموثّقة',
-    noSources: 'لا توجد مصادر موثقة',
-    noAnalysis: 'لا يوجد تحليل',
-    addedFav: '★ تمت الإضافة للمفضلة',
-    removedFav: '✦ تمت الإزالة من المفضلة',
-    noFav: 'لا يوجد رواة في المفضلة',
-    notFound: 'لم يُعثر على الراوي في قاعدة الرجال',
-    detId: (n) => `السجل #${n + 1}`,
-    randomHint: 'راوٍ عشوائي',
-    trust: 'ثقة',
-    weak: 'ضعيف',
-    disputed: 'مختلف فيه',
-  },
-  en: {
-    appTitle: 'Ilm al-Rijal',
-    appSubtitle: 'Comparative critical analysis of hadith transmitters',
-    searchPlaceholder: 'Поиск передатчика...',
-    filterВсе: 'Все',
-    filterTrust: 'Надёжный',
-    filterСпорный: 'Спорный',
-    filterСлабый: 'Слабый',
-    favLabel: 'Избранное',
-    allLabel: 'Все records',
-    backLabel: 'Назад',
-    tabСписокLabel: 'Список',
-    tabDetailLabel: 'Карточка',
-    statsOf: (n, t) => `<strong>${n}</strong> of ${t} transmitters`,
-    welcomeTitle: 'Analytical Database of Ilm al-Rijal',
-    welcomeDesc: 'Critical analysis of hadith transmitters in the Shia and Sunni traditions. Select a transmitter from the list to view the full analysis.',
-    wsTotalLabel: 'TRANSMITTERS',
-    wsTrustLabel: 'RELIABLE',
-    wsFavLabel: 'FAVORITES',
-    scShiaLabel: 'Shia School (Jafari Madhab)',
-    scSunniLabel: 'Sunni School (Ulum al-Hadith)',
-    secBioLabel: 'Biographical Note',
-    secAnalysisLabel: 'Double Standards Analysis & Polemic',
-    secSourcesLabel: 'Documented Primary Sources',
-    noSources: 'No documented sources',
-    noAnalysis: 'No analysis provided',
-    addedFav: '★ Added to favorites',
-    removedFav: '✦ Removed from favorites',
-    noFav: 'No favorite transmitters',
-    notFound: 'Transmitter not found in the Rijal database',
-    detId: (n) => `Record #${n + 1}`,
-    randomHint: 'Random transmitter',
-    trust: 'Надёжный (Thiqa)',
-    weak: "Слабый (Da'if)",
-    disputed: 'Спорный',
-  },
-  fa: {
-    appTitle: 'علم الرجال',
-    appSubtitle: 'تحلیل انتقادی تطبیقی راویان حدیث',
-    searchPlaceholder: 'جستجوی راوی...',
-    filterВсе: 'همه',
-    filterTrust: 'ثقه',
-    filterСпорный: 'مختلف فیه',
-    filterСлабый: 'ضعیف',
-    favLabel: 'علاقه‌مندی‌ها',
-    allLabel: 'همه رکوردها',
-    backLabel: 'بازگشت',
-    tabСписокLabel: 'فهرست',
-    tabDetailLabel: 'کارت',
-    statsOf: (n, t) => `<strong>${n}</strong> از ${t} راوی`,
-    welcomeTitle: 'پایگاه داده تحلیلی علم الرجال',
-    welcomeDesc: 'تحلیل انتقادی راویان حدیث در سنت شیعه و سنی. یک راوی را از فهرست انتخاب کنید تا تحلیل کامل را مشاهده کنید.',
-    wsTotalLabel: 'راویان',
-    wsTrustLabel: 'ثقه',
-    wsFavLabel: 'علاقه‌مند',
-    scShiaLabel: 'مذهب شیعه (جعفری)',
-    scSunniLabel: 'مذهب سنی (علوم الحدیث)',
-    secBioLabel: 'شرح حال',
-    secAnalysisLabel: 'تحلیل معیارهای دوگانه و جدل علمی',
-    secSourcesLabel: 'منابع مستند اولیه',
-    noSources: 'منابع مستند وجود ندارد',
-    noAnalysis: 'تحلیلی ارائه نشده',
-    addedFav: '★ به علاقه‌مندی‌ها افزوده شد',
-    removedFav: '✦ از علاقه‌مندی‌ها حذف شد',
-    noFav: 'راوی مورد علاقه‌ای وجود ندارد',
-    notFound: 'راوی در پایگاه داده رجال یافت نشد',
-    detId: (n) => `رکورد #${n + 1}`,
-    randomHint: 'راوی تصادفی',
-    trust: 'ثقه',
-    weak: 'ضعیف',
-    disputed: 'مختلف فیه',
-  },
-  az: {
-    appTitle: 'Elm ər-Rical',
-    appSubtitle: 'Hədis ravilərinin müqayisəli tənqidi təhlili',
-    searchPlaceholder: 'Ravi axtar...',
-    filterВсе: 'Hamısı',
-    filterTrust: 'Etibarlı',
-    filterСпорный: 'Mübahisəli',
-    filterСлабый: 'Zəif',
-    favLabel: 'Seçilmişlər',
-    allLabel: 'Bütün qeydlər',
-    backLabel: 'Geri',
-    tabСписокLabel: 'Siyahı',
-    tabDetailLabel: 'Kart',
-    statsOf: (n, t) => `<strong>${n}</strong> / ${t} ravi`,
-    welcomeTitle: 'Elm ər-Rical Analitik Verilənlər Bazası',
-    welcomeDesc: 'Şiə və Sünni ənənələrində hədis ravilərinin tənqidi təhlili. Tam təhlili görmək üçün siyahıdan ravi seçin.',
-    wsTotalLabel: 'RAVİLƏR',
-    wsTrustLabel: 'ETİBARLI',
-    wsFavLabel: 'SEÇİLMİŞ',
-    scShiaLabel: 'Şiə məktəbi (Cəfəri məzhəbi)',
-    scSunniLabel: 'Sünni məktəbi (Hədis elmləri)',
-    secBioLabel: 'Bioqrafik məlumat',
-    secAnalysisLabel: 'Qoşa standartların təhlili və polemika',
-    secSourcesLabel: 'Sənədləşdirilmiş mənbələr',
-    noSources: 'Sənədləşdirilmiş mənbə yoxdur',
-    noAnalysis: 'Təhlil verilməyib',
-    addedFav: '★ Seçilmişlərə əlavə edildi',
-    removedFav: '✦ Seçilmişlərdən silindi',
-    noFav: 'Seçilmiş ravi yoxdur',
-    notFound: 'Ravi rical bazasında tapılmadı',
-    detId: (n) => `Qeyd #${n + 1}`,
-    randomHint: 'Təsadüfi ravi',
-    trust: 'Etibarlı (Siqa)',
-    weak: 'Zəif (Daif)',
-    disputed: 'Mübahisəli',
-  }
 };
 
 // ── Mobile tab switching ────────────────────────────────────────
 function switchTab(tab) {
   const isMobile = window.innerWidth <= 768;
   if (!isMobile) return;
+
   const sidebar = $('sidebar');
   const content = $('content');
   const btnСписок = $('tabСписок');
   const btnDetail = $('tabDetail');
+  if (!sidebar || !content) return;
+
+  // На мобильном принудительно синхронизируем class и display.
   if (tab === 'list') {
     sidebar.classList.add('tab-active');
     content.classList.remove('tab-active');
-    if (btnСписок) btnСписок.classList.add('active');
-    if (btnDetail) btnDetail.classList.remove('active');
+    sidebar.style.setProperty('display', 'flex', 'important');
+    content.style.setProperty('display', 'none', 'important');
+    if (btnСписок) { btnСписок.classList.add('active'); btnСписок.setAttribute('aria-selected', 'true'); }
+    if (btnDetail) { btnDetail.classList.remove('active'); btnDetail.setAttribute('aria-selected', 'false'); }
   } else {
     content.classList.add('tab-active');
     sidebar.classList.remove('tab-active');
-    if (btnDetail) btnDetail.classList.add('active');
-    if (btnСписок) btnСписок.classList.remove('active');
+    sidebar.style.setProperty('display', 'none', 'important');
+    content.style.setProperty('display', 'block', 'important');
+    if (btnDetail) { btnDetail.classList.add('active'); btnDetail.setAttribute('aria-selected', 'true'); }
+    if (btnСписок) { btnСписок.classList.remove('active'); btnСписок.setAttribute('aria-selected', 'false'); }
+    content.scrollTop = 0;
   }
   state.activeTab = tab;
 }
@@ -3586,16 +4067,6 @@ let state = {
 };
 
 // ═══════════════════════════════════════
-// NOTES STORE (early init)
-// ═══════════════════════════════════════
-const NOTES_KEY = 'rijal_notes_v1';
-let notesStore = {};
-try { notesStore = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); } catch(e) {}
-function saveЗаметкиStore() {
-  try { localStorage.setItem(NOTES_KEY, JSON.stringify(notesStore)); } catch(e) {}
-}
-
-// ═══════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════
 const $ = (id) => document.getElementById(id);
@@ -3610,6 +4081,35 @@ function saveНастройки() {
     localStorage.setItem('rijal_favorites', JSON.stringify([...state.favorites]));
     localStorage.setItem('rijal_lastId', state.activeId ?? '');
   } catch(e) {}
+}
+
+function setDetailOpen(isOpen) {
+  const welcome = $('welcome');
+  const detailView = $('detailView');
+  document.body.classList.toggle('detail-open', !!isOpen);
+
+  // Welcome полностью убирается из layout, чтобы не создавать невидимую стену.
+  if (welcome) welcome.style.setProperty('display', isOpen ? 'none' : 'flex', 'important');
+  if (detailView) detailView.style.setProperty('display', isOpen ? 'block' : 'none', 'important');
+
+  if (isOpen && window.innerWidth <= 768) {
+    const sidebar = $('sidebar');
+    const content = $('content');
+    if (sidebar) {
+      sidebar.classList.remove('tab-active');
+      sidebar.style.setProperty('display', 'none', 'important');
+    }
+    if (content) {
+      content.classList.add('tab-active');
+      content.style.setProperty('display', 'block', 'important');
+      content.scrollTop = 0;
+    }
+    const bList = $('tabСписок');
+    const bDetail = $('tabDetail');
+    if (bList) { bList.classList.remove('active'); bList.setAttribute('aria-selected', 'false'); }
+    if (bDetail) { bDetail.classList.add('active'); bDetail.setAttribute('aria-selected', 'true'); }
+    state.activeTab = 'detail';
+  }
 }
 
 function loadНастройки() {
@@ -3652,9 +4152,6 @@ function applyLang() {
   $('appSubtitle').textContent = t('appSubtitle');
 
   // Lang buttons
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.lang === state.lang);
-  });
 
   // Search
   $('searchInput').placeholder = t('searchPlaceholder');
@@ -3666,7 +4163,6 @@ function applyLang() {
   $('filterСлабый').textContent = t('filterСлабый');
 
   // Quick actions
-  $('favLabel').textContent = t('favLabel');
   $('allLabel').textContent = t('allLabel');
 
   // Назад btn
@@ -3684,51 +4180,20 @@ function applyLang() {
   $('welcomeDesc').textContent = t('welcomeDesc');
   $('wsTotalLabel').textContent = t('wsTotalLabel');
   $('wsTrustLabel').textContent = t('wsTrustLabel');
-  $('wsFavLabel').textContent = t('wsFavLabel');
 
   // Tab labels
   if ($('tabСписокLabel')) $('tabСписокLabel').textContent = t('tabСписокLabel');
   if ($('tabDetailLabel')) $('tabDetailLabel').textContent = t('tabDetailLabel');
 
-  // Action bar labels
+  // Epoch/sect section labels
   const actionLabels = {
-    ru: { fav:'Избранное', rand:'Случайный', stats:'Статистика', cmp:'Сравнение',
-          tl:'Хронология', gloss:'Глоссарий', isnad:'Иснад', rel:'Рейтинг',
-          quiz:'Викторина', conf:'Конфликты', meth:'Методология', bar:'Инструменты анализа риджаля',
-          epoch:'Эпоха', sect:'Течение' },
-    ar:  { fav:'المفضلة', rand:'عشوائي', stats:'إحصاء', cmp:'مقارنة',
-          tl:'التسلسل', gloss:'المصطلحات', isnad:'الإسناد', rel:'التقييم',
-          quiz:'مسابقة', conf:'التناقضات', meth:'المنهج', bar:'أدوات تحليل الرجال',
-          epoch:'العصر', sect:'المذهب' },
-    en:  { fav:'Избранное', rand:'Random', stats:'Statistics', cmp:'Сравнение',
-          tl:'Хронология', gloss:'Глоссарий', isnad:'Isnad', rel:'Rating',
-          quiz:'Тест', conf:'Conflicts', meth:'Methodology', bar:'Rijal Analysis Tools',
-          epoch:'Epoch', sect:'School' },
-    fa:  { fav:'علاقه‌مندی‌ها', rand:'تصادفی', stats:'آمار', cmp:'مقایسه',
-          tl:'تسلسل زمانی', gloss:'واژه‌نامه', isnad:'اسناد', rel:'رتبه‌بندی',
-          quiz:'آزمون', conf:'تناقضات', meth:'روش‌شناسی', bar:'ابزارهای تحلیل رجال',
-          epoch:'دوره', sect:'مکتب' },
-    az:  { fav:'Seçilmişlər', rand:'Təsadüfi', stats:'Statistika', cmp:'Müqayisə',
-          tl:'Xronologiya', gloss:'Lüğət', isnad:'İsnad', rel:'Reytinq',
-          quiz:'Viktorina', conf:'Ziddiyyətlər', meth:'Metodologiya', bar:'Rical Təhlil Alətləri',
-          epoch:'Dövr', sect:'Cərəyan' },
+    ru: { epoch:'Эпоха', sect:'Течение' },
+    ar: { epoch:'العصر', sect:'المذهب' },
+    en: { epoch:'Epoch', sect:'School' },
+    fa: { epoch:'دوره', sect:'مکتب' },
+    az: { epoch:'Dövr', sect:'Cərəyan' },
   };
   const al = actionLabels[state.lang] || actionLabels.ru;
-  // Action bar buttons
-  const btnFavView = $('btnFavView'); if(btnFavView) btnFavView.querySelector('.action-label').textContent = al.fav;
-  const btnRandom  = $('btnRandom');  if(btnRandom)  btnRandom.querySelector('.action-label').textContent  = al.rand;
-  const btnStats   = $('btnStats');   if(btnStats)   btnStats.querySelector('.action-label').textContent   = al.stats;
-  const btnСравнение = $('btnСравнение'); if(btnСравнение) btnСравнение.querySelector('.action-label').textContent = al.cmp;
-  const btnХронология= $('btnХронология');if(btnХронология)btnХронология.querySelector('.action-label').textContent= al.tl;
-  const btnГлоссарий= $('btnГлоссарий');if(btnГлоссарий)btnГлоссарий.querySelector('.action-label').textContent= al.gloss;
-  const btnIsnad   = $('btnIsnad');   if(btnIsnad)   btnIsnad.querySelector('.action-label').textContent   = al.isnad;
-  const btnRel     = $('btnReliability');if(btnRel)  btnRel.querySelector('.action-label').textContent    = al.rel;
-  const btnТест    = $('btnТест');    if(btnТест)    btnТест.querySelector('.action-label').textContent    = al.quiz;
-  const btnConflict= $('btnConflict');if(btnConflict)btnConflict.querySelector('.action-label').textContent= al.conf;
-  const btnHilali  = $('btnHilali');  if(btnHilali)  btnHilali.querySelector('.action-label').textContent  = al.meth;
-  // Action bar title
-  const abt = document.querySelector('.action-bar-title'); if(abt) abt.textContent = al.bar;
-  // Epoch/sect labels
   const epochLbl = $('epochLabel'); if(epochLbl) epochLbl.textContent = al.epoch;
   const sectLbl  = $('sectLabel');  if(sectLbl)  sectLbl.textContent  = al.sect;
   // Epoch chips
@@ -3755,89 +4220,15 @@ function applyLang() {
     const key = btn.dataset.sect; if(sCur[key]) btn.textContent = sCur[key];
   });
 
-  // Panel & misc static texts
+  // Misc static texts
   const panelTexts = {
-    ru: {
-      statsTitle: '📊 Статистика базы данных',
-      compareTitle: '⚖ Сравнение передатчиков',
-      timelineTitle: '🕐 Хронология передатчиков',
-      glossaryTitle: '📖 Глоссарий терминов ар-Риджаль',
-      isnadTitle: '⛓ Анализатор Иснада',
-      isnadDesc: 'Введите цепочку передатчиков через запятую — система оценит каждое звено и даст итоговое заключение.',
-      isnadPlaceholder: 'Например: Мухаммад аль-Кулайни, Аль-Хусейн ибн Убайдуллах...',
-      isnadBtn: 'Анализировать',
-      topSourcesTitle: 'Топ источников',
-      copyCard: 'Копировать карточку',
-      filtersPanelTitle: 'Инструменты анализа риджаля',
-    },
-    ar: {
-      statsTitle: '📊 إحصاءات قاعدة البيانات',
-      compareTitle: '⚖ مقارنة الرواة',
-      timelineTitle: '🕐 التسلسل الزمني للرواة',
-      glossaryTitle: '📖 مصطلحات علم الرجال',
-      isnadTitle: '⛓ محلل الإسناد',
-      isnadDesc: 'أدخل سلسلة الرواة مفصولة بفاصلة — سيقيّم النظام كل حلقة ويعطي حكماً.',
-      isnadPlaceholder: 'مثال: محمد الكليني، الحسين بن عبيدالله...',
-      isnadBtn: 'تحليل',
-      topSourcesTitle: 'أبرز المصادر',
-      copyCard: 'نسخ البطاقة',
-      filtersPanelTitle: 'أدوات تحليل الرجال',
-    },
-    en: {
-      statsTitle: '📊 Database Statistics',
-      compareTitle: '⚖ Сравнение Transmitters',
-      timelineTitle: '🕐 Transmitter Хронология',
-      glossaryTitle: '📖 Rijal Terminology Глоссарий',
-      isnadTitle: '⛓ Isnad Analyzer',
-      isnadDesc: 'Enter a chain of transmitters separated by commas — the system will evaluate each link.',
-      isnadPlaceholder: 'E.g.: Muhammad al-Kulayni, al-Husayn ibn Ubaydullah...',
-      isnadBtn: 'Analyze',
-      topSourcesTitle: 'Top Sources',
-      copyCard: 'Copy Card',
-      filtersPanelTitle: 'Rijal Analysis Tools',
-    },
-    fa: {
-      statsTitle: '📊 آمار پایگاه داده',
-      compareTitle: '⚖ مقایسه راویان',
-      timelineTitle: '🕐 تسلسل زمانی راویان',
-      glossaryTitle: '📖 واژه‌نامه اصطلاحات رجال',
-      isnadTitle: '⛓ تحلیلگر اسناد',
-      isnadDesc: 'زنجیره راویان را با کاما وارد کنید — سیستم هر حلقه را ارزیابی خواهد کرد.',
-      isnadPlaceholder: 'مثال: محمد کلینی، حسین بن عبیدالله...',
-      isnadBtn: 'تحلیل',
-      topSourcesTitle: 'منابع برتر',
-      copyCard: 'کپی کارت',
-      filtersPanelTitle: 'ابزارهای تحلیل رجال',
-    },
-    az: {
-      statsTitle: '📊 Verilənlər bazasının statistikası',
-      compareTitle: '⚖ Raviləri müqayisə et',
-      timelineTitle: '🕐 Ravilərin xronologiyası',
-      glossaryTitle: '📖 Elm ər-Rical terminləri lüğəti',
-      isnadTitle: '⛓ İsnad Analizatoru',
-      isnadDesc: 'Ravilər zəncirini vergüllə daxil edin — sistem hər həlqəni qiymətləndirərək nəticə verəcək.',
-      isnadPlaceholder: 'Məsələn: Məhəmməd əl-Kuleyni, əl-Hüseyn ibn Übeydullah...',
-      isnadBtn: 'Analiz et',
-      topSourcesTitle: 'Əsas mənbələr',
-      copyCard: 'Kartı kopyala',
-      filtersPanelTitle: 'Rical Təhlil Alətləri',
-    },
+    ru: { copyCard: 'Копировать карточку' },
+    ar: { copyCard: 'نسخ البطاقة' },
+    en: { copyCard: 'Copy Card' },
+    fa: { copyCard: 'کپی کارت' },
+    az: { copyCard: 'Kartı kopyala' },
   };
   const pt = panelTexts[state.lang] || panelTexts.ru;
-  // Apply to panel elements that have stable structure
-  const statsPanelTitle = document.querySelector('#statsPanel .panel-title');
-  if (statsPanelTitle) statsPanelTitle.textContent = pt.statsTitle;
-  const comparePanelTitle = document.querySelector('#comparePanel .panel-title');
-  if (comparePanelTitle) comparePanelTitle.textContent = pt.compareTitle;
-  const timelinePanelTitle = document.querySelector('#timelinePanel .panel-title');
-  if (timelinePanelTitle) timelinePanelTitle.textContent = pt.timelineTitle;
-  const glossaryPanelTitle = document.querySelector('#glossaryPanel .panel-title');
-  if (glossaryPanelTitle) glossaryPanelTitle.textContent = pt.glossaryTitle;
-  const isnadPanelTitle = document.querySelector('#isnadPanel .panel-title');
-  if (isnadPanelTitle) isnadPanelTitle.textContent = pt.isnadTitle;
-  const isnadInput = $('isnadInput'); if(isnadInput) isnadInput.placeholder = pt.isnadPlaceholder;
-  const isnadAnalyze = $('isnadAnalyze'); if(isnadAnalyze) isnadAnalyze.textContent = pt.isnadBtn;
-  const barSectionTitle = document.querySelector('.bar-section-title'); if(barSectionTitle) barSectionTitle.textContent = pt.topSourcesTitle;
   const copyCardLabel = $('copyCardLabel'); if(copyCardLabel) copyCardLabel.textContent = pt.copyCard;
 
   // Update stats
@@ -4179,7 +4570,6 @@ function updateStats() {
   $('wsTotalNum').textContent = total;
   const trustCount = state.data.filter(d => (d.shiaStatusStyle || '').includes('trust')).length;
   $('wsTrustNum').textContent = trustCount;
-  $('wsFavNum').textContent = state.favorites.size;
 }
 
 // ═══════════════════════════════════════
@@ -4844,8 +5234,7 @@ async function renderDetail(id) {
   const tx = state.data[id];
   if (!tx) return;
 
-  $('welcome').style.display = 'none';
-  $('detailView').style.display = 'block';
+  setDetailOpen(true);
 
   const isAr = state.lang === 'ar';
 
@@ -4867,7 +5256,6 @@ async function renderDetail(id) {
   $('detName').style.fontFamily = isRTLdet ? 'var(--font-arabic)' : '';
   $('detArabic').style.direction = isRTLdet ? 'ltr' : 'rtl';
 
-  updateFavBtn();
   updateDetailScore(tx);
   $('content').scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -4927,23 +5315,6 @@ async function renderDetail(id) {
   }
 }
 
-function updateFavBtn() {
-  const isFav = state.activeId !== null && state.favorites.has(state.activeId);
-  const btn = $('btnFav');
-  if (isFav) {
-    btn.style.color = '#fbbf24';
-    btn.querySelector('svg').setAttribute('fill', '#fbbf24');
-  } else {
-    btn.style.color = '';
-    btn.querySelector('svg').setAttribute('fill', 'none');
-  }
-  // Update note indicator
-  const noteInd = $('noteIndicator');
-  if (noteInd && state.activeId !== null) {
-    const hasNote = notesStore[`tx_${state.activeId}`] && notesStore[`tx_${state.activeId}`].text;
-    noteInd.style.display = hasNote ? 'block' : 'none';
-  }
-}
 
 // ═══════════════════════════════════════
 // DRAWER
@@ -4977,15 +5348,6 @@ function initEvents() {
     switchTab('list');
   });
 
-  // Language
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.lang = btn.dataset.lang;
-      saveНастройки();
-      applyLang();
-      if (state.lang === 'az') setTimeout(() => batchTranslateAzNames(), 300);
-    });
-  });
 
   // Search (с debounce — на 8000+ записях не пересчитываем фильтр на каждый символ)
   let _searchDebounceTimer = null;
@@ -5019,12 +5381,6 @@ function initEvents() {
     });
   });
 
-  // Show favorites
-  $('btnShowFav').addEventListener('click', () => {
-    state.showFav = !state.showFav;
-    $('btnShowFav').classList.toggle('fav-active', state.showFav);
-    renderСписок();
-  });
 
   // Show all
   $('btnShowВсе').addEventListener('click', () => {
@@ -5039,46 +5395,7 @@ function initEvents() {
     renderСписок();
   });
 
-  // Random
-  $('btnRandom').addEventListener('click', () => {
-    if (!state.data.length) return;
-    const idx = Math.floor(Math.random() * state.data.length);
-    const tx = state.data[idx];
-    selectTransmitter(tx.id);
-    // Scroll to item in list
-    setTimeout(() => {
-      const el = $('txСписок').querySelector(`[data-id="${tx.id}"]`);
-      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }, 100);
-    if (window.innerWidth <= 768) {
-      switchTab('detail');
-    }
-  });
 
-  // Fav header button (toggle showFav + view)
-  $('btnFavView').addEventListener('click', () => {
-    state.showFav = !state.showFav;
-    $('btnFavView').classList.toggle('active', state.showFav);
-    $('btnShowFav').classList.toggle('fav-active', state.showFav);
-    renderСписок();
-    if (window.innerWidth <= 768) switchTab('list');
-  });
-
-  // Fav button on detail
-  $('btnFav').addEventListener('click', () => {
-    if (state.activeId === null) return;
-    if (state.favorites.has(state.activeId)) {
-      state.favorites.delete(state.activeId);
-      toast(t('removedFav'));
-    } else {
-      state.favorites.add(state.activeId);
-      toast(t('addedFav'));
-    }
-    updateFavBtn();
-    updateStats();
-    renderСписок();
-    saveНастройки();
-  });
 
   // Keyboard
   document.addEventListener('keydown', (e) => {
@@ -5165,6 +5482,9 @@ async function init() {
     }, 280);
   }
 
+  // Ensure welcome is visible before restoring a selection
+  setDetailOpen(false);
+
   // Restore last selection
   try {
     const lastId = parseInt(localStorage.getItem('rijal_lastId'));
@@ -5218,13 +5538,6 @@ function initExtras() {
   });
 
   // ── Theme toggle ──────────────────────────────────────────────
-  try { if (localStorage.getItem('rijal_light') === '1') { state.lightTheme = true; document.body.classList.add('light-theme'); } } catch(e) {}
-  $('btnTheme').addEventListener('click', () => {
-    state.lightTheme = !state.lightTheme;
-    document.body.classList.toggle('light-theme', state.lightTheme);
-    try { localStorage.setItem('rijal_light', state.lightTheme ? '1' : '0'); } catch(e) {}
-    $('btnTheme').classList.toggle('active', state.lightTheme);
-  });
 
   // ── Epoch filter ─────────────────────────────────────────────
   document.querySelectorAll('.epoch-chip').forEach(chip => {
@@ -5269,35 +5582,14 @@ function initExtras() {
     });
   });
 
-  // ── Stats panel ──────────────────────────────────────────────
-  $('btnStats').addEventListener('click', openStats);
-  $('statsClose').addEventListener('click', () => closePanel('statsPanel'));
-  $('statsPanel').addEventListener('click', e => { if (e.target === $('statsPanel')) closePanel('statsPanel'); });
-
-  // ── Сравнение panel ────────────────────────────────────────────
-  $('btnСравнение').addEventListener('click', openСравнение);
-  $('compareClose').addEventListener('click', () => closePanel('comparePanel'));
-  $('comparePanel').addEventListener('click', e => { if (e.target === $('comparePanel')) closePanel('comparePanel'); });
-  $('cmpGo').addEventListener('click', doСравнение);
-
-  // ── Хронология panel ───────────────────────────────────────────
-  $('btnХронология').addEventListener('click', openХронология);
-  $('timelineClose').addEventListener('click', () => closePanel('timelinePanel'));
-  $('timelinePanel').addEventListener('click', e => { if (e.target === $('timelinePanel')) closePanel('timelinePanel'); });
-
-  // ── Глоссарий panel ───────────────────────────────────────────
-  $('btnГлоссарий').addEventListener('click', openГлоссарий);
-  $('glossaryClose').addEventListener('click', () => closePanel('glossaryPanel'));
-  $('glossaryPanel').addEventListener('click', e => { if (e.target === $('glossaryPanel')) closePanel('glossaryPanel'); });
 
   // ── ИИ-чат и настройки ──────────────────────────────────────────
   initAiChatPanel();
-  initSettingsPanel();
 
   // Escape closes any panel
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      ['statsPanel','comparePanel','timelinePanel','glossaryPanel','aiChatPanel','settingsPanel'].forEach(id => closePanel(id));
+      ['aiChatPanel','sortPanel'].forEach(id => closePanel(id));
     }
   });
 }
@@ -5945,7 +6237,7 @@ async function sendAiChatMessage(userText) {
   thinkingBubble.classList.add('ai-thinking');
   sendBtn.disabled = true;
   input.disabled = true;
-  sendBtn.textContent = '…';
+  sendBtn.classList.add('sending');
 
   try {
     const detectedLang = detectUserLang(userText);
@@ -6055,7 +6347,7 @@ async function sendAiChatMessage(userText) {
   } finally {
     sendBtn.disabled = false;
     input.disabled = false;
-    sendBtn.textContent = 'Отправить';
+    sendBtn.classList.remove('sending');
     input.focus();
   }
 }
@@ -6116,23 +6408,6 @@ function initAiChatPanel() {
   });
 }
 
-function initSettingsPanel() {
-  const btnSettings = $('btnSettings');
-  if (btnSettings) btnSettings.addEventListener('click', () => openPanelEl('settingsPanel'));
-  $('settingsClose').addEventListener('click', () => closePanel('settingsPanel'));
-  const close2 = $('settingsClose2');
-  if (close2) close2.addEventListener('click', () => closePanel('settingsPanel'));
-  $('settingsPanel').addEventListener('click', e => { if (e.target === $('settingsPanel')) closePanel('settingsPanel'); });
-
-  // ── Выбор марджи таклида ──
-  const marjaSelect = $('settingsMarjaSelect');
-  if (marjaSelect) {
-    marjaSelect.value = getMarja() || '';
-    marjaSelect.addEventListener('change', () => {
-      setMarja(marjaSelect.value);
-    });
-  }
-}
 
 // ── Конфигурация ИИ ──────────────────────────────────────────────
 // HTML/JS НЕ хранит и не знает никаких API-ключей, Base URL или
@@ -6163,202 +6438,6 @@ function aiRequestHeaders(isTranslate) {
 
 
 
-
-// ── STATS ────────────────────────────────────────────────────────
-function openStats() {
-  const data = state.data;
-  const cats = [
-    { label: 'Имамиты (Тика)', color: '#14a877', test: tx => (tx.shiaStatusStyle||'').includes('trust') },
-    { label: 'Спорные',        color: '#c89b3c', test: tx => (tx.shiaStatusStyle||'').includes('disputed') },
-    { label: 'Слабые',         color: '#e11d48', test: tx => {
-        const s = (tx.shiaStatus||'').toLowerCase();
-        return (tx.shiaStatusStyle||'').includes('weak') && !s.includes('насибит') && !s.includes('насиби') && !s.includes('гулат') && !s.includes('вакифит') && !s.includes('зейдит');
-    }},
-    { label: 'Насибиты',       color: '#7c3aed', test: tx => { const s=(tx.shiaStatus||'').toLowerCase()+(tx.sunniStatus||'').toLowerCase(); return s.includes('насибит')||s.includes('насиби'); }},
-    { label: 'Гулаты',         color: '#db2777', test: tx => { const s=(tx.shiaStatus||'').toLowerCase(); return s.includes('гулат')||s.includes('хаттабит'); }},
-    { label: 'Вакифиты',       color: '#f59e0b', test: tx => (tx.shiaStatus||'').toLowerCase().includes('вакифит') },
-    { label: 'Зейдиты',        color: '#06b6d4', test: tx => (tx.shiaStatus||'').toLowerCase().includes('зейдит') },
-    { label: 'Неизвестны',     color: '#475569', test: tx => { const s=(tx.shiaStatus||'').toLowerCase(); return s.includes('неизвестен')||s.includes('не известен')||s.includes('маджхул'); }},
-  ];
-
-  const total = data.length;
-  const counts = cats.map(c => ({ ...c, n: data.filter(c.test).length }));
-
-  // Donut SVG
-  const cx=80, cy=80, r=60, sw=28;
-  let offset = 0;
-  const circ = 2 * Math.PI * r;
-  let paths = '';
-  counts.forEach(c => {
-    if (!c.n) return;
-    const pct = c.n / total;
-    const dash = pct * circ;
-    paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c.color}" stroke-width="${sw}"
-      stroke-dasharray="${dash} ${circ - dash}" stroke-dashoffset="${-offset * circ}" transform="rotate(-90 ${cx} ${cy})"/>`;
-    offset += pct;
-  });
-  const donut = $('donutSvg');
-  donut.innerHTML = paths + `<text x="${cx}" y="${cy+6}" text-anchor="middle" font-size="22" font-weight="700" fill="#e2e8f0">${total}</text>`;
-
-  // Legend
-  $('donutLegend').innerHTML = counts.map(c => `
-    <div class="legend-item">
-      <div class="legend-dot" style="background:${c.color}"></div>
-      <span>${c.label}</span>
-      <span class="legend-count">${c.n}</span>
-    </div>`).join('');
-
-  // Sources chart
-  const srcMap = {};
-  data.forEach(tx => getSourcesArray(tx).forEach(s => {
-    const key = s.replace(/,.*|стр\..*|\(.*/, '').trim();
-    srcMap[key] = (srcMap[key]||0) + 1;
-  }));
-  const topSrc = Object.entries(srcMap).sort((a,b) => b[1]-a[1]).slice(0, 10);
-  const maxS = topSrc[0]?.[1] || 1;
-  $('sourcesChart').innerHTML = topSrc.map(([name, n]) => `
-    <div class="bar-row">
-      <div class="bar-label" title="${name}">${name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxS*100).toFixed(1)}%;background:var(--teal)"></div></div>
-      <div class="bar-num">${n}</div>
-    </div>`).join('');
-
-  openPanelEl('statsPanel');
-}
-
-// ── COMPARE ───────────────────────────────────────────────────────
-function openСравнение() {
-  const opts = state.data.map(tx => `<option value="${tx.id}">${tx.name}</option>`).join('');
-  $('cmpA').innerHTML = '<option value="">— Первый —</option>' + opts;
-  $('cmpB').innerHTML = '<option value="">— Второй —</option>' + opts;
-  $('cmpResult').innerHTML = '';
-  openPanelEl('comparePanel');
-}
-
-function doСравнение() {
-  const idA = parseInt($('cmpA').value);
-  const idB = parseInt($('cmpB').value);
-  if (isNaN(idA) || isNaN(idB) || idA === idB) {
-    $('cmpResult').innerHTML = '<p style="color:var(--text-3);font-size:13px">Выберите двух разных передатчиков</p>';
-    return;
-  }
-  const a = state.data[idA], b = state.data[idB];
-
-  function statusMatch(x, y) {
-    const xs = (x||'').includes('Тика') || (x||'').includes('trust');
-    const ys = (y||'').includes('Тика') || (y||'').includes('trust');
-    return xs === ys;
-  }
-
-  const rows = [
-    { label: 'Имя', va: a.name, vb: b.name, check: false },
-    { label: 'Арабское', va: `<span class="cmp-arabic">${a.arabicName||'—'}</span>`, vb: `<span class="cmp-arabic">${b.arabicName||'—'}</span>`, check: false, html: true },
-    { label: 'Шиитский риджаль', va: a.shiaStatus, vb: b.shiaStatus, check: true, styleA: a.shiaStatusStyle, styleB: b.shiaStatusStyle },
-    { label: 'Суннитский риджаль', va: a.sunniStatus, vb: b.sunniStatus, check: true, styleA: a.sunniStatusStyle, styleB: b.sunniStatusStyle },
-    { label: 'Источники', va: getSourcesArray(a).join(', ')||'—', vb: getSourcesArray(b).join(', ')||'—', check: false },
-  ];
-
-  const shiaMatch = statusMatch(a.shiaStatus, b.shiaStatus);
-  const sunniMatch = statusMatch(a.sunniStatus, b.sunniStatus);
-
-  $('cmpResult').innerHTML = `
-    <table class="cmp-table">
-      <thead><tr><th>Поле</th><th class="cmp-name-cell">${a.name}</th><th class="cmp-name-cell">${b.name}</th></tr></thead>
-      <tbody>
-        ${rows.map(r => {
-          let ca = '', cb = '';
-          if (r.check) {
-            const match = statusMatch(r.va, r.vb);
-            ca = cb = match ? 'cmp-match' : 'cmp-differ';
-          }
-          const vA = r.html ? r.va : (r.va||'—');
-          const vB = r.html ? r.vb : (r.vb||'—');
-          return `<tr><td>${r.label}</td><td class="${ca}">${vA}</td><td class="${cb}">${vB}</td></tr>`;
-        }).join('')}
-      </tbody>
-    </table>
-    <p style="margin-top:14px;font-size:12px;color:var(--text-3)">
-      Шиитский риджаль: ${shiaMatch ? '🟢 оба похожи' : '🟠 расходятся'} &nbsp;|&nbsp;
-      Суннитский риджаль: ${sunniMatch ? '🟢 оба похожи' : '🟠 расходятся'}
-    </p>`;
-}
-
-// ── TIMELINE ──────────────────────────────────────────────────────
-function openХронология() {
-  const centuries = {
-    'Сахабы (I до I в.х.)': tx => /(сахаб|сподвижник пророка)/i.test(tx.bio||''),
-    'Табиины (I–II в.х.)': tx => /табиин|табии[^н]/i.test((tx.bio||'')+(tx.name||'')),
-    'II–III в.х. (Имамы ас-Садик, аль-Казим)': tx => {
-      const t = (tx.bio||'').toLowerCase();
-      return /имам(а|у|е)? (ас-садик|аль-казим|садика|казима|бакир)/i.test(tx.bio||'') && !/(сахаб|табии)/i.test(t);
-    },
-    'III–IV в.х. (Имамы ар-Рида — аль-Аскари)': tx => {
-      return /имам(а|у|е)? (ар-рида|аль-хади|аль-аскари|риды|хади|аскари)/i.test(tx.bio||'');
-    },
-    'IV–V в.х. (Малое сокрытие, аль-Кулайни, ас-Садук)': tx => {
-      return /(кулайни|садук|туси|муфид|малого сокрытия|муртада|наджаши)/i.test((tx.name||'')+(tx.bio||''));
-    },
-    'VI–X в.х. (Поздний период)': tx => {
-      return /(хилли|шахид|маджлиси|бахрани|джазаири|нури|аббас аль-кумми|хурр аль-амили)/i.test((tx.name||'')+(tx.bio||''));
-    },
-  };
-
-  let html = '';
-  Object.entries(centuries).forEach(([label, test]) => {
-    const members = state.data.filter(test);
-    if (!members.length) return;
-    const chips = members.map(tx => {
-      const cls = (tx.shiaStatusStyle||'').includes('trust') ? 'tl-trust' : (tx.shiaStatusStyle||'').includes('disputed') ? 'tl-disputed' : 'tl-weak';
-      return `<span class="tl-chip ${cls}" data-id="${tx.id}">${tx.name}</span>`;
-    }).join('');
-    html += `<div class="tl-century"><div class="tl-century-label">${label} (${members.length})</div><div class="tl-names">${chips}</div></div>`;
-  });
-
-  $('timelineContent').innerHTML = html || '<p style="color:var(--text-3);font-size:13px">Данные не найдены</p>';
-
-  // Click to open card
-  $('timelineContent').querySelectorAll('.tl-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      closePanel('timelinePanel');
-      selectTransmitter(parseInt(chip.dataset.id));
-    });
-  });
-
-  openPanelEl('timelinePanel');
-}
-
-// ── GLOSSARY ──────────────────────────────────────────────────────
-function openГлоссарий() {
-  const terms = [
-    { term: 'Тика (Сика)', arabic: 'ثقة', type: 'trust', def: 'Надёжный передатчик. Высшая положительная оценка в обеих традициях. Означает, что передатчик обладал точной памятью (дабт) и был честен (адала).' },
-    { term: 'Джалиль', arabic: 'جليل', type: 'trust', def: 'Великий, выдающийся. Дополнительная характеристика к «тика», указывающая на особый научный авторитет передатчика.' },
-    { term: 'Садук', arabic: 'صدوق', type: 'trust', def: 'Правдивый. Оценка ниже «тика» — передатчик честен, но может допускать ошибки. Промежуточный статус между тика и слабым.' },
-    { term: 'Муваттак', arabic: 'موثَّق', type: 'disputed', def: 'Подтверждённый. Шиитский термин для передатчиков, надёжность которых признана, даже если их убеждения расходились с имамитской доктриной.' },
-    { term: 'Маджхуль', arabic: 'مجهول', type: 'weak', def: 'Неизвестный. Передатчик, о котором ничего не известно риджальским учёным. Его предания не принимаются без дополнительных свидетельств.' },
-    { term: 'Даиф', arabic: 'ضعيف', type: 'weak', def: 'Слабый. Передатчик с плохой памятью, нарушением адалы или другими недостатками. Его хадисы не принимаются самостоятельно.' },
-    { term: 'Каззаб', arabic: 'كذّاب', type: 'weak', def: 'Лжец. Самая строгая отрицательная оценка. Передатчик, уличённый в намеренном искажении или выдумке хадисов.' },
-    { term: 'Матрук', arabic: 'متروك', type: 'weak', def: 'Отброшенный. Передатчик, настолько слабый, что учёные полностью отказались от его преданий.' },
-    { term: 'Гулат (Гулувв)', arabic: 'الغلاة', type: 'weak', def: 'Крайние преувеличители. Те, кто приписывал Имамам или сподвижникам божественные атрибуты или другие недопустимые качества. Их предания отвергаются шиитским риджалем.' },
-    { term: 'Насиби', arabic: 'الناصبي', type: 'weak', def: 'Враждебный Ахль аль-Байт. Тот, кто открыто демонстрировал ненависть к Имаму Али (а) или его потомкам. Полностью отвергается шиитским риджалем.' },
-    { term: 'Вакифит', arabic: 'الواقفية', type: 'disputed', def: 'Остановившийся на Имаме аль-Казиме. Секта, отказавшаяся признать восьмого Имама ар-Риду. Их предания принимаются с осторожностью.' },
-    { term: 'Асхаб аль-Иджма', arabic: 'أصحاب الإجماع', type: 'trust', def: '18 передатчиков, относительно которых шиитские учёные достигли консенсуса (иджма) об их исключительной надёжности. Принимаются без дополнительной проверки.' },
-    { term: 'Мудаллис', arabic: 'المدلّس', type: 'disputed', def: 'Допускающий тадлис — скрытие разрыва в цепи передачи. Умолчание о промежуточном передатчике. Требует особого внимания при проверке иснада.' },
-    { term: 'Адала', arabic: 'العدالة', type: 'trust', def: 'Праведность. Одно из двух главных условий надёжности передатчика наряду с точностью памяти (дабт). Включает искреннюю веру и нравственную чистоту.' },
-    { term: 'Дабт', arabic: 'الضبط', type: 'trust', def: 'Точность памяти. Способность передатчика точно запомнить и воспроизвести хадис без ошибок и искажений. Второе главное условие надёжности.' },
-    { term: 'Иснад', arabic: 'الإسناد', type: 'trust', def: 'Цепочка передатчиков хадиса. Наука изучения иснадов — основа ильм ар-риджаль. Непрерывный иснад от надёжных передатчиков — критерий достоверности.' },
-    { term: 'Марфу\'', arabic: 'المرفوع', type: 'disputed', def: 'Поднятый хадис — тот, цепь которого восходит к Пророку (с) или Имаму. Используется для описания хадисов, прошедших через несколько поколений.' },
-    { term: 'Мурсаль', arabic: 'المرسل', type: 'disputed', def: 'Хадис с разрывом в цепи — пропущен один или несколько передатчиков между сподвижником и Пророком. В шиитском риджале некоторые мурсали Ibn Abi Umayr принимаются.' },
-  ];
-
-  $('glossaryСписок').innerHTML = terms.map(t => `
-    <div class="gloss-item ${t.type === 'weak' ? 'gloss-weak' : t.type === 'disputed' ? 'gloss-disputed' : ''}">
-      <div class="gloss-term">${t.term}</div>
-      <div class="gloss-arabic">${t.arabic}</div>
-      <div class="gloss-def">${t.def}</div>
-    </div>`).join('');
-
-  openPanelEl('glossaryPanel');
-}
 
 // ═══════════════════════════════════════════════════════════════
 // ══ NEW FEATURES ════════════════════════════════════════════════
@@ -6402,487 +6481,9 @@ function updateDetailScore(tx) {
   val.style.color = scoreColor(score);
 }
 
-// ── RELIABILITY INDEX PANEL ────────────────────────────────────
-function openReliability() {
-  const ranked = [...state.data]
-    .map(tx => ({ tx, score: calcScore(tx) }))
-    .sort((a, b) => b.score - a.score);
 
-  const topВсе = ranked.slice(0, 30);
-  let html = `<div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Топ-30 передатчиков по индексу надёжности</div>`;
-
-  topВсе.forEach(({ tx, score }, i) => {
-    const col = scoreColor(score);
-    html += `<div class="rel-item">
-      <span class="rel-rank">${i + 1}</span>
-      <span class="rel-name" data-id="${tx.id}">${tx.name}</span>
-      <div class="rel-score-wrap">
-        <div class="rel-bar-track"><div class="rel-bar-fill" style="width:${score}%;background:${col}"></div></div>
-        <span class="rel-score-num" style="color:${col}">${score}</span>
-      </div>
-    </div>`;
-  });
-
-  $('reliabilityContent').innerHTML = html;
-  $('reliabilityContent').querySelectorAll('.rel-name[data-id]').forEach(el => {
-    el.addEventListener('click', () => {
-      closePanel('reliabilityPanel');
-      selectTransmitter(parseInt(el.dataset.id));
-    });
-  });
-
-  openPanelEl('reliabilityPanel');
-}
-
-// ── ISNАД ANALYSER ─────────────────────────────────────────────
-function openIsnad() {
-  $('isnadInput').value = '';
-  $('isnadResult').innerHTML = '';
-  openPanelEl('isnadPanel');
-}
-
-function analyseIsnad() {
-  const raw = $('isnadInput').value.trim();
-  if (!raw) { toast('Введите хотя бы одно имя'); return; }
-
-  const names = raw.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
-  if (names.length === 0) return;
-
-  // Match against database
-  function findTx(name) {
-    const q = name.toLowerCase();
-    return state.data.find(tx =>
-      tx.name.toLowerCase().includes(q) ||
-      (tx.arabicName && tx.arabicName.includes(q)) ||
-      q.includes(tx.name.toLowerCase().substring(0, 6))
-    );
-  }
-
-  const links = names.map(name => {
-    const tx = findTx(name);
-    if (!tx) return { name, status: 'unknown', label: 'Не найден', score: 30 };
-    const style = tx.shiaStatusStyle || '';
-    if (style.includes('trust')) return { name: tx.name, status: 'trust', label: tx.shiaStatus || 'Надёжный', score: calcScore(tx) };
-    if (style.includes('disputed')) return { name: tx.name, status: 'disputed', label: tx.shiaStatus || 'Спорный', score: calcScore(tx) };
-    return { name: tx.name, status: 'weak', label: tx.shiaStatus || 'Слабый', score: calcScore(tx) };
-  });
-
-  // Verdict
-  const weakCount = links.filter(l => l.status === 'weak').length;
-  const unknownCount = links.filter(l => l.status === 'unknown').length;
-  const disputedCount = links.filter(l => l.status === 'disputed').length;
-  const trustCount = links.filter(l => l.status === 'trust').length;
-
-  let verdictIcon, verdictTitle, verdictDesc, verdictColor;
-  if (weakCount > 0 || unknownCount > 1) {
-    verdictIcon = '⛔';
-    verdictTitle = 'Иснад слабый (Даиф)';
-    verdictDesc = `Цепочка содержит ${weakCount + unknownCount} ненадёжных звена. Хадис не может быть принят самостоятельно.`;
-    verdictColor = '#fb7185';
-  } else if (unknownCount === 1 || disputedCount > 0) {
-    verdictIcon = '⚠️';
-    verdictTitle = 'Иснад сомнительный (Муталасин)';
-    verdictDesc = `Присутствуют спорные или неизвестные звенья. Требует дополнительной проверки.`;
-    verdictColor = '#fbbf24';
-  } else if (trustCount === links.length) {
-    verdictIcon = '✅';
-    verdictTitle = 'Иснад достоверный (Сахих)';
-    verdictDesc = `Все ${links.length} звена цепочки — надёжные передатчики. Хадис может быть принят как достоверный.`;
-    verdictColor = '#34d399';
-  } else {
-    verdictIcon = '🔶';
-    verdictTitle = 'Иснад хороший (Хасан)';
-    verdictDesc = `Большинство передатчиков надёжны. Хадис принимается с оговорками.`;
-    verdictColor = '#fbbf24';
-  }
-
-  let chainHtml = '<div class="isnad-chain">';
-  links.forEach((link, i) => {
-    if (i > 0) chainHtml += `<div class="isnad-connector">↓</div>`;
-    chainHtml += `<div class="isnad-link ${link.status}">
-      <span class="isnad-link-name">${link.name}</span>
-      <span class="isnad-link-status ${link.status}">${link.label}</span>
-    </div>`;
-  });
-  chainHtml += '</div>';
-
-  chainHtml += `<div class="isnad-verdict">
-    <div class="isnad-verdict-icon">${verdictIcon}</div>
-    <div class="isnad-verdict-text">
-      <div class="isnad-verdict-title" style="color:${verdictColor}">${verdictTitle}</div>
-      <div class="isnad-verdict-desc">${verdictDesc}</div>
-    </div>
-  </div>`;
-
-  $('isnadResult').innerHTML = chainHtml;
-}
-
-// ── CONFLICT MAP ───────────────────────────────────────────────
-function openConflict() {
-  // Find transmitters where shia and sunni assessments conflict significantly
-  const conflicts = state.data.filter(tx => {
-    const shia = tx.shiaStatusStyle || '';
-    const sunni = tx.sunniStatusStyle || '';
-    if (shia.includes('trust') && sunni.includes('weak')) return true;
-    if (shia.includes('trust') && !sunni.includes('trust')) return true;
-    if (sunni.includes('trust') && shia.includes('weak')) return true;
-    return false;
-  });
-
-  function conflictReason(tx) {
-    const shia = tx.shiaStatusStyle || '';
-    const sunni = tx.sunniStatusStyle || '';
-    const bio = (tx.bio || '').toLowerCase();
-    const analysis = (tx.analysis || '').toLowerCase();
-    if (bio.includes('шиит') || bio.includes('тшайяу') || analysis.includes('шиит')) {
-      return 'Шиитские убеждения — причина снижения суннитской оценки';
-    }
-    if (shia.includes('trust') && sunni.includes('weak')) {
-      return 'Шиитские источники принимают, суннитские — отвергают';
-    }
-    if (sunni.includes('trust') && !shia.includes('trust')) {
-      return 'Суннитская традиция признаёт, шиитская — относится критически';
-    }
-    return 'Расхождение критериев между двумя традициями';
-  }
-
-  if (!conflicts.length) {
-    $('conflictContent').innerHTML = '<p style="color:var(--text-3);font-size:14px">Явных противоречий не обнаружено</p>';
-    openPanelEl('conflictPanel');
-    return;
-  }
-
-  $('conflictContent').innerHTML = conflicts.slice(0, 40).map(tx => {
-    const shiaStyle = (tx.shiaStatusStyle || '').includes('trust') ? 'trust' : (tx.shiaStatusStyle || '').includes('disputed') ? 'disputed' : 'weak';
-    const sunniStyle = (tx.sunniStatusStyle || '').includes('trust') ? 'trust' : (tx.sunniStatusStyle || '').includes('disputed') ? 'disputed' : 'weak';
-    const colors = { trust: '#34d399', disputed: '#fbbf24', weak: '#fb7185' };
-    return `<div class="conflict-item" data-id="${tx.id}">
-      <div class="conflict-name">${tx.name}</div>
-      <div class="conflict-arabic">${tx.arabicName || ''}</div>
-      <div class="conflict-row">
-        <span class="conflict-tag" style="background:${colors[shiaStyle]}22;color:${colors[shiaStyle]};border:1px solid ${colors[shiaStyle]}44">
-          ☽ Шиа: ${tx.shiaStatus || '—'}
-        </span>
-        <span class="conflict-tag" style="background:${colors[sunniStyle]}22;color:${colors[sunniStyle]};border:1px solid ${colors[sunniStyle]}44">
-          ☀ Сунна: ${tx.sunniStatus || '—'}
-        </span>
-      </div>
-      <div class="conflict-reason">${conflictReason(tx)}</div>
-    </div>`;
-  }).join('');
-
-  $('conflictContent').querySelectorAll('.conflict-item[data-id]').forEach(el => {
-    el.addEventListener('click', () => {
-      closePanel('conflictPanel');
-      selectTransmitter(parseInt(el.dataset.id));
-    });
-  });
-
-  openPanelEl('conflictPanel');
-}
-
-// ── HILALI METHOD ──────────────────────────────────────────────
-function openHilali() {
-  $('hilaliContent').innerHTML = `
-    <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:20px">
-      <strong style="color:var(--teal-light)">Аллама аль-Хилли (аль-Хасан ибн Юсуф аль-Хилли, 648–726 г.х.)</strong> — величайший риджалист шиитской традиции. Его труд 
-      <em>«Хуляса аль-Акваль»</em> (<span style="font-family:var(--font-arabic);font-size:15px">خلاصة الأقوال</span>) стал основой шиитской методологии оценки передатчиков.
-    </p>
-
-    <div class="method-card-grid">
-      <div class="method-card">
-        <div class="method-card-title">Главный труд</div>
-        <div class="method-card-val">خلاصة الأقوال</div>
-        <div class="method-card-desc">«Хуляса аль-Акваль фи Ма'рифат ар-Риджаль» — энциклопедия передатчиков шиитской традиции</div>
-      </div>
-      <div class="method-card">
-        <div class="method-card-title">Два раздела</div>
-        <div class="method-card-val" style="font-size:14px">المعتمدون / غير المعتمدين</div>
-        <div class="method-card-desc">«Принятые» и «непринятые» — двойная система классификации передатчиков</div>
-      </div>
-    </div>
-
-    <div style="font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;font-weight:600">Пять критериев оценки передатчика</div>
-
-    <div class="hilali-step">
-      <div class="hilali-num">1</div>
-      <div class="hilali-body">
-        <div class="hilali-title">Адала — Праведность</div>
-        <div class="hilali-title-ar">العدالة</div>
-        <div class="hilali-desc">Передатчик должен быть мусульманином, зрелым, разумным и честным. Любое нарушение нравственных норм или явное отступление от веры делает его «адалу» недействительной.</div>
-        <div class="hilali-example">Пример: Аль-Хилли отвергал передатчиков-гулатов, даже если другие учёные их принимали — из-за нарушения адалы в вопросах акиды.</div>
-      </div>
-    </div>
-
-    <div class="hilali-step">
-      <div class="hilali-num">2</div>
-      <div class="hilali-body">
-        <div class="hilali-title">Дабт — Точность памяти</div>
-        <div class="hilali-title-ar">الضبط</div>
-        <div class="hilali-desc">Способность точно запомнить услышанный хадис и воспроизвести его без ошибок. Различают «дабт ас-садр» (точность памяти) и «дабт аль-китаб» (точность записей).</div>
-        <div class="hilali-example">Пример: Передатчики с хорошей записью, но плохой памятью могли получать оценку «садук» вместо «тика».</div>
-      </div>
-    </div>
-
-    <div class="hilali-step">
-      <div class="hilali-num">3</div>
-      <div class="hilali-body">
-        <div class="hilali-title">Имамия — Принятие Имамата</div>
-        <div class="hilali-title-ar">الإمامية</div>
-        <div class="hilali-desc">В шиитской методологии аль-Хилли вера в имамат двенадцати является частью адалы. Передатчики-вакифиты, исмаилиты и другие сектанты классифицируются особо — как «муваттак» (подтверждённые), но не «тика».</div>
-        <div class="hilali-example">Пример: Али ибн Фаддаль — вакифит, но его предания принимаются из-за его исключительного дабта.</div>
-      </div>
-    </div>
-
-    <div class="hilali-step">
-      <div class="hilali-num">4</div>
-      <div class="hilali-body">
-        <div class="hilali-title">Иттисаль — Непрерывность цепи</div>
-        <div class="hilali-title-ar">الاتصال</div>
-        <div class="hilali-desc">Каждое звено иснада должно непосредственно слышать хадис от предыдущего передатчика. Прерывистые (мурсаль) или поднятые без подтверждения (мар‐фу') иснады требуют отдельного исследования.</div>
-        <div class="hilali-example">Исключение: Мурсали Ибн Аби Умайра принимаются шиитскими учёными без дополнительной проверки — из-за его исключительного положения.</div>
-      </div>
-    </div>
-
-    <div class="hilali-step">
-      <div class="hilali-num">5</div>
-      <div class="hilali-body">
-        <div class="hilali-title">Асхаб аль-Иджма</div>
-        <div class="hilali-title-ar">أصحاب الإجماع</div>
-        <div class="hilali-desc">18 передатчиков, по которым среди шиитских учёных достигнут консенсус об исключительной надёжности. Их предания принимаются без дополнительной проверки слабых промежуточных звеньев.</div>
-        <div class="hilali-example">Список: Зурара, Мухаммад ибн Муслим, Абу Басир, Буррайд аль-Иджли, Фудайль ибн Ясар, Ибн Аби Умайр, Юнус ибн Абдуррахман и другие.</div>
-      </div>
-    </div>
-
-    <div style="background:var(--ink-2);border-radius:var(--radius);padding:16px;margin-top:8px;border:1px solid var(--border-bright)">
-      <div style="font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-weight:600">Классификация хадисов по иснаду (аль-Хилли)</div>
-      <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
-        <div><span style="color:#34d399;font-weight:600">Сахих صحيح</span> — все передатчики: шиитские имамиты с тика</div>
-        <div><span style="color:#34d399;font-weight:500">Хасан حسن</span> — все имамиты, но без явного тавсика (хвалы)</div>
-        <div><span style="color:#fbbf24;font-weight:600">Муваттак موثّق</span> — есть ненимамиты, но подтверждённые</div>
-        <div><span style="color:#fbbf24;font-weight:500">Кавий قوي</span> — промежуточный статус, не попадает в выше</div>
-        <div><span style="color:#fb7185;font-weight:600">Даиф ضعيف</span> — есть слабые или неизвестные передатчики</div>
-      </div>
-    </div>
-  `;
-  openPanelEl('hilaliPanel');
-}
-
-// ── QUIZ ───────────────────────────────────────────────────────
-const QUIZ_QUESTIONS = [
-  {
-    q: 'Что означает термин «Тика» (ثقة)?',
-    arabic: 'ثقة',
-    options: ['Слабый передатчик', 'Надёжный, заслуживающий доверия', 'Неизвестный передатчик', 'Лжец'],
-    correct: 1,
-    explanation: 'Тика (ثقة) — высшая положительная оценка: передатчик честен (адала) и обладает точной памятью (дабт). Принимается в обеих традициях.'
-  },
-  {
-    q: 'Кого называют «Каззаб» (كذّاب)?',
-    arabic: 'كذّاب',
-    options: ['Великого передатчика', 'Забывчивого передатчика', 'Намеренного лжеца, выдумщика хадисов', 'Неопытного передатчика'],
-    correct: 2,
-    explanation: 'Каззаб (كذّاب) — самая тяжёлая отрицательная оценка. Передатчик, уличённый в намеренном изобретении или искажении хадисов. Его предания полностью отвергаются.'
-  },
-  {
-    q: 'Что такое «Асхаб аль-Иджма»?',
-    arabic: 'أصحاب الإجماع',
-    options: [
-      '5 ближайших сподвижников Пророка',
-      '18 передатчиков, чья надёжность подтверждена консенсусом шиитских учёных',
-      'Авторы книг риджаля',
-      'Судьи халифата, проверявшие хадисы'
-    ],
-    correct: 1,
-    explanation: 'Асхаб аль-Иджма — 18 передатчиков, относительно которых шиитские учёные достигли консенсуса об их исключительной надёжности. Их хадисы принимаются без дополнительной проверки промежуточных звеньев.'
-  },
-  {
-    q: 'Что такое «Маджхуль» в науке риджаля?',
-    arabic: 'مجهول',
-    options: ['Передатчик с плохой памятью', 'Передатчик, о котором нет сведений в книгах риджаля', 'Передатчик, изменивший мазхаб', 'Тот, кто передавал только от одного шейха'],
-    correct: 1,
-    explanation: 'Маджхуль (مجهول) — «неизвестный». Передатчик, о биографии и надёжности которого у учёных нет достаточных сведений. Его хадисы не принимаются самостоятельно.'
-  },
-  {
-    q: 'Кто написал главный шиитский труд по риджалю — «Риджаль ан-Наджаши»?',
-    arabic: 'رجال النجاشي',
-    options: ['Аллама аль-Хилли', 'Ахмад ибн Али ан-Наджаши (450 г.х.)', 'Аль-Кулайни', 'Шейх ат-Туси'],
-    correct: 1,
-    explanation: 'Ахмад ибн Али ан-Наджаши (385–450 г.х.) написал «Риджаль ан-Наджаши» — биобиблиографическую энциклопедию шиитских передатчиков. Считается наиболее авторитетным первоисточником шиитского риджаля.'
-  },
-  {
-    q: 'Что означает «Муваттак» в шиитской традиции?',
-    arabic: 'موثَّق',
-    options: [
-      'То же, что «тика»',
-      'Надёжный ненимамит — его хадисы принимаются, несмотря на убеждения',
-      'Слабый, но допустимый',
-      'Передатчик с разрывом в иснаде'
-    ],
-    correct: 1,
-    explanation: 'Муваттак (موثَّق) — специфически шиитский термин: передатчик, надёжность которого подтверждена, но он не был имамитом. Его хадисы принимаются, несмотря на отклонения в убеждениях.'
-  },
-  {
-    q: 'Что такое «Гулат» в контексте риджаля?',
-    arabic: 'الغلاة',
-    options: [
-      'Великие учёные Имамов',
-      'Те, кто приписывал Имамам или сподвижникам чрезмерные (недопустимые) качества',
-      'Передатчики-сподвижники',
-      'Критики хадисов'
-    ],
-    correct: 1,
-    explanation: 'Гулат (الغلاة) — «крайние преувеличители». Те, кто приписывал Имамам божественные атрибуты или иные недозволенные качества. Шиитские учёные отвергают их предания.'
-  },
-  {
-    q: 'Какова разница между «Сахих» и «Хасан» по классификации аль-Хилли?',
-    arabic: 'صحيح ≠ حسن',
-    options: [
-      'Нет разницы — синонимы',
-      'Сахих: все передатчики — имамиты с явным тика. Хасан: имамиты, но без явной похвалы',
-      'Хасан выше Сахих',
-      'Сахих — суннитский термин, Хасан — шиитский'
-    ],
-    correct: 1,
-    explanation: 'По методологии аль-Хилли: Сахих (صحيح) — все передатчики являются шиитскими имамитами с явным тика (تعديل صريح). Хасан (حسن) — все имамиты, но без явного тавсика — только похвала без чёткого «тика».'
-  },
-  {
-    q: 'Что такое «Иснад» в хадисных науках?',
-    arabic: 'الإسناد',
-    options: [
-      'Текст хадиса (матн)',
-      'Цепочка передатчиков, по которой хадис дошёл до нас',
-      'Книга хадисов',
-      'Метод запоминания хадисов'
-    ],
-    correct: 1,
-    explanation: 'Иснад (الإسناد) — «опора, цепь». Последовательность имён передатчиков, по которой хадис передавался от Пророка (с) или Имама до записи. Изучение иснадов — основа науки ар-риджаль.'
-  },
-  {
-    q: 'Кем был Абу Зарр аль-Гифари в шиитской традиции?',
-    arabic: 'أبو ذر الغفاري',
-    options: [
-      'Критиком Имама Али (а)',
-      'Образцом непримиримости к несправедливости, близким соратником Имама Али (а)',
-      'Суннитским учёным',
-      'Вакифитом'
-    ],
-    correct: 1,
-    explanation: 'Абу Зарр аль-Гифари — один из первых сподвижников Пророка (с), известный аскетичностью и борьбой за справедливость. Был изгнан Усманом за критику. В шиитской традиции почитается как образец верности Имаму Али (а).'
-  },
-];
-
-let quizState = { q: 0, score: 0, answered: false, total: QUIZ_QUESTIONS.length };
-
-function openТест() {
-  quizState = { q: 0, score: 0, answered: false, total: QUIZ_QUESTIONS.length };
-  renderТестQuestion();
-  openPanelEl('quizPanel');
-}
-
-function renderТестQuestion() {
-  const { q, score, total } = quizState;
-  const qEl = $('quizContent');
-
-  if (q >= total) {
-    // Final score
-    const pct = Math.round((score / total) * 100);
-    let msg = score <= 3 ? '📖 Продолжайте изучать!' : score <= 6 ? '🌙 Хороший результат!' : score <= 8 ? '⭐ Отлично!' : '🏆 Мастер риджаля!';
-    qEl.innerHTML = `<div class="quiz-score-wrap">
-      <div class="quiz-score-num">${score}/${total}</div>
-      <div class="quiz-score-label">${pct}% правильных ответов</div>
-      <div class="quiz-score-message">${msg}</div>
-      <button class="cmp-btn" style="margin-top:20px" onclick="openТест()">🔄 Начать заново</button>
-    </div>`;
-    return;
-  }
-
-  const question = QUIZ_QUESTIONS[q];
-  quizState.answered = false;
-  const pct = (q / total) * 100;
-
-  qEl.innerHTML = `
-    <div class="quiz-progress">
-      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
-      <span class="quiz-progress-text">${q + 1} / ${total}</span>
-    </div>
-    <div class="quiz-question">${question.q}</div>
-    <div class="quiz-arabic">${question.arabic}</div>
-    <div class="quiz-options" id="quizOptions">
-      ${question.options.map((opt, i) => `
-        <button class="quiz-option" data-idx="${i}">${opt}</button>
-      `).join('')}
-    </div>
-    <div id="quizExplanation" style="display:none" class="quiz-explanation"></div>
-    <button class="cmp-btn" id="quizNext" style="display:none">Следующий вопрос →</button>
-  `;
-
-  qEl.querySelectorAll('.quiz-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (quizState.answered) return;
-      quizState.answered = true;
-      const chosen = parseInt(btn.dataset.idx);
-      const correct = question.correct;
-
-      qEl.querySelectorAll('.quiz-option').forEach((b, i) => {
-        if (i === correct) b.classList.add('correct');
-        else if (i === chosen && chosen !== correct) b.classList.add('wrong');
-        else b.classList.add('reveal');
-        b.disabled = true;
-      });
-
-      if (chosen === correct) quizState.score++;
-
-      const expEl = $('quizExplanation');
-      expEl.textContent = question.explanation;
-      expEl.style.display = 'block';
-
-      const nextBtn = $('quizNext');
-      nextBtn.style.display = 'block';
-      nextBtn.addEventListener('click', () => {
-        quizState.q++;
-        renderТестQuestion();
-      });
-    });
-  });
-}
-
-// ── Attach new panel events ────────────────────────────────────
+// ── Attach panel events ────────────────────────────────────
 function initNewPanelEvents() {
-  // Isnад
-  $('btnIsnad').addEventListener('click', openIsnad);
-  $('isnadClose').addEventListener('click', () => closePanel('isnadPanel'));
-  $('isnadGo').addEventListener('click', analyseIsnad);
-  $('isnadPanel').addEventListener('click', e => { if (e.target === $('isnadPanel')) closePanel('isnadPanel'); });
-
-  // Reliability
-  $('btnReliability').addEventListener('click', openReliability);
-  $('reliabilityClose').addEventListener('click', () => closePanel('reliabilityPanel'));
-  $('reliabilityPanel').addEventListener('click', e => { if (e.target === $('reliabilityPanel')) closePanel('reliabilityPanel'); });
-
-  // Тест
-  $('btnТест').addEventListener('click', openТест);
-  $('quizClose').addEventListener('click', () => closePanel('quizPanel'));
-  $('quizPanel').addEventListener('click', e => { if (e.target === $('quizPanel')) closePanel('quizPanel'); });
-
-  // Hilali
-  $('btnHilali').addEventListener('click', openHilali);
-  $('hilaliClose').addEventListener('click', () => closePanel('hilaliPanel'));
-  $('hilaliPanel').addEventListener('click', e => { if (e.target === $('hilaliPanel')) closePanel('hilaliPanel'); });
-
-  // Заметки panel
-  $('btnЗаметки').addEventListener('click', openЗаметки);
-  $('notesClose').addEventListener('click', () => closePanel('notesPanel'));
-  $('notesPanel').addEventListener('click', e => { if (e.target === $('notesPanel')) closePanel('notesPanel'); });
-  $('notesSave').addEventListener('click', saveNote);
-  $('notesClear').addEventListener('click', () => { $('notesTextarea').value = ''; });
-
-  // Заметки button in detail view
-  $('btnNoteDetail').addEventListener('click', () => {
-    if (state.activeId === null) return;
-    openЗаметки(state.activeId);
-  });
-
   // Sort panel
   $('btnSort').addEventListener('click', openSort);
   $('sortClose').addEventListener('click', () => closePanel('sortPanel'));
@@ -6898,21 +6499,6 @@ function initNewPanelEvents() {
     });
   });
 
-  // Conflict
-  $('btnConflict').addEventListener('click', openConflict);
-  $('conflictClose').addEventListener('click', () => closePanel('conflictPanel'));
-  $('conflictPanel').addEventListener('click', e => { if (e.target === $('conflictPanel')) closePanel('conflictPanel'); });
-
-  // Geography
-  $('btnGeography').addEventListener('click', openGeography);
-  $('geographyClose').addEventListener('click', () => closePanel('geographyPanel'));
-  $('geographyPanel').addEventListener('click', e => { if (e.target === $('geographyPanel')) closePanel('geographyPanel'); });
-
-  // Genealogy
-  $('btnGenealogy').addEventListener('click', openGenealogy);
-  $('genealogyClose').addEventListener('click', () => closePanel('genealogyPanel'));
-  $('genealogyPanel').addEventListener('click', e => { if (e.target === $('genealogyPanel')) closePanel('genealogyPanel'); });
-
   // Scroll-to-top
   $('content').addEventListener('scroll', () => {
     const scrollY = $('content').scrollTop;
@@ -6927,74 +6513,6 @@ function initNewPanelEvents() {
   });
 }
 
-// ═══════════════════════════════════════
-// NOTES SYSTEM
-// ═══════════════════════════════════════
-function openЗаметки(txId) {
-  const isDetail = typeof txId === 'number';
-  const key = isDetail ? `tx_${txId}` : 'global';
-  const tx = isDetail ? state.data[txId] : null;
-
-  $('notesCurrentTitle').textContent = tx
-    ? `Заметка для: ${tx.name} (${tx.arabicName || ''})`
-    : 'Общие заметки';
-  $('notesTextarea').value = (notesStore[key] && notesStore[key].text) || '';
-
-  // Render saved notes list
-  const notesСписок = $('notesСписок');
-  const allЗаметки = Object.entries(notesStore).filter(([k, v]) => v.text && v.text.trim());
-  if (allЗаметки.length === 0) {
-    notesСписок.innerHTML = '<p style="font-size:13px;color:var(--text-3)">Заметок пока нет</p>';
-  } else {
-    notesСписок.innerHTML = '<div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Сохранённые заметки</div>' +
-      allЗаметки.map(([k, v]) => {
-        const label = k === 'global' ? '🌐 Общие' : `📌 ${v.title || k}`;
-        return `<div class="note-card">
-          <div class="note-card-title">${label}</div>
-          <div class="note-card-body">${v.text.slice(0, 200)}${v.text.length > 200 ? '…' : ''}</div>
-          <div class="note-card-meta">${v.date || ''}</div>
-          <button class="note-card-del" data-key="${k}" title="Удалить">✕</button>
-        </div>`;
-      }).join('');
-    notesСписок.querySelectorAll('.note-card-del').forEach(btn => {
-      btn.addEventListener('click', () => {
-        delete notesStore[btn.dataset.key];
-        saveЗаметкиStore();
-        openЗаметки(isDetail ? txId : undefined);
-        toast('🗑 Заметка удалена');
-      });
-    });
-    // Click on card to load
-    notesСписок.querySelectorAll('.note-card').forEach((card, i) => {
-      const [k] = allЗаметки[i];
-      card.style.cursor = 'pointer';
-      card.addEventListener('click', (e) => {
-        if (e.target.classList.contains('note-card-del')) return;
-        $('notesTextarea').value = notesStore[k].text;
-        $('notesCurrentTitle').textContent = notesStore[k].title || k;
-      });
-    });
-  }
-
-  openPanelEl('notesPanel');
-}
-
-function saveNote() {
-  const text = $('notesTextarea').value.trim();
-  if (!text) { toast('⚠ Заметка пуста'); return; }
-  const key = state.activeId !== null
-    ? `tx_${state.activeId}`
-    : 'global';
-  const tx = state.activeId !== null ? state.data[state.activeId] : null;
-  notesStore[key] = {
-    text,
-    title: tx ? tx.name : 'Общие заметки',
-    date: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  };
-  saveЗаметкиStore();
-  toast('💾 Заметка сохранена');
-  openЗаметки(state.activeId !== null ? state.activeId : undefined);
-}
 
 // ═══════════════════════════════════════
 // SORT
@@ -7003,222 +6521,6 @@ function openSort() {
   openPanelEl('sortPanel');
 }
 
-// ═══════════════════════════════════════
-// GEOGRAPHY
-// ═══════════════════════════════════════
-let geoData = null;
-let geoЗагрузка = false;
-
-async function loadGeoData() {
-  if (geoData || geoЗагрузка) return geoData;
-  geoЗагрузка = true;
-  try {
-    const res = await fetch('geography.json');
-    if (res.ok) geoData = await res.json();
-  } catch(e) {
-    console.warn('geography.json not found:', e);
-  }
-  geoЗагрузка = false;
-  return geoData;
-}
-
-async function openGeography() {
-  openPanelEl('geographyPanel');
-  const mapEl = $('geographyMap');
-  const listEl = $('geographyCityСписок');
-
-  mapEl.innerHTML = '<div class="ar-loading" style="margin:20px auto;display:flex;justify-content:center">Загрузка данных...</div>';
-  listEl.innerHTML = '';
-
-  const data = await loadGeoData();
-  if (!data) {
-    mapEl.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px;font-size:13px">⚠ Файл geography.json не найден рядом с index.html</div>';
-    return;
-  }
-
-  renderGeoMap(data);
-  renderGeoCityСписок(data);
-}
-
-function renderGeoMap(data) {
-  const mapEl = $('geographyMap');
-  // Bounding box for the Middle East/Iran region we cover (approx)
-  const LAT_MIN = 15, LAT_MAX = 38;
-  const LNG_MIN = 30, LNG_MAX = 62;
-  const W = 680, H = 320;
-
-  function project(lat, lng) {
-    const x = ((lng - LNG_MIN) / (LNG_MAX - LNG_MIN)) * W;
-    const y = H - ((lat - LAT_MIN) / (LAT_MAX - LAT_MIN)) * H;
-    return [x, y];
-  }
-
-  const cities = Object.entries(data.cities);
-  const maxCount = Math.max(...cities.map(([,c]) => c.count));
-
-  let svg = `<svg class="geo-svg-wrap" viewBox="0 0 ${W} ${H}" width="100%" height="${Math.min(H, 360)}" xmlns="http://www.w3.org/2000/svg" style="display:block">`;
-  // Simple grid background
-  for (let i = 0; i <= 8; i++) {
-    const x = (i / 8) * W;
-    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="var(--border)" stroke-width="1"/>`;
-  }
-  for (let i = 0; i <= 4; i++) {
-    const y = (i / 4) * H;
-    svg += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`;
-  }
-
-  cities.forEach(([key, city]) => {
-    const [x, y] = project(city.lat, city.lng);
-    const r = 4 + (city.count / maxCount) * 14;
-    svg += `<g class="geo-pin" data-city="${key}" transform="translate(${x},${y})">
-      <circle r="${r}" fill="var(--teal)" fill-opacity="0.35" stroke="var(--teal)" stroke-width="1.5"/>
-      <circle r="2.5" fill="var(--teal-light)"/>
-      <text class="geo-pin-label" x="0" y="${-r - 6}" text-anchor="middle">${city.label}</text>
-    </g>`;
-  });
-
-  svg += `</svg>`;
-  mapEl.innerHTML = svg;
-
-  mapEl.querySelectorAll('.geo-pin').forEach(pin => {
-    pin.addEventListener('click', () => {
-      const key = pin.dataset.city;
-      mapEl.querySelectorAll('.geo-pin').forEach(p => p.classList.toggle('active', p === pin));
-      const card = $('geographyCityСписок').querySelector(`[data-city-card="${key}"]`);
-      if (card) {
-        $('geographyCityСписок').querySelectorAll('.geo-city-card').forEach(c => c.classList.toggle('active', c === card));
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    });
-  });
-}
-
-function renderGeoCityСписок(data) {
-  const listEl = $('geographyCityСписок');
-  const cities = Object.entries(data.cities).sort((a,b) => b[1].count - a[1].count);
-
-  listEl.innerHTML = cities.map(([key, city]) => `
-    <div class="geo-city-card" data-city-card="${key}">
-      <div class="geo-city-head">
-        <span>${city.label} <span class="geo-city-arabic">${city.arabic}</span></span>
-        <span class="geo-city-count">${city.count}</span>
-      </div>
-      <div class="geo-city-tx-list">
-        ${city.transmitters.map(tx => `
-          <div class="geo-tx-link" data-id="${tx.id}">
-            <span class="geo-tx-dot ${tx.shiaStatusStyle || 'status-weak'}"></span>
-            <span>${tx.name}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-
-  listEl.querySelectorAll('.geo-city-card').forEach(card => {
-    const head = card.querySelector('.geo-city-head');
-    head.addEventListener('click', () => {
-      const isActive = card.classList.contains('active');
-      listEl.querySelectorAll('.geo-city-card').forEach(c => c.classList.remove('active'));
-      $('geographyMap').querySelectorAll('.geo-pin').forEach(p => p.classList.remove('active'));
-      if (!isActive) {
-        card.classList.add('active');
-        const key = card.dataset.cityCard;
-        const pin = $('geographyMap').querySelector(`[data-city="${key}"]`);
-        if (pin) pin.classList.add('active');
-      }
-    });
-  });
-
-  listEl.querySelectorAll('.geo-tx-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = parseInt(link.dataset.id);
-      closePanel('geographyPanel');
-      selectTransmitter(id);
-    });
-  });
-}
-
-// ═══════════════════════════════════════
-// GРУEALOGY TREE
-// ═══════════════════════════════════════
-let genData = null;
-let genЗагрузка = false;
-
-async function loadGenData() {
-  if (genData || genЗагрузка) return genData;
-  genЗагрузка = true;
-  try {
-    const res = await fetch('genealogy.json');
-    if (res.ok) genData = await res.json();
-  } catch(e) {
-    console.warn('genealogy.json not found:', e);
-  }
-  genЗагрузка = false;
-  return genData;
-}
-
-async function openGenealogy() {
-  openPanelEl('genealogyPanel');
-  const treeEl = $('genealogyTree');
-  treeEl.innerHTML = '<div class="ar-loading" style="margin:20px auto;display:flex;justify-content:center">Загрузка данных...</div>';
-
-  const data = await loadGenData();
-  if (!data) {
-    treeEl.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px;font-size:13px">⚠ Файл genealogy.json не найден рядом с index.html</div>';
-    return;
-  }
-
-  renderGenTree(data);
-}
-
-function renderGenNode(nodeId, data, depth) {
-  const node = data.nodes[String(nodeId)];
-  if (!node) return '';
-
-  const isImam = !!node.isImam;
-  const hasDataEntry = !isImam && state.data.find(tx => tx.id === node.id);
-
-  const badge = isImam
-    ? '<span class="gen-node-badge">إمام</span>'
-    : (hasDataEntry ? `<span class="gen-node-badge">#${node.id + 1}</span>` : '');
-
-  let html = `<div class="gen-node-wrap">
-    <div class="gen-node ${isImam ? 'gen-imam' : ''}" ${!isImam ? `data-id="${node.id}"` : ''}>
-      <span>${node.name}</span>
-      ${badge}
-    </div>`;
-
-  if (node.students && node.students.length) {
-    html += `<div class="gen-children">`;
-    node.students.forEach(sid => {
-      html += renderGenNode(sid, data, depth + 1);
-    });
-    html += `</div>`;
-  }
-
-  html += `</div>`;
-  return html;
-}
-
-function renderGenTree(data) {
-  const treeEl = $('genealogyTree');
-  let html = '';
-  data.roots.forEach(rootId => {
-    html += `<div class="gen-root">${renderGenNode(rootId, data, 0)}</div>`;
-  });
-  treeEl.innerHTML = html;
-
-  treeEl.querySelectorAll('.gen-node[data-id]').forEach(node => {
-    node.addEventListener('click', () => {
-      const id = parseInt(node.dataset.id);
-      if (state.data.find(tx => tx.id === id)) {
-        closePanel('genealogyPanel');
-        selectTransmitter(id);
-      }
-    });
-  });
-}
 
 // ─────────────────────────────────────────────────────────────────
 // Service Worker inline via blob
