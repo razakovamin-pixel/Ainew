@@ -20,9 +20,11 @@ binding = "ASSETS"
 # Используется только запросами с заголовком X-Translate: 1.
 # Если секрет не задан — воркер просто использует AI_MODEL и для перевода тоже.
 
-# D1 database used by the mobile admin panel.
-# Create a D1 database in the Cloudflare Dashboard and replace database_id.
-[[d1_databases]]
-binding = "DB"
-database_name = "ilm-al-rijal"
-database_id = "PUT_YOUR_D1_DATABASE_ID_HERE"
+
+# Подключите СВОЮ новую D1-базу после создания её в Cloudflare.
+# Раскомментируйте и замените database_id своим значением:
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "ilm-al-rijal"
+# database_id = "ВАШ-D1-DATABASE-ID"

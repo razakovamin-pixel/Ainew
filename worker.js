@@ -4,7 +4,7 @@
  * Бесплатные улучшения:
  *   - кэш Cloudflare + in-memory fallback;
  *   - параллельный поиск по нескольким источникам;
- *   - приоритет ShiaIsnad и локальных источников;
+ *   - приоритет Ilm al-Rijal и локальных источников;
  *   - больше бесплатных источников и форумов;
  *   - более аккуратное извлечение текста из HTML;
  *   - endpoints /ai/search, /ai/open, /health;
@@ -25,7 +25,7 @@
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
 const USER_AGENT =
-  'Mozilla/5.0 (compatible; IlmAlRijalBot/3.0; +https://shiaisnad.ru)';
+  'Mozilla/5.0 (compatible; IlmAlRijalBot/3.0; +https://example.invalid)';
 
 // DuckDuckGo's html.duckduckgo.com endpoint aggressively blocks/challenges
 // requests that look like bot/datacenter traffic (custom bot UA, GET query
@@ -48,7 +48,7 @@ const MEMORY_CTX_TTL_MS = 5 * 60_000;
 const ALLOWED_SOURCE_HOSTS = new Set([
   'lib.eshia.ir',
   'shamela.ws',
-  'shiaisnad.ru',
+  'локальная база проекта',
   'islamweb.net',
   'shiachat.com',
   'shiatent.com',
@@ -89,7 +89,7 @@ const SOURCE_KEYWORDS = [
   { test: /(islamweb|исламвеб)/i, hosts: ['islamweb.net'] },
   {
     test: /(shiaisnad|shia\s*isnad|риджаль|иснад|хадис|хадисы|передатчик)/i,
-    hosts: ['shiaisnad.ru'],
+    hosts: ['локальная база проекта'],
   },
   {
     test: /(ya\s*husayn|yahusayn|ya-husayn|йа\s*хусейн|я\s*хусейн)/i,
@@ -102,7 +102,7 @@ const SOURCE_KEYWORDS = [
 ];
 
 const SOURCE_PRIORITY = {
-  'shiaisnad.ru': 100,
+  'локальная база проекта': 100,
   'lib.eshia.ir': 96,
   'shamela.ws': 92,
   'noorlib.ir': 90,
@@ -276,7 +276,7 @@ function inferHosts(queryText) {
 
   if (hosts.length === 0 && hadithish) {
     hosts.push(
-      'shiaisnad.ru',
+      'локальная база проекта',
       'lib.eshia.ir',
       'shamela.ws',
       'noorlib.ir',
@@ -679,19 +679,19 @@ function buildSourceContext(sources) {
   ].join('\n\n');
 }
 
-// ── Хадисный поиск: СТРОГО по приоритету shiaisnad.ru → arsh313.com ─────
-// Раньше все хадисные хосты (shiaisnad.ru + ~10 других) уходили одним
+// ── Хадисный поиск: СТРОГО по приоритету локальная база проекта → arsh313.com ─────
+// Раньше все хадисные хосты (локальная база проекта + ~10 других) уходили одним
 // OR'нутым запросом в DuckDuckGo. На практике это означало, что при
-// малейшей проблеме с shiaisnad.ru (сайт недоступен, DDG ничего не
+// малейшей проблеме с локальная база проекта (сайт недоступен, DDG ничего не
 // проиндексировал по конкретному запросу) результат просто терялся среди
 // остальных хостов — либо наоборот, other-host darkhorses забивали
-// релевантный shiaisnad.ru. Это и есть тот самый "баг с поиском": для
-// хадисных вопросов не было гарантии, что shiaisnad.ru реально проверяется
+// релевантный локальная база проекта. Это и есть тот самый "баг с поиском": для
+// хадисных вопросов не было гарантии, что локальная база проекта реально проверяется
 // первым и что при его неудаче происходит осмысленный переход на запасной
 // источник.
 //
 // Теперь для хадисных вопросов — отдельный, последовательный каскад:
-//   1) ищем ТОЛЬКО на shiaisnad.ru;
+//   1) ищем ТОЛЬКО на локальная база проекта;
 //   2) если пусто — ищем ТОЛЬКО на arsh313.com (раздел /hadiths/);
 //   3) если и там пусто — падаем в общий многохостовый поиск (как раньше).
 async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
@@ -724,8 +724,8 @@ async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
 }
 
 async function searchHadithCascade(queryVariants, pushSource, seen) {
-  // 1) Строго shiaisnad.ru — собственная база проекта, приоритет №1.
-  if (await searchSingleHostHadith('shiaisnad.ru', queryVariants, pushSource, seen)) {
+  // 1) Строго локальная база проекта — собственная база проекта, приоритет №1.
+  if (await searchSingleHostHadith('локальная база проекта', queryVariants, pushSource, seen)) {
     return true;
   }
   // 2) Не получилось — строго arsh313.com (раздел /hadiths/).
@@ -767,7 +767,7 @@ async function collectSourceContext(userText) {
   if (sources.length < MAX_SOURCES_PER_ANSWER) {
     const hadithQuery = isHadithQuery(rawText);
 
-    // Хадисный вопрос → сначала строгий каскад shiaisnad.ru → arsh313.com.
+    // Хадисный вопрос → сначала строгий каскад локальная база проекта → arsh313.com.
     // Если он реально что-то нашёл — общий многохостовый поиск ниже
     // пропускается (нет смысла тратить на него подзапросный бюджет).
     let hadithCascadeHit = false;
@@ -785,7 +785,7 @@ async function collectSourceContext(userText) {
       hostPlan.length
         ? hostPlan
         : [
-            'shiaisnad.ru',
+            'локальная база проекта',
             'lib.eshia.ir',
             'shamela.ws',
             'noorlib.ir',
@@ -898,352 +898,6 @@ function upstreamPath(env) {
   return value;
 }
 
-
-// ─────────────────────────────────────────────────────────────────────────────
-// D1 + Admin panel
-// The admin panel is intentionally server-backed: the browser never needs
-// Termux/Node/Python. After D1 is bound, /admin can import the bundled JSON
-// into D1 in small batches.
-// Required Worker secrets/vars:
-//   ADMIN_PASSWORD — admin login password
-//   ADMIN_SESSION_SECRET — long random secret used to sign the admin cookie
-// D1 binding:
-//   DB
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ADMIN_COOKIE = 'rijal_admin';
-const ADMIN_SESSION_TTL = 24 * 60 * 60 * 1000;
-const IMPORT_BATCH = 50;
-
-function b64url(bytes) {
-  let s = '';
-  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  for (const b of arr) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-function unb64url(s) {
-  s = s.replace(/-/g, '+').replace(/_/g, '/');
-  while (s.length % 4) s += '=';
-  const bin = atob(s);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
-async function hmacHex(secret, value) {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(value));
-  return b64url(new Uint8Array(sig));
-}
-
-async function makeAdminCookie(env) {
-  if (!env.ADMIN_SESSION_SECRET) throw new Error('ADMIN_SESSION_SECRET is not configured');
-  const payload = `${Date.now()}`;
-  const sig = await hmacHex(env.ADMIN_SESSION_SECRET, payload);
-  return `${b64url(new TextEncoder().encode(payload))}.${sig}`;
-}
-
-async function isAdmin(request, env) {
-  if (!env.ADMIN_SESSION_SECRET) return false;
-  const cookie = request.headers.get('Cookie') || '';
-  const match = cookie.match(new RegExp(`${ADMIN_COOKIE}=([^;]+)`));
-  if (!match) return false;
-  const parts = match[1].split('.');
-  if (parts.length !== 2) return false;
-  try {
-    const payload = new TextDecoder().decode(unb64url(parts[0]));
-    const ts = Number(payload);
-    if (!Number.isFinite(ts) || Date.now() - ts > ADMIN_SESSION_TTL) return false;
-    const expected = await hmacHex(env.ADMIN_SESSION_SECRET, payload);
-    return timingSafeEqual(expected, parts[1]);
-  } catch {
-    return false;
-  }
-}
-
-function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-function adminCookieHeader(value, maxAge = ADMIN_SESSION_TTL / 1000) {
-  return `${ADMIN_COOKIE}=${value}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict`;
-}
-
-async function requireAdmin(request, env) {
-  if (!(await isAdmin(request, env))) {
-    return json({ error: 'Unauthorized' }, 401);
-  }
-  return null;
-}
-
-async function dbCount(env, table) {
-  const allowed = new Set(['transmitters', 'books', 'chapters', 'hadiths']);
-  if (!allowed.has(table)) throw new Error('bad table');
-  const row = await env.DB.prepare(`SELECT COUNT(*) AS count FROM ${table}`).first();
-  return Number(row?.count || 0);
-}
-
-async function dbList(env, table, limit, offset, q = '') {
-  const lim = clamp(Number(limit) || 50, 1, 200);
-  const off = Math.max(0, Number(offset) || 0);
-  if (table === 'transmitters') {
-    const like = `%${q}%`;
-    return env.DB.prepare(
-      `SELECT id,name,arabic_name,shia_status,sunni_status,score,bio,analysis,sources
-       FROM transmitters
-       WHERE ?='' OR name LIKE ? OR arabic_name LIKE ? OR bio LIKE ?
-       ORDER BY id LIMIT ? OFFSET ?`,
-    ).bind(q, like, like, like, lim, off).all();
-  }
-  if (table === 'hadiths') {
-    const like = `%${q}%`;
-    return env.DB.prepare(
-      `SELECT id,book_id,book_title,chapter_id,chapter_name,text
-       FROM hadiths
-       WHERE ?='' OR text LIKE ? OR book_title LIKE ? OR chapter_name LIKE ?
-       ORDER BY id LIMIT ? OFFSET ?`,
-    ).bind(q, like, like, like, lim, off).all();
-  }
-  if (table === 'books') {
-    return env.DB.prepare(
-      `SELECT id,title,author,original_title,known_as FROM books ORDER BY id LIMIT ? OFFSET ?`,
-    ).bind(lim, off).all();
-  }
-  if (table === 'chapters') {
-    return env.DB.prepare(
-      `SELECT id,book_id,name FROM chapters ORDER BY book_id,id LIMIT ? OFFSET ?`,
-    ).bind(lim, off).all();
-  }
-  throw new Error('Unknown table');
-}
-
-async function assetJson(env, path) {
-  if (!env.ASSETS) throw new Error('ASSETS binding is not configured');
-  const base = 'https://internal.local';
-  const res = await env.ASSETS.fetch(new Request(base + path));
-  if (!res.ok) throw new Error(`Asset ${path} unavailable (${res.status})`);
-  return res.json();
-}
-
-function normalizeTransmitter(t, index) {
-  return {
-    id: Number.isFinite(Number(t.id)) ? Number(t.id) : index,
-    name: String(t.name || ''),
-    arabic_name: String(t.arabicName || t.arabic_name || ''),
-    bio: String(t.bio || ''),
-    shia_status: String(t.shiaStatus || t.shia_status || ''),
-    sunni_status: String(t.sunniStatus || t.sunni_status || ''),
-    analysis: String(t.analysis || ''),
-    sources: Array.isArray(t.sources) ? JSON.stringify(t.sources) : String(t.sources || ''),
-    score: Number.isFinite(Number(t.score)) ? Number(t.score) : null,
-  };
-}
-
-async function importTransmitterBatch(env, offset) {
-  const data = await assetJson(env, '/transmitters.json');
-  const start = Math.max(0, Number(offset) || 0);
-  const rows = data.slice(start, start + IMPORT_BATCH);
-  if (!rows.length) return { done: true, offset: start, total: data.length, imported: 0 };
-
-  const statements = rows.map((t, i) => {
-    const x = normalizeTransmitter(t, start + i);
-    return env.DB.prepare(
-      `INSERT INTO transmitters
-       (id,name,arabic_name,bio,shia_status,sunni_status,analysis,sources,score)
-       VALUES (?,?,?,?,?,?,?,?,?)
-       ON CONFLICT(id) DO UPDATE SET
-       name=excluded.name, arabic_name=excluded.arabic_name, bio=excluded.bio,
-       shia_status=excluded.shia_status, sunni_status=excluded.sunni_status,
-       analysis=excluded.analysis, sources=excluded.sources, score=excluded.score`,
-    ).bind(x.id,x.name,x.arabic_name,x.bio,x.shia_status,x.sunni_status,x.analysis,x.sources,x.score);
-  });
-  await env.DB.batch(statements);
-  const next = start + rows.length;
-  return { done: next >= data.length, offset: next, total: data.length, imported: rows.length };
-}
-
-async function importHadithBatch(env, offset) {
-  const data = await assetJson(env, '/hadis/hadis_data.json');
-  const flat = [];
-  for (const book of data) {
-    const bookId = Number(book.id);
-    for (const chapter of (book.chapters || [])) {
-      const chapterId = Number(chapter.n);
-      for (const h of (chapter.h || [])) {
-        flat.push({
-          id: Number(h.id),
-          book_id: bookId,
-          book_title: String(book.title || ''),
-          chapter_id: chapterId,
-          chapter_name: String(chapter.name || ''),
-          text: String(h.text || ''),
-        });
-      }
-    }
-  }
-  const start = Math.max(0, Number(offset) || 0);
-  const rows = flat.slice(start, start + IMPORT_BATCH);
-  if (!rows.length) return { done: true, offset: start, total: flat.length, imported: 0 };
-
-  const statements = rows.map(x => env.DB.prepare(
-    `INSERT INTO hadiths
-     (id,book_id,book_title,chapter_id,chapter_name,text)
-     VALUES (?,?,?,?,?,?)
-     ON CONFLICT(id) DO UPDATE SET
-     book_id=excluded.book_id, book_title=excluded.book_title,
-     chapter_id=excluded.chapter_id, chapter_name=excluded.chapter_name,
-     text=excluded.text`,
-  ).bind(x.id,x.book_id,x.book_title,x.chapter_id,x.chapter_name,x.text));
-  await env.DB.batch(statements);
-  const next = start + rows.length;
-  return { done: next >= flat.length, offset: next, total: flat.length, imported: rows.length };
-}
-
-async function importStructure(env) {
-  const data = await assetJson(env, '/hadis/hadis_data.json');
-  const stmts = [];
-  for (const book of data) {
-    stmts.push(env.DB.prepare(
-      `INSERT INTO books(id,title,author,original_title,known_as)
-       VALUES(?,?,?,?,?)
-       ON CONFLICT(id) DO UPDATE SET title=excluded.title,author=excluded.author,
-       original_title=excluded.original_title,known_as=excluded.known_as`,
-    ).bind(
-      Number(book.id), String(book.title || ''), String(book.author || ''),
-      String(book.originalTitle || book.original_title || ''),
-      String(book.knownAs || book.known_as || ''),
-    ));
-    for (const ch of (book.chapters || [])) {
-      stmts.push(env.DB.prepare(
-        `INSERT INTO chapters(id,book_id,name) VALUES(?,?,?)
-         ON CONFLICT(id,book_id) DO UPDATE SET name=excluded.name`,
-      ).bind(Number(ch.n), Number(book.id), String(ch.name || '')));
-    }
-  }
-  for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
-  return { books: data.length, chapters: data.reduce((n,b)=>n+(b.chapters||[]).length,0) };
-}
-
-async function handleAdmin(request, env) {
-  const denied = await requireAdmin(request, env);
-  if (denied) return denied;
-  if (!env.DB) return json({ error: 'D1 binding DB is not configured' }, 503);
-
-  const url = new URL(request.url);
-  const action = url.pathname.replace(/^\/api\/admin\/?/, '');
-
-  if (request.method === 'GET' && action === 'stats') {
-    return json({
-      transmitters: await dbCount(env,'transmitters'),
-      books: await dbCount(env,'books'),
-      chapters: await dbCount(env,'chapters'),
-      hadiths: await dbCount(env,'hadiths'),
-    });
-  }
-
-  if (request.method === 'GET' && action === 'list') {
-    const table = url.searchParams.get('table') || 'transmitters';
-    const data = await dbList(env, table, url.searchParams.get('limit'), url.searchParams.get('offset'), url.searchParams.get('q') || '');
-    return json(data);
-  }
-
-  if (request.method === 'POST' && action === 'import/structure') {
-    return json(await importStructure(env));
-  }
-
-  if (request.method === 'POST' && action === 'import/transmitters') {
-    const body = await readJsonBody(request) || {};
-    return json(await importTransmitterBatch(env, body.offset || 0));
-  }
-
-  if (request.method === 'POST' && action === 'import/hadiths') {
-    const body = await readJsonBody(request) || {};
-    return json(await importHadithBatch(env, body.offset || 0));
-  }
-
-  if (request.method === 'POST' && action === 'delete') {
-    const body = await readJsonBody(request) || {};
-    const table = String(body.table || '');
-    const id = Number(body.id);
-    if (!['transmitters','hadiths','books','chapters'].includes(table) || !Number.isFinite(id)) {
-      return json({error:'Invalid delete request'},400);
-    }
-    if (table === 'chapters') {
-      await env.DB.prepare('DELETE FROM chapters WHERE id=? AND book_id=?').bind(id, Number(body.book_id)).run();
-    } else {
-      await env.DB.prepare(`DELETE FROM ${table} WHERE id=?`).bind(id).run();
-    }
-    return json({ok:true});
-  }
-
-  if (request.method === 'POST' && action === 'save') {
-    const body = await readJsonBody(request) || {};
-    const table = String(body.table || '');
-    const d = body.data || {};
-    if (table === 'transmitters') {
-      await env.DB.prepare(
-        `INSERT INTO transmitters(id,name,arabic_name,bio,shia_status,sunni_status,analysis,sources,score)
-         VALUES(?,?,?,?,?,?,?,?,?)
-         ON CONFLICT(id) DO UPDATE SET name=excluded.name,arabic_name=excluded.arabic_name,
-         bio=excluded.bio,shia_status=excluded.shia_status,sunni_status=excluded.sunni_status,
-         analysis=excluded.analysis,sources=excluded.sources,score=excluded.score`
-      ).bind(Number(d.id),String(d.name||''),String(d.arabic_name||''),String(d.bio||''),
-        String(d.shia_status||''),String(d.sunni_status||''),String(d.analysis||''),
-        String(d.sources||''),Number.isFinite(Number(d.score))?Number(d.score):null).run();
-    } else if (table === 'hadiths') {
-      await env.DB.prepare(
-        `INSERT INTO hadiths(id,book_id,book_title,chapter_id,chapter_name,text)
-         VALUES(?,?,?,?,?,?)
-         ON CONFLICT(id) DO UPDATE SET book_id=excluded.book_id,book_title=excluded.book_title,
-         chapter_id=excluded.chapter_id,chapter_name=excluded.chapter_name,text=excluded.text`
-      ).bind(Number(d.id),Number(d.book_id),String(d.book_title||''),Number(d.chapter_id),
-        String(d.chapter_name||''),String(d.text||'')).run();
-    } else if (table === 'books') {
-      await env.DB.prepare(
-        `INSERT INTO books(id,title,author,original_title,known_as) VALUES(?,?,?,?,?)
-         ON CONFLICT(id) DO UPDATE SET title=excluded.title,author=excluded.author,
-         original_title=excluded.original_title,known_as=excluded.known_as`
-      ).bind(Number(d.id),String(d.title||''),String(d.author||''),String(d.original_title||''),String(d.known_as||'')).run();
-    } else {
-      return json({error:'Only transmitters, hadiths and books are editable here'},400);
-    }
-    return json({ok:true});
-  }
-
-  return json({error:'Unknown admin action'},404);
-}
-
-async function handleAdminLogin(request, env) {
-  if (request.method !== 'POST') return json({error:'Method not allowed'},405);
-  if (!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_SECRET) {
-    return json({error:'Set ADMIN_PASSWORD and ADMIN_SESSION_SECRET first'},503);
-  }
-  const body = await readJsonBody(request) || {};
-  if (String(body.password || '') !== String(env.ADMIN_PASSWORD)) {
-    return json({error:'Wrong password'},401);
-  }
-  const cookie = await makeAdminCookie(env);
-  return new Response(JSON.stringify({ok:true}), {
-    headers:{'Content-Type':'application/json; charset=utf-8','Set-Cookie':adminCookieHeader(cookie),...corsHeaders()}
-  });
-}
-
-async function handleAdminLogout() {
-  return new Response(JSON.stringify({ok:true}), {
-    headers:{'Content-Type':'application/json; charset=utf-8','Set-Cookie':adminCookieHeader('',0),...corsHeaders()}
-  });
-}
-
 async function handleChat(request, env) {
   if (!env.AI_API_KEY || !env.AI_BASE_URL || !env.AI_MODEL) {
     return json({ error: 'AI is not configured on the server' }, 503);
@@ -1285,7 +939,7 @@ async function handleChat(request, env) {
   // Строгий режим "только локальная база хадисов" — используется чатом на
   // странице /hadis (см. public/hadis/index.html). Там система уже сама
   // передаёт найденные фрагменты из hadis_data.json прямо в system-промпте,
-  // и веб-поиск (shiaisnad.ru/arsh313.com/и т.д.) специально пропускается —
+  // и веб-поиск (локальная база проекта/arsh313.com/и т.д.) специально пропускается —
   // и чтобы не тратить время/подзапросы, и чтобы модель не подмешивала
   // внешние источники там, где просили отвечать строго по локальному файлу.
   const strictLocalHadith =
@@ -1407,8 +1061,129 @@ async function handleOpen(request) {
   return json(opened);
 }
 
+
+// ================================================================
+// D1 ADMIN API
+// ================================================================
+const ADMIN_COOKIE = 'ilm_admin_session';
+
+function adminCorsHeaders() {
+  return {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+  };
+}
+
+function adminJson(data, status=200) {
+  return new Response(JSON.stringify(data), {status, headers: adminCorsHeaders()});
+}
+
+async function adminToken(env) {
+  const secret = env.ADMIN_PASSWORD || env.ADMIN_SECRET;
+  if (!secret) throw new Error('ADMIN_PASSWORD is not configured');
+  const data = new TextEncoder().encode(secret);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function adminAuthorized(request, env) {
+  const token = request.headers.get('X-Admin-Token') ||
+    (request.headers.get('Cookie')||'').match(/(?:^|;\s*)ilm_admin_session=([^;]+)/)?.[1];
+  if (!token) return false;
+  return token === await adminToken(env);
+}
+
+function bodyJSON(request) {
+  return request.json().catch(()=>({}));
+}
+
+async function adminRoute(request, env) {
+  if (!env.DB) return adminJson({ok:false,error:'D1 binding DB is not configured'},500);
+  const url = new URL(request.url);
+  const path = url.pathname;
+  if (request.method === 'OPTIONS') return new Response(null,{status:204,headers:adminCorsHeaders()});
+
+  if (path === '/api/admin/login' && request.method === 'POST') {
+    const body = await bodyJSON(request);
+    const password = String(body.password || '');
+    if (!env.ADMIN_PASSWORD || password !== env.ADMIN_PASSWORD)
+      return adminJson({ok:false,error:'Неверный пароль'},401);
+    const token = await adminToken(env);
+    return new Response(JSON.stringify({ok:true,token}),{
+      headers:{...adminCorsHeaders(),'Set-Cookie':`${ADMIN_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`}
+    });
+  }
+
+  if (!(await adminAuthorized(request,env))) return adminJson({ok:false,error:'Unauthorized'},401);
+
+  const tables = {
+    narrators: {table:'narrators', fields:['name_ru','name_ar','reliability','sunni_status','biography','sources','score']},
+    books: {table:'books', fields:['title','author','original_title']},
+    chapters: {table:'chapters', fields:['book_id','name']},
+    hadiths: {table:'hadiths', fields:['book_id','chapter_id','text','source_id']}
+  };
+
+  if (path === '/api/admin/stats' && request.method === 'GET') {
+    const out={};
+    for (const [k,v] of Object.entries(tables)) {
+      out[k]=(await env.DB.prepare(`SELECT COUNT(*) c FROM ${v.table}`).first()).c;
+    }
+    return adminJson({ok:true,stats:out});
+  }
+
+  const m=path.match(/^\/api\/admin\/(narrators|books|chapters|hadiths)(?:\/(\d+))?$/);
+  if (!m) return adminJson({ok:false,error:'Not found'},404);
+  const key=m[1], id=m[2] ? Number(m[2]) : null, cfg=tables[key];
+
+  if (request.method==='GET') {
+    const limit=Math.min(Number(url.searchParams.get('limit')||200),1000);
+    const offset=Math.max(Number(url.searchParams.get('offset')||0),0);
+    const q=(url.searchParams.get('q')||'').trim();
+    let sql=`SELECT * FROM ${cfg.table}`;
+    const params=[];
+    if(q) {
+      const f=cfg.fields.filter(x=>x!=='book_id'&&x!=='chapter_id'&&x!=='score'&&x!=='source_id');
+      if(f.length){sql+=` WHERE `+f.map(x=>`${x} LIKE ?`).join(' OR '); for(const x of f) params.push(`%${q}%`);}
+    }
+    sql+=` ORDER BY id DESC LIMIT ? OFFSET ?`; params.push(limit,offset);
+    const rows=await env.DB.prepare(sql).bind(...params).all();
+    return adminJson({ok:true,items:rows.results||[]});
+  }
+
+  if (request.method==='POST') {
+    const b=await bodyJSON(request);
+    const fields=cfg.fields.filter(f=>Object.prototype.hasOwnProperty.call(b,f));
+    if(!fields.length) return adminJson({ok:false,error:'Нет полей для записи'},400);
+    const vals=fields.map(f=>b[f]);
+    const marks=fields.map(()=>'?').join(',');
+    const r=await env.DB.prepare(`INSERT INTO ${cfg.table} (${fields.join(',')}) VALUES (${marks})`).bind(...vals).run();
+    return adminJson({ok:true,id:r.meta?.last_row_id});
+  }
+
+  if (request.method==='PUT' && id) {
+    const b=await bodyJSON(request);
+    const fields=cfg.fields.filter(f=>Object.prototype.hasOwnProperty.call(b,f));
+    if(!fields.length) return adminJson({ok:false,error:'Нет полей для обновления'},400);
+    const vals=fields.map(f=>b[f]);
+    const set=fields.map(f=>`${f}=?`).join(',');
+    await env.DB.prepare(`UPDATE ${cfg.table} SET ${set} WHERE id=?`).bind(...vals,id).run();
+    return adminJson({ok:true});
+  }
+
+  if (request.method==='DELETE' && id) {
+    await env.DB.prepare(`DELETE FROM ${cfg.table} WHERE id=?`).bind(id).run();
+    return adminJson({ok:true});
+  }
+
+  return adminJson({ok:false,error:'Method not allowed'},405);
+}
+
+
 export default {
   async fetch(request, env, ctx) {
+    if (new URL(request.url).pathname.startsWith('/api/admin/')) return adminRoute(request, env);
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -1434,24 +1209,6 @@ export default {
         return json({ error: 'Method not allowed' }, 405);
       }
       return handleOpen(request);
-    }
-
-    if (url.pathname === '/admin' || url.pathname === '/admin/') {
-      if (env.ASSETS) return env.ASSETS.fetch(new Request(new URL('/admin.html', request.url), request));
-      return new Response('Admin asset unavailable', { status: 503 });
-    }
-
-    if (url.pathname === '/api/admin/login') {
-      return handleAdminLogin(request, env);
-    }
-
-    if (url.pathname === '/api/admin/logout') {
-      if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
-      return handleAdminLogout();
-    }
-
-    if (url.pathname.startsWith('/api/admin/')) {
-      return handleAdmin(request, env);
     }
 
     if (url.pathname === '/health') {
