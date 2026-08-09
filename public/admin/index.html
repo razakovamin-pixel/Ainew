@@ -389,8 +389,7 @@
 
         <section class="panel">
           <div class="footer-note">
-            Этот файл — только HTML. Он уже содержит интерфейс и логику страницы, но для сохранения данных нужен Worker/D1 API.
-            Если у тебя уже есть endpoint’ы, просто оставь пути как есть. Если endpoint’ов нет — страница всё равно откроется и будет выглядеть нормально.
+            Эта страница — интерфейс администрирования. Для реального сохранения данных Worker должен предоставить указанные API-эндпоинты и D1 Binding DB.
           </div>
         </section>
       </main>
@@ -622,6 +621,7 @@ function buildForm(values={}){
 }
 
 function openModal(mode='add', data=null){
+  window.__modalAction = null;
   STATE.mode = mode;
   STATE.editing = data;
   qs('modalTitle').textContent = mode === 'add' ? 'Добавить запись' : 'Редактировать запись';
@@ -629,7 +629,7 @@ function openModal(mode='add', data=null){
   qs('formArea').innerHTML = buildForm(data || {});
   qs('modalBackdrop').style.display = 'grid';
 }
-function closeModal(){ qs('modalBackdrop').style.display = 'none'; }
+function closeModal(){ qs('modalBackdrop').style.display = 'none'; window.__modalAction = null; }
 
 function getFormData(){
   const cfg = SECTIONS[STATE.section];
@@ -642,6 +642,32 @@ function getFormData(){
 }
 
 async function saveRecord(){
+  if (window.__modalAction === 'schema') {
+    closeModal();
+    window.__modalAction = null;
+    return;
+  }
+
+  if (window.__modalAction === 'import') {
+    const file = qs('importFile')?.files?.[0];
+    if (!file) { alert('Выберите JSON-файл.'); return; }
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const data = await api('/api/admin/import', {
+        method:'POST',
+        body: JSON.stringify({items: Array.isArray(json) ? json : json.items})
+      });
+      closeModal();
+      window.__modalAction = null;
+      alert(data.message || 'Импорт завершён');
+      await refreshAll();
+    } catch(e) {
+      alert(e.message || 'Ошибка импорта');
+    }
+    return;
+  }
+
   const data = getFormData();
   const cfg = SECTIONS[STATE.section];
   for(const [k, label, type, required] of cfg.fields){
@@ -681,14 +707,37 @@ function exportCurrent(){
   URL.revokeObjectURL(url);
 }
 
-function bulkImportHint(){
-  alert('Здесь можно добавить кнопку массового импорта в D1. Для этого Worker должен принимать отдельный endpoint /api/admin/import.');
+function openImport(){
+  qs('modalTitle').textContent = 'Импорт данных в D1';
+  qs('modalSub').textContent = 'Выберите JSON-файл. Импорт отправляется в /api/admin/import.';
+  qs('formArea').innerHTML = `
+    <div class="stack">
+      <label>JSON-файл</label>
+      <input id="importFile" class="input" type="file" accept=".json,application/json">
+      <div class="footer-note">
+        Поддерживается массив объектов. Для большого файла Worker должен обрабатывать импорт пакетами.
+      </div>
+    </div>`;
+  qs('modalBackdrop').style.display = 'grid';
+  window.__modalAction = 'import';
 }
-function showHelp(){
-  alert(
-    'Схема: narrators, books, chapters, hadiths.\\n\\n' +
-    'Если подключён Worker/D1, эта страница уже умеет CRUD через /api/admin/*.'
-  );
+function openSchema(){
+  qs('modalTitle').textContent = 'Схема D1';
+  qs('modalSub').textContent = 'Таблицы, которые использует эта админка.';
+  qs('formArea').innerHTML = `
+    <div class="table-wrap">
+      <table style="min-width:0">
+        <thead><tr><th>Таблица</th><th>Назначение</th><th>Основные поля</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">narrators</td><td>Передатчики</td><td>name_ru, name_ar, reliability, biography, sources, score</td></tr>
+          <tr><td class="mono">books</td><td>Книги</td><td>title, author, original_title</td></tr>
+          <tr><td class="mono">chapters</td><td>Главы</td><td>book_id, name</td></tr>
+          <tr><td class="mono">hadiths</td><td>Хадисы</td><td>book_id, chapter_id, text, source_id</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+  qs('modalBackdrop').style.display = 'grid';
+  window.__modalAction = 'schema';
 }
 function sampleData(){
   const samples = {
