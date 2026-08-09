@@ -1,61 +1,723 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Админ — Ilm al-Rijal</title>
-<style>
-:root{--bg:#0b0e13;--card:#121720;--line:#242b36;--text:#f2f4f7;--muted:#8993a2;--accent:#d9b36c;--danger:#d95f67}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}
-header{position:sticky;top:0;z-index:5;background:#0b0e13ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px}
-h1{font-size:20px;margin:0 0 4px}.sub{color:var(--muted);font-size:12px}
-main{max-width:1100px;margin:auto;padding:14px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}.num{font-size:25px;font-weight:700}.muted{color:var(--muted)}
-.tabs{display:flex;gap:8px;overflow:auto;margin:14px 0}.tabs button,.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:10px;cursor:pointer;white-space:nowrap}.tabs .active{background:var(--accent);color:#151515}
-.toolbar{display:flex;gap:8px;margin-bottom:10px}.toolbar input,.modal input,.modal textarea,.modal select{width:100%;background:#0c1118;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px}
-.toolbar input{flex:1}.table{overflow:auto;border:1px solid var(--line);border-radius:12px}.row{display:grid;grid-template-columns:60px 1fr 120px 100px;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);min-width:600px}.row:last-child{border:0}.actions{display:flex;gap:5px}.small{padding:7px 9px!important;font-size:12px}.danger{color:#fff;background:var(--danger)!important;border-color:var(--danger)!important}
-#login{min-height:100vh;display:grid;place-items:center;padding:20px}.loginbox{width:min(420px,100%)}.loginbox input{margin:10px 0}
-.hidden{display:none}.modalbg{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:15px;z-index:20}.modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(600px,100%);max-height:90vh;overflow:auto}.modal label{display:block;margin:10px 0 5px;color:var(--muted);font-size:12px}.modal .actions{justify-content:flex-end;margin-top:14px}
-@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:42px 1fr 86px 76px;min-width:500px}}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Admin Panel — Ilm al-Rijal</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#111720;
+      --panel2:#0f141c;
+      --line:#233041;
+      --text:#edf2f7;
+      --muted:#8b97a8;
+      --accent:#d8b26a;
+      --good:#53c38b;
+      --bad:#ea6a73;
+      --shadow:0 14px 50px rgba(0,0,0,.35);
+      --radius:18px;
+      --radius2:14px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(216,178,106,.12), transparent 45%),
+        radial-gradient(1000px 700px at 90% 0%, rgba(83,195,139,.08), transparent 40%),
+        linear-gradient(180deg, #090c10 0%, #0b0f14 100%);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    button,input,select,textarea{font:inherit}
+    .shell{min-height:100%; display:flex; flex-direction:column}
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      background:rgba(11,15,20,.78);
+      backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(35,48,65,.9);
+    }
+    .topbar-inner{
+      max-width:1500px;
+      margin:0 auto;
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      justify-content:space-between;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; min-width:0;
+    }
+    .logo{
+      width:42px;height:42px;border-radius:13px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg, rgba(216,178,106,.26), rgba(83,195,139,.20));
+      border:1px solid rgba(216,178,106,.35);
+      box-shadow:var(--shadow);
+      font-weight:800;
+    }
+    .brand h1{font-size:15px; margin:0; line-height:1.2}
+    .brand p{margin:2px 0 0; color:var(--muted); font-size:12px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border:1px solid var(--line);
+      background:rgba(17,23,32,.9);
+      color:var(--muted);
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(83,195,139,.14)}
+    .layout{
+      max-width:1500px;
+      width:100%;
+      margin:0 auto;
+      padding:16px;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:16px;
+      flex:1;
+    }
+    .sidebar,.content,.panel,.login-card{
+      background:rgba(17,23,32,.88);
+      border:1px solid rgba(35,48,65,.95);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .sidebar{padding:14px; position:sticky; top:78px; align-self:start; max-height:calc(100vh - 94px); overflow:auto}
+    .nav-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:4px 0 10px}
+    .nav{
+      display:grid; gap:8px;
+    }
+    .nav button{
+      width:100%;
+      text-align:left;
+      border:1px solid transparent;
+      background:transparent;
+      color:var(--text);
+      border-radius:12px;
+      padding:12px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .nav button:hover{background:#141b25}
+    .nav button.active{
+      background:linear-gradient(135deg, rgba(216,178,106,.17), rgba(216,178,106,.06));
+      border-color:rgba(216,178,106,.35);
+    }
+    .nav small{color:var(--muted)}
+    .main{display:grid; gap:16px}
+    .hero{
+      display:grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap:16px;
+    }
+    .panel{padding:16px}
+    .panel h2{margin:0 0 6px; font-size:18px}
+    .panel .sub{margin:0; color:var(--muted); font-size:13px; line-height:1.6}
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+    .stat{
+      background:rgba(15,20,28,.95);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+    .stat .label{color:var(--muted);font-size:12px}
+    .stat .value{font-size:26px;font-weight:800;margin-top:6px}
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:14px;
+    }
+    .input, .select, .textarea{
+      width:100%;
+      background:#0d1218;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px 13px;
+      outline:none;
+      transition:.15s ease;
+    }
+    .input:focus,.select:focus,.textarea:focus{border-color:rgba(216,178,106,.55); box-shadow:0 0 0 4px rgba(216,178,106,.08)}
+    .toolbar .input{flex:1; min-width:220px}
+    .btn{
+      border:1px solid var(--line);
+      background:#141b25;
+      color:var(--text);
+      padding:12px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(216,178,106,.95), rgba(216,178,106,.78));
+      border-color:transparent;
+      color:#151515;
+      font-weight:700;
+    }
+    .btn.good{
+      background:linear-gradient(135deg, rgba(83,195,139,.95), rgba(83,195,139,.75));
+      border-color:transparent;
+      color:#101810;
+      font-weight:700;
+    }
+    .btn.bad{
+      background:linear-gradient(135deg, rgba(234,106,115,.95), rgba(234,106,115,.75));
+      border-color:transparent;
+      color:#1c0f11;
+      font-weight:700;
+    }
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(15,20,28,.92);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:900px;
+    }
+    th,td{
+      text-align:left;
+      padding:13px 12px;
+      border-bottom:1px solid rgba(35,48,65,.8);
+      vertical-align:top;
+      font-size:13px;
+    }
+    th{
+      position:sticky; top:0;
+      background:#121824;
+      color:#cfd7e3;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      z-index:1;
+    }
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .mono{font-family:var(--mono); font-size:12px}
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#111720;
+      color:#dfe5ef;
+      font-size:12px;
+    }
+    .chip.good{border-color:rgba(83,195,139,.35)}
+    .chip.bad{border-color:rgba(234,106,115,.35)}
+    .chip.warn{border-color:rgba(216,178,106,.35)}
+    .actions{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .muted{color:var(--muted)}
+    .empty{
+      padding:28px;
+      text-align:center;
+      color:var(--muted);
+    }
+    .login{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:16px;
+    }
+    .login-card{
+      width:min(460px, 100%);
+      padding:18px;
+    }
+    .login-card h2{margin:0 0 6px}
+    .login-card p{margin:0 0 14px; color:var(--muted); line-height:1.6}
+    .login-grid{display:grid; gap:10px}
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .stack{display:grid; gap:8px}
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.58);
+      display:none; place-items:center; padding:16px; z-index:40;
+    }
+    .modal{
+      width:min(760px, 100%);
+      max-height:min(90vh, 900px);
+      overflow:auto;
+      background:#111720;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .modal-header{display:flex; justify-content:space-between; gap:10px; align-items:start; margin-bottom:10px}
+    .modal h3{margin:0}
+    .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .form-grid .full{grid-column:1 / -1}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    .footer-note{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+    @media (max-width: 1080px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{position:relative; top:0; max-height:none}
+      .hero{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 640px){
+      .topbar-inner{padding:12px 12px}
+      .layout{padding:12px}
+      .stats{grid-template-columns:1fr 1fr}
+      .two,.form-grid{grid-template-columns:1fr}
+      .toolbar .input{min-width:100%}
+      table{min-width:760px}
+    }
+  </style>
 </head>
 <body>
-<div id="login">
- <div class="loginbox card"><h1>Админ-панель</h1><div class="sub">D1 · Ilm al-Rijal</div>
- <input id="password" type="password" placeholder="Пароль администратора">
- <button class="btn" style="width:100%" onclick="login()">Войти</button><p id="loginerr" class="muted"></p></div>
-</div>
-<div id="app" class="hidden">
-<header><h1>Админ-панель</h1><div class="sub">Передатчики · книги · главы · хадисы</div></header>
-<main>
-<div class="grid" id="stats"></div>
-<div class="tabs" id="tabs"></div>
-<div class="toolbar"><input id="search" placeholder="Поиск..."><button class="btn" onclick="openAdd()">＋ Добавить</button></div>
-<div id="table" class="table"></div>
-</main></div>
-<div id="modal" class="hidden"></div>
+  <div id="loginScreen" class="login">
+    <div class="login-card">
+      <div class="logo" style="margin-bottom:12px">A</div>
+      <h2>Админ-панель</h2>
+      <p>Вход для управления передатчиками, книгами, главами и хадисами.</p>
+      <div class="login-grid">
+        <div>
+          <label>Пароль</label>
+          <input id="password" class="input" type="password" placeholder="Введите пароль" />
+        </div>
+        <button class="btn primary" onclick="login()">Продолжить</button>
+        <div id="loginError" class="muted footer-note"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="shell" style="display:none;">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo">A</div>
+          <div>
+            <h1>Ilm al-Rijal Admin</h1>
+            <p>Передатчики · книги · главы · хадисы · D1</p>
+          </div>
+        </div>
+        <div class="pill"><span class="dot"></span><span id="connState">готово к работе</span></div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="nav-title">Разделы</div>
+        <div class="nav" id="nav"></div>
+        <div style="margin-top:14px" class="stack">
+          <button class="btn" onclick="refreshAll()">Обновить</button>
+          <button class="btn bad" onclick="logout()">Выйти</button>
+        </div>
+        <div style="margin-top:14px" class="footer-note">
+          Подключи этот HTML к своим API-эндпоинтам Worker:
+          <span class="mono">/api/admin/login</span>,
+          <span class="mono">/api/admin/stats</span>,
+          <span class="mono">/api/admin/narrators</span>,
+          <span class="mono">/api/admin/books</span>,
+          <span class="mono">/api/admin/chapters</span>,
+          <span class="mono">/api/admin/hadiths</span>.
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="hero">
+          <div class="panel">
+            <h2 id="sectionTitle">Панель управления</h2>
+            <p class="sub" id="sectionSub">Поиск, добавление, редактирование и удаление записей.</p>
+
+            <div class="stats" id="stats">
+              <div class="stat"><div class="label">Передатчики</div><div class="value">—</div></div>
+              <div class="stat"><div class="label">Книги</div><div class="value">—</div></div>
+              <div class="stat"><div class="label">Главы</div><div class="value">—</div></div>
+              <div class="stat"><div class="label">Хадисы</div><div class="value">—</div></div>
+            </div>
+
+            <div class="toolbar">
+              <input id="search" class="input" placeholder="Поиск по текущему разделу..." />
+              <button class="btn primary" onclick="openModal('add')">＋ Добавить</button>
+              <button class="btn" onclick="exportCurrent()">Экспорт JSON</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>Быстрые действия</h2>
+            <p class="sub">Можно подключить к D1, оставить локальный JSON или использовать смешанный режим.</p>
+            <div class="stack" style="margin-top:14px">
+              <button class="btn good" onclick="bulkImportHint()">Импорт в D1</button>
+              <button class="btn" onclick="showHelp()">Схема таблиц</button>
+              <button class="btn" onclick="sampleData()">Пример записи</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="actions" style="justify-content:space-between; align-items:center; margin-bottom:12px">
+            <div class="actions" id="tabs"></div>
+            <div class="chip warn" id="statusChip">Локальный режим</div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="thead"></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="footer-note">
+            Этот файл — только HTML. Он уже содержит интерфейс и логику страницы, но для сохранения данных нужен Worker/D1 API.
+            Если у тебя уже есть endpoint’ы, просто оставь пути как есть. Если endpoint’ов нет — страница всё равно откроется и будет выглядеть нормально.
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalTitle">Добавить запись</h3>
+          <div class="muted" id="modalSub">Заполни поля и нажми сохранить.</div>
+        </div>
+        <button class="btn" onclick="closeModal()">✕</button>
+      </div>
+      <div id="formArea"></div>
+      <div class="actions" style="margin-top:16px; justify-content:flex-end">
+        <button class="btn" onclick="closeModal()">Отмена</button>
+        <button class="btn primary" onclick="saveRecord()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
 <script>
-const tokenKey='ilm_admin_token'; let type='narrators', offset=0;
-const configs={
- narrators:{label:'Передатчики',fields:[['name_ru','Имя'],['name_ar','Имя на арабском'],['reliability','Оценка'],['sunni_status','Суннитская оценка'],['biography','Биография','textarea'],['sources','Источники'],['score','Баллы']]},
- books:{label:'Книги',fields:[['title','Название'],['author','Автор'],['original_title','Оригинальное название']]},
- chapters:{label:'Главы',fields:[['book_id','ID книги'],['name','Название главы']]},
- hadiths:{label:'Хадисы',fields:[['book_id','ID книги'],['chapter_id','ID главы'],['text','Текст','textarea'],['source_id','Источник/ID']]}
+const API = {
+  login: '/api/admin/login',
+  stats: '/api/admin/stats',
+  narrators: '/api/admin/narrators',
+  books: '/api/admin/books',
+  chapters: '/api/admin/chapters',
+  hadiths: '/api/admin/hadiths',
 };
-function auth(){return localStorage.getItem(tokenKey)}
-async function api(path,opt={}){opt.headers={...(opt.headers||{}),'X-Admin-Token':auth(),'Content-Type':'application/json'};let r=await fetch(path,opt);let d=await r.json();if(r.status===401){logout();throw Error('Unauthorized')}if(!r.ok)throw Error(d.error||'Ошибка');return d}
-async function login(){let p=password.value;let r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p})});let d=await r.json();if(!r.ok){loginerr.textContent=d.error||'Ошибка';return}localStorage.setItem(tokenKey,d.token);show()}
-function logout(){localStorage.removeItem(tokenKey);location.reload()}
-function show(){login.classList.add('hidden');app.classList.remove('hidden');buildTabs();loadStats();load()}
-function buildTabs(){tabs.innerHTML=Object.entries(configs).map(([k,c])=>`<button class="${k===type?'active':''}" onclick="type='${k}';offset=0;buildTabs();load()">${c.label}</button>`).join('')}
-async function loadStats(){let d=await api('/api/admin/stats');stats.innerHTML=Object.entries(d.stats).map(([k,v])=>`<div class="card"><div class="muted">${configs[k].label}</div><div class="num">${v}</div></div>`).join('')}
-async function load(){table.innerHTML='<div class="row">Загрузка...</div>';let q=encodeURIComponent(search.value||'');let d=await api(`/api/admin/${type}?limit=200&offset=${offset}&q=${q}`);table.innerHTML=d.items.map(rowHTML).join('')||'<div class="row">Нет данных</div>'}
-function rowHTML(x){let c=configs[type], main=x[c.fields[0][0]]??'';return `<div class="row"><div>#${x.id}</div><div>${esc(String(main)).slice(0,300)}</div><div class="muted">${c.label}</div><div class="actions"><button class="btn small" onclick='edit(${JSON.stringify(x)})'>✎</button><button class="btn small danger" onclick="del(${x.id})">×</button></div></div>`}
-function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function openAdd(){edit({})}
-function edit(x){let c=configs[type];modal.classList.remove('hidden');modal.innerHTML=`<div class="modalbg"><div class="modal"><h2>${x.id?'Редактировать':'Добавить'} · ${c.label}</h2>${c.fields.map(f=>`<label>${f[1]}<input id="f_${f[0]}" ${f[2]==='textarea'?'style="min-height:140px"':''} value="${esc(String(x[f[0]]??''))}"></label>`).join('')}<div class="actions"><button class="btn" onclick="modal.classList.add('hidden')">Отмена</button><button class="btn" onclick="save(${x.id||0})">Сохранить</button></div></div></div>`}
-async function save(id){let c=configs[type],o={};c.fields.forEach(f=>o[f[0]]=document.getElementById('f_'+f[0]).value);try{await api('/api/admin/'+type+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify(o)});modal.classList.add('hidden');loadStats();load()}catch(e){alert(e.message)}}
-async function del(id){if(!confirm('Удалить запись #'+id+'?'))return;try{await api('/api/admin/'+type+'/'+id,{method:'DELETE'});loadStats();load()}catch(e){alert(e.message)}}
-search.addEventListener('input',()=>{clearTimeout(window.st);window.st=setTimeout(load,300)});
-if(auth())show();
+
+const STATE = {
+  token: localStorage.getItem('ilm_admin_token') || '',
+  section: 'narrators',
+  rows: [],
+  editing: null,
+  mode: 'add',
+  sampleId: null,
+};
+
+const SECTIONS = {
+  narrators: {
+    title: 'Передатчики',
+    subtitle: 'Имя, арабская форма, оценка, статус, биография, источники, балл.',
+    fields: [
+      ['name_ru','Имя (RU)','text',true],
+      ['name_ar','Имя (AR)','text',false],
+      ['reliability','Оценка','text',false],
+      ['sunni_status','Суннитская оценка','text',false],
+      ['biography','Биография','textarea',false],
+      ['sources','Источники','textarea',false],
+      ['score','Баллы','number',false],
+    ]
+  },
+  books: {
+    title: 'Книги',
+    subtitle: 'Название книги, автор и оригинальное название.',
+    fields: [
+      ['title','Название','text',true],
+      ['author','Автор','text',false],
+      ['original_title','Оригинальное название','text',false],
+    ]
+  },
+  chapters: {
+    title: 'Главы',
+    subtitle: 'Привязка к книге и название главы.',
+    fields: [
+      ['book_id','ID книги','number',true],
+      ['name','Название главы','text',true],
+    ]
+  },
+  hadiths: {
+    title: 'Хадисы',
+    subtitle: 'Книга, глава, текст и источник/ID.',
+    fields: [
+      ['book_id','ID книги','number',true],
+      ['chapter_id','ID главы','number',false],
+      ['text','Текст хадиса','textarea',true],
+      ['source_id','Source ID / ссылка','text',false],
+    ]
+  }
+};
+
+function qs(id){return document.getElementById(id);}
+function esc(s){return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function setState(text, good=true){
+  const chip = qs('statusChip');
+  chip.className = 'chip ' + (good ? 'good' : 'bad');
+  chip.textContent = text;
+}
+function renderNav(){
+  qs('nav').innerHTML = Object.entries(SECTIONS).map(([key, v]) => `
+    <button class="${STATE.section===key?'active':''}" onclick="switchSection('${key}')">
+      <span>${v.title}</span>
+      <small>${STATE.rows.length && STATE.section===key ? STATE.rows.length : ''}</small>
+    </button>
+  `).join('');
+}
+function renderTabs(){ renderNav(); }
+
+function renderStats(stats){
+  qs('stats').innerHTML = `
+    <div class="stat"><div class="label">Передатчики</div><div class="value">${stats.narrators ?? '—'}</div></div>
+    <div class="stat"><div class="label">Книги</div><div class="value">${stats.books ?? '—'}</div></div>
+    <div class="stat"><div class="label">Главы</div><div class="value">${stats.chapters ?? '—'}</div></div>
+    <div class="stat"><div class="label">Хадисы</div><div class="value">${stats.hadiths ?? '—'}</div></div>
+  `;
+}
+
+function renderTable(){
+  const cfg = SECTIONS[STATE.section];
+  qs('sectionTitle').textContent = cfg.title;
+  qs('sectionSub').textContent = cfg.subtitle;
+
+  const headers = ['ID', ...cfg.fields.map(f => f[1]), 'Действия'];
+  qs('thead').innerHTML = `<tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr>`;
+
+  if (!STATE.rows.length){
+    qs('tbody').innerHTML = `<tr><td colspan="${headers.length}"><div class="empty">Нет записей</div></td></tr>`;
+    return;
+  }
+
+  qs('tbody').innerHTML = STATE.rows.map(row => {
+    const cells = cfg.fields.map(([k, label, type]) => {
+      let v = row[k];
+      if (v === null || v === undefined || v === '') v = '';
+      if (type === 'textarea') v = esc(String(v)).slice(0, 180).replace(/\n/g,'<br>');
+      else v = esc(String(v));
+      return `<td>${v}</td>`;
+    }).join('');
+    return `
+      <tr>
+        <td class="mono">#${row.id}</td>
+        ${cells}
+        <td>
+          <div class="actions">
+            <button class="btn" onclick='openModal("edit", ${JSON.stringify(row).replace(/</g,"\\u003c")})'>Редактировать</button>
+            <button class="btn bad" onclick="deleteRecord(${row.id})">Удалить</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function api(path, options={}){
+  const headers = {...(options.headers||{})};
+  if (!headers['Content-Type'] && options.body) headers['Content-Type'] = 'application/json';
+  if (STATE.token) headers['X-Admin-Token'] = STATE.token;
+  const r = await fetch(path, {...options, headers});
+  let data = {};
+  try { data = await r.json(); } catch(e){}
+  if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+  return data;
+}
+
+async function login(){
+  const password = qs('password').value.trim();
+  if(!password){ qs('loginError').textContent = 'Введите пароль'; return; }
+  qs('loginError').textContent = '...';
+  try{
+    const data = await api(API.login, {method:'POST', body: JSON.stringify({password})});
+    STATE.token = data.token;
+    localStorage.setItem('ilm_admin_token', data.token);
+    qs('loginScreen').style.display = 'none';
+    qs('app').style.display = 'block';
+    setState('онлайн');
+    await refreshAll();
+  }catch(e){
+    qs('loginError').textContent = e.message || 'Ошибка входа';
+    setState('ошибка входа', false);
+  }
+}
+
+function logout(){
+  localStorage.removeItem('ilm_admin_token');
+  location.reload();
+}
+
+async function refreshAll(){
+  try{
+    const s = await api(API.stats);
+    renderStats(s.stats || {});
+    await loadSection();
+    setState('готово к работе');
+  }catch(e){
+    setState('нет связи с API', false);
+  }
+}
+
+function switchSection(section){
+  STATE.section = section;
+  STATE.editing = null;
+  renderTabs();
+  loadSection();
+}
+
+async function loadSection(){
+  const path = API[STATE.section];
+  try{
+    const data = await api(`${path}?limit=200&q=${encodeURIComponent(qs('search').value || '')}`);
+    STATE.rows = data.items || [];
+    renderTable();
+    renderNav();
+  }catch(e){
+    STATE.rows = [];
+    renderTable();
+    setState(e.message || 'Ошибка загрузки', false);
+  }
+}
+
+function buildForm(values={}){
+  const cfg = SECTIONS[STATE.section];
+  return `
+    <div class="form-grid">
+      ${cfg.fields.map(([k, label, type, required]) => `
+        <div class="${type==='textarea' ? 'full' : ''}">
+          <label>${label}${required ? ' *' : ''}</label>
+          ${type === 'textarea'
+            ? `<textarea id="f_${k}" class="textarea" rows="5">${esc(values[k] ?? '')}</textarea>`
+            : `<input id="f_${k}" class="input" type="${type}" value="${esc(values[k] ?? '')}" />`
+          }
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function openModal(mode='add', data=null){
+  STATE.mode = mode;
+  STATE.editing = data;
+  qs('modalTitle').textContent = mode === 'add' ? 'Добавить запись' : 'Редактировать запись';
+  qs('modalSub').textContent = SECTIONS[STATE.section].title;
+  qs('formArea').innerHTML = buildForm(data || {});
+  qs('modalBackdrop').style.display = 'grid';
+}
+function closeModal(){ qs('modalBackdrop').style.display = 'none'; }
+
+function getFormData(){
+  const cfg = SECTIONS[STATE.section];
+  const o = {};
+  cfg.fields.forEach(([k, label, type, required]) => {
+    const el = qs('f_' + k);
+    o[k] = el ? el.value.trim() : '';
+  });
+  return o;
+}
+
+async function saveRecord(){
+  const data = getFormData();
+  const cfg = SECTIONS[STATE.section];
+  for(const [k, label, type, required] of cfg.fields){
+    if(required && !String(data[k] || '').trim()){
+      alert('Заполни поле: ' + label);
+      return;
+    }
+  }
+  try{
+    const method = STATE.mode === 'edit' ? 'PUT' : 'POST';
+    const url = STATE.mode === 'edit' ? `${API[STATE.section]}/${STATE.editing.id}` : API[STATE.section];
+    await api(url, {method, body: JSON.stringify(data)});
+    closeModal();
+    await refreshAll();
+  }catch(e){
+    alert(e.message || 'Ошибка сохранения');
+  }
+}
+
+async function deleteRecord(id){
+  if(!confirm('Удалить запись #' + id + '?')) return;
+  try{
+    await api(`${API[STATE.section]}/${id}`, {method:'DELETE'});
+    await refreshAll();
+  }catch(e){
+    alert(e.message || 'Ошибка удаления');
+  }
+}
+
+function exportCurrent(){
+  const blob = new Blob([JSON.stringify(STATE.rows, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${STATE.section}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function bulkImportHint(){
+  alert('Здесь можно добавить кнопку массового импорта в D1. Для этого Worker должен принимать отдельный endpoint /api/admin/import.');
+}
+function showHelp(){
+  alert(
+    'Схема: narrators, books, chapters, hadiths.\\n\\n' +
+    'Если подключён Worker/D1, эта страница уже умеет CRUD через /api/admin/*.'
+  );
+}
+function sampleData(){
+  const samples = {
+    narrators: {name_ru:'Абу Зарр аль-Гифари', name_ar:'أبو ذر الغفاري', reliability:'Надёжный', sunni_status:'Сподвижник', biography:'...', sources:'...', score:'9.5'},
+    books: {title:'Риджаль аль-Кашши', author:'Абу Джафар ат-Туси', original_title:'إختيار معرفة الرجال'},
+    chapters: {book_id:'1', name:'Достоинства Али'},
+    hadiths: {book_id:'1', chapter_id:'1', text:'Пример хадиса...', source_id:'10651'},
+  };
+  openModal('add', samples[STATE.section]);
+}
+
+qs('search').addEventListener('input', ()=> {
+  clearTimeout(window.__t);
+  window.__t = setTimeout(loadSection, 250);
+});
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeModal();
+  if(e.key === 'Enter' && (document.activeElement && document.activeElement.id === 'password')) login();
+});
+
+(async function init(){
+  renderTabs();
+  if (STATE.token){
+    qs('loginScreen').style.display = 'none';
+    qs('app').style.display = 'block';
+    await refreshAll();
+  }
+})();
 </script>
-</body></html>
+</body>
+</html>
