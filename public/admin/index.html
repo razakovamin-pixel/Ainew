@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Админ — Ilm al-Rijal</title>
+<style>
+:root{--bg:#0b0e13;--card:#121720;--line:#242b36;--text:#f2f4f7;--muted:#8993a2;--accent:#d9b36c;--danger:#d95f67}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#0b0e13ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:var(--muted);font-size:12px}
+main{max-width:1100px;margin:auto;padding:14px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}.num{font-size:25px;font-weight:700}.muted{color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow:auto;margin:14px 0}.tabs button,.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:10px;cursor:pointer;white-space:nowrap}.tabs .active{background:var(--accent);color:#151515}
+.toolbar{display:flex;gap:8px;margin-bottom:10px}.toolbar input,.modal input,.modal textarea,.modal select{width:100%;background:#0c1118;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px}
+.toolbar input{flex:1}.table{overflow:auto;border:1px solid var(--line);border-radius:12px}.row{display:grid;grid-template-columns:60px 1fr 120px 100px;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);min-width:600px}.row:last-child{border:0}.actions{display:flex;gap:5px}.small{padding:7px 9px!important;font-size:12px}.danger{color:#fff;background:var(--danger)!important;border-color:var(--danger)!important}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}.loginbox{width:min(420px,100%)}.loginbox input{margin:10px 0}
+.hidden{display:none}.modalbg{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:15px;z-index:20}.modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(600px,100%);max-height:90vh;overflow:auto}.modal label{display:block;margin:10px 0 5px;color:var(--muted);font-size:12px}.modal .actions{justify-content:flex-end;margin-top:14px}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:42px 1fr 86px 76px;min-width:500px}}
+</style>
+</head>
+<body>
+<div id="login">
+ <div class="loginbox card"><h1>Админ-панель</h1><div class="sub">D1 · Ilm al-Rijal</div>
+ <input id="password" type="password" placeholder="Пароль администратора">
+ <button class="btn" style="width:100%" onclick="login()">Войти</button><p id="loginerr" class="muted"></p></div>
+</div>
+<div id="app" class="hidden">
+<header><h1>Админ-панель</h1><div class="sub">Передатчики · книги · главы · хадисы</div></header>
+<main>
+<div class="grid" id="stats"></div>
+<div class="tabs" id="tabs"></div>
+<div class="toolbar"><input id="search" placeholder="Поиск..."><button class="btn" onclick="openAdd()">＋ Добавить</button></div>
+<div id="table" class="table"></div>
+</main></div>
+<div id="modal" class="hidden"></div>
+<script>
+const tokenKey='ilm_admin_token'; let type='narrators', offset=0;
+const configs={
+ narrators:{label:'Передатчики',fields:[['name_ru','Имя'],['name_ar','Имя на арабском'],['reliability','Оценка'],['sunni_status','Суннитская оценка'],['biography','Биография','textarea'],['sources','Источники'],['score','Баллы']]},
+ books:{label:'Книги',fields:[['title','Название'],['author','Автор'],['original_title','Оригинальное название']]},
+ chapters:{label:'Главы',fields:[['book_id','ID книги'],['name','Название главы']]},
+ hadiths:{label:'Хадисы',fields:[['book_id','ID книги'],['chapter_id','ID главы'],['text','Текст','textarea'],['source_id','Источник/ID']]}
+};
+function auth(){return localStorage.getItem(tokenKey)}
+async function api(path,opt={}){opt.headers={...(opt.headers||{}),'X-Admin-Token':auth(),'Content-Type':'application/json'};let r=await fetch(path,opt);let d=await r.json();if(r.status===401){logout();throw Error('Unauthorized')}if(!r.ok)throw Error(d.error||'Ошибка');return d}
+async function login(){let p=password.value;let r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p})});let d=await r.json();if(!r.ok){loginerr.textContent=d.error||'Ошибка';return}localStorage.setItem(tokenKey,d.token);show()}
+function logout(){localStorage.removeItem(tokenKey);location.reload()}
+function show(){login.classList.add('hidden');app.classList.remove('hidden');buildTabs();loadStats();load()}
+function buildTabs(){tabs.innerHTML=Object.entries(configs).map(([k,c])=>`<button class="${k===type?'active':''}" onclick="type='${k}';offset=0;buildTabs();load()">${c.label}</button>`).join('')}
+async function loadStats(){let d=await api('/api/admin/stats');stats.innerHTML=Object.entries(d.stats).map(([k,v])=>`<div class="card"><div class="muted">${configs[k].label}</div><div class="num">${v}</div></div>`).join('')}
+async function load(){table.innerHTML='<div class="row">Загрузка...</div>';let q=encodeURIComponent(search.value||'');let d=await api(`/api/admin/${type}?limit=200&offset=${offset}&q=${q}`);table.innerHTML=d.items.map(rowHTML).join('')||'<div class="row">Нет данных</div>'}
+function rowHTML(x){let c=configs[type], main=x[c.fields[0][0]]??'';return `<div class="row"><div>#${x.id}</div><div>${esc(String(main)).slice(0,300)}</div><div class="muted">${c.label}</div><div class="actions"><button class="btn small" onclick='edit(${JSON.stringify(x)})'>✎</button><button class="btn small danger" onclick="del(${x.id})">×</button></div></div>`}
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function openAdd(){edit({})}
+function edit(x){let c=configs[type];modal.classList.remove('hidden');modal.innerHTML=`<div class="modalbg"><div class="modal"><h2>${x.id?'Редактировать':'Добавить'} · ${c.label}</h2>${c.fields.map(f=>`<label>${f[1]}<input id="f_${f[0]}" ${f[2]==='textarea'?'style="min-height:140px"':''} value="${esc(String(x[f[0]]??''))}"></label>`).join('')}<div class="actions"><button class="btn" onclick="modal.classList.add('hidden')">Отмена</button><button class="btn" onclick="save(${x.id||0})">Сохранить</button></div></div></div>`}
+async function save(id){let c=configs[type],o={};c.fields.forEach(f=>o[f[0]]=document.getElementById('f_'+f[0]).value);try{await api('/api/admin/'+type+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify(o)});modal.classList.add('hidden');loadStats();load()}catch(e){alert(e.message)}}
+async function del(id){if(!confirm('Удалить запись #'+id+'?'))return;try{await api('/api/admin/'+type+'/'+id,{method:'DELETE'});loadStats();load()}catch(e){alert(e.message)}}
+search.addEventListener('input',()=>{clearTimeout(window.st);window.st=setTimeout(load,300)});
+if(auth())show();
+</script>
+</body></html>
