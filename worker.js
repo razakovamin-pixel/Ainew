@@ -898,6 +898,29 @@ function upstreamPath(env) {
   return value;
 }
 
+// Удаляет из JSON-ответа ИИ-провайдера любые поля, по которым можно узнать,
+// какая именно модель/провайдер используется (например "model"). Если тело
+// не парсится как JSON — возвращаем как есть (например, при ошибке апстрима).
+function stripProviderInfo(rawText) {
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    return rawText;
+  }
+  if (data && typeof data === 'object') {
+    delete data.model;
+    if (data.error && typeof data.error === 'object') {
+      delete data.error.model;
+    }
+  }
+  try {
+    return JSON.stringify(data);
+  } catch {
+    return rawText;
+  }
+}
+
 async function handleChat(request, env) {
   if (!env.AI_API_KEY || !env.AI_BASE_URL || !env.AI_MODEL) {
     return json({ error: 'AI is not configured on the server' }, 503);
@@ -988,7 +1011,13 @@ async function handleChat(request, env) {
     });
 
     const text = await upstream.text();
-    return new Response(text, {
+    // Никогда не отдаём в браузер сведения о том, какой ИИ-провайдер или
+    // какая именно модель стоит за чатом (поле "model" в ответе Anthropic-
+    // совместимого API, а иногда и служебные "id"/"type" от провайдера).
+    // Пользователь не должен иметь возможность увидеть это даже через
+    // вкладку "Сеть" в инструментах разработчика.
+    const sanitizedText = stripProviderInfo(text);
+    return new Response(sanitizedText, {
       status: upstream.status,
       headers: {
         'Content-Type':
