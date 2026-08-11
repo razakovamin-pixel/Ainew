@@ -3706,6 +3706,12 @@ textarea:focus{
       </svg>
       <span id="btnHadisLabel">Хадисы</span>
     </button>
+    <button class="tab-btn" id="btnFiqh" title="Фикх">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 3v18"/><path d="M3 7l9-4 9 4"/><path d="M5 7v10a2 2 0 0 0 2 2h2"/><path d="M19 7v10a2 2 0 0 1-2 2h-2"/>
+      </svg>
+      <span id="btnFiqhLabel">Фикх</span>
+    </button>
   </div>
 </nav>
 
@@ -3715,6 +3721,12 @@ textarea:focus{
     if (btn) {
       btn.addEventListener('click', function(){
         window.location.href = 'hadis/';
+      });
+    }
+    var btnFiqh = document.getElementById('btnFiqh');
+    if (btnFiqh) {
+      btnFiqh.addEventListener('click', function(){
+        window.location.href = 'fiqh/';
       });
     }
   })();
@@ -4863,7 +4875,7 @@ async function parseAiResponse(res) {
   }
 }
 
-// ── Fetch translation from Claude API ────────────────────────
+// ── Fetch translation from AI API ────────────────────────
 // Обёртка с защитой от дублей: если для той же карточки+языка запрос уже
 // летит, второй клик не запускает новый запрос, а просто ждёт первый.
 const _inFlightTranslations = {};
@@ -5590,7 +5602,7 @@ function openPanelEl(id) { $(id).classList.add('open'); }
 // НАСТРОЙКИ ИИ — Base URL / API-ключ / модель
 // ═══════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════
-// ИИ-ЧАТ — Anthropic Claude (встроенный, без ключа)
+// ИИ-ЧАТ — встроенный ассистент (без ключа на стороне клиента)
 // ═══════════════════════════════════════════════════════════════
 const AI_CHAT_HISTORY_KEY = 'rijal_ai_chat_v1';
 
