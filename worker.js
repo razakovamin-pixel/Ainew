@@ -981,17 +981,32 @@ async function handleChat(request, env) {
 
   const lastUserText = getLastUserText(safePayload.messages);
 
+  const wantsTranslateModel =
+    request.headers.get('x-translate') === '1' ||
+    request.headers.get('X-Translate') === '1';
+
   // Строгий режим "только локальная база хадисов" — используется чатом на
   // странице /hadis (см. public/hadis/index.html). Там система уже сама
   // передаёт найденные фрагменты из hadis_data.json прямо в system-промпте,
   // и веб-поиск (shiaisnad.ru/arsh313.com/и т.д.) специально пропускается —
   // и чтобы не тратить время/подзапросы, и чтобы модель не подмешивала
   // внешние источники там, где просили отвечать строго по локальному файлу.
+  //
+  // Запросы перевода (X-Translate: 1) — САМАЯ ЧАСТАЯ причина, почему
+  // перевод биографии казался медленным: раньше даже для перевода воркер
+  // всё равно запускал полный каскад веб-поиска по shiaisnad.ru/arsh313.com
+  // и остальным источникам (десятки под-запросов) ПЕРЕД тем, как вообще
+  // обратиться к модели — хотя промпт перевода уже содержит весь нужный
+  // текст и никакого поиска не требует. Пропускаем поиск для них так же,
+  // как и для строгого режима хадисов — это и есть основной выигрыш в
+  // скорости, а не только выбор модели.
   const strictLocalHadith =
     request.headers.get('x-hadith-strict') === '1' ||
     request.headers.get('X-Hadith-Strict') === '1';
 
-  const sourceContext = strictLocalHadith
+  const skipSourceSearch = strictLocalHadith || wantsTranslateModel;
+
+  const sourceContext = skipSourceSearch
     ? ''
     : await collectSourceContext(lastUserText);
 
@@ -999,9 +1014,6 @@ async function handleChat(request, env) {
     safePayload.system = mergeSystemText(safePayload.system, sourceContext);
   }
 
-  const wantsTranslateModel =
-    request.headers.get('x-translate') === '1' ||
-    request.headers.get('X-Translate') === '1';
   // Модель для перевода: сначала явный секрет TRANSLATE_MODEL (простое имя,
   // как просили), затем — старое имя TRANSLATE_MODEL_AI для обратной
   // совместимости, и только потом жёстко заданная по умолчанию самая
