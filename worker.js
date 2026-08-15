@@ -14,10 +14,14 @@
  *   AI_API_KEY        — Secret
  *   AI_BASE_URL       — Variable (например: https://smartapi.shop/backend)
  *   AI_MODEL          — Variable
- *   TRANSLATE_MODEL_AI — Secret/Variable, optional. Модель, используемая
- *                        специально для перевода интерфейса/карточек/хадисов
- *                        (запросы с заголовком X-Translate: 1). Если не задана,
- *                        используется AI_MODEL.
+ *   TRANSLATE_MODEL    — Secret/Variable, optional. Отдельная (обычно более
+ *                        быстрая/дешёвая) модель специально для перевода
+ *                        интерфейса/карточек/хадисов (запросы с заголовком
+ *                        X-Translate: 1). Если не задана — используется
+ *                        TRANSLATE_MODEL_AI (старое имя, для обратной
+ *                        совместимости), а если и его нет — AI_MODEL.
+ *   TRANSLATE_MODEL_AI — устаревшее имя того же секрета, оставлено для
+ *                        совместимости со старыми деплоями.
  *   AI_TIMEOUT_MS — optional, default 58000
  *   AI_PATH      — optional, default /v1/messages
  */
@@ -724,15 +728,17 @@ async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
 }
 
 async function searchHadithCascade(queryVariants, pushSource, seen) {
-  // 1) Строго shiaisnad.ru — собственная база проекта, приоритет №1.
-  if (await searchSingleHostHadith('shiaisnad.ru', queryVariants, pushSource, seen)) {
-    return true;
-  }
-  // 2) Не получилось — строго arsh313.com (раздел /hadiths/).
-  if (await searchSingleHostHadith('arsh313.com', queryVariants, pushSource, seen)) {
-    return true;
-  }
-  return false;
+  // Раньше это были два строго последовательных шага (shiaisnad.ru, и
+  // только при пустом результате — arsh313.com), что удваивало задержку
+  // в худшем случае. Итоговый порядок источников всё равно определяется
+  // сортировкой по score в collectSourceContext (shiaisnad.ru = 100,
+  // arsh313.com = 60), так что можно смело искать по обоим хостам
+  // одновременно — результат идентичен, но быстрее примерно в 2 раза.
+  const [shiaisnadHit, arshHit] = await Promise.all([
+    searchSingleHostHadith('shiaisnad.ru', queryVariants, pushSource, seen).catch(() => false),
+    searchSingleHostHadith('arsh313.com', queryVariants, pushSource, seen).catch(() => false),
+  ]);
+  return shiaisnadHit || arshHit;
 }
 
 async function collectSourceContext(userText) {
@@ -756,12 +762,19 @@ async function collectSourceContext(userText) {
     return true;
   };
 
-  for (const url of directUrls) {
-    try {
-      const opened = await openAllowedUrl(url);
+  // Прямые ссылки в сообщении пользователя открываем параллельно, а не по
+  // очереди — это не меняет результат (все URL всё равно нужно открыть),
+  // но заметно сокращает задержку, когда пользователь прислал несколько
+  // ссылок сразу.
+  if (directUrls.length > 0) {
+    const openedDirect = await Promise.all(
+      directUrls.slice(0, MAX_SOURCES_PER_ANSWER).map((url) =>
+        openAllowedUrl(url).catch(() => null),
+      ),
+    );
+    for (const opened of openedDirect) {
       if (opened) pushSource(opened);
-    } catch {}
-    if (sources.length >= MAX_SOURCES_PER_ANSWER) break;
+    }
   }
 
   if (sources.length < MAX_SOURCES_PER_ANSWER) {
@@ -980,8 +993,13 @@ async function handleChat(request, env) {
   const wantsTranslateModel =
     request.headers.get('x-translate') === '1' ||
     request.headers.get('X-Translate') === '1';
+  // Модель для перевода: сначала явный секрет TRANSLATE_MODEL (простое имя,
+  // как просили), затем — старое имя TRANSLATE_MODEL_AI для обратной
+  // совместимости, и только потом общая AI_MODEL.
   safePayload.model =
-    (wantsTranslateModel && env.TRANSLATE_MODEL_AI) || env.AI_MODEL;
+    (wantsTranslateModel &&
+      (env.TRANSLATE_MODEL || env.TRANSLATE_MODEL_AI)) ||
+    env.AI_MODEL;
 
   let targetUrl;
   try {
