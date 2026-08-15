@@ -19,7 +19,9 @@
  *                        интерфейса/карточек/хадисов (запросы с заголовком
  *                        X-Translate: 1). Если не задана — используется
  *                        TRANSLATE_MODEL_AI (старое имя, для обратной
- *                        совместимости), а если и его нет — AI_MODEL.
+ *                        совместимости), а если и его нет — жёстко заданная
+ *                        по умолчанию модель deepseek-v4-flash (самая
+ *                        быстрая/дешёвая из доступных), а не AI_MODEL.
  *   TRANSLATE_MODEL_AI — устаревшее имя того же секрета, оставлено для
  *                        совместимости со старыми деплоями.
  *   AI_TIMEOUT_MS — optional, default 58000
@@ -40,6 +42,13 @@ const DDG_BROWSER_USER_AGENT =
 
 const DEFAULT_AI_PATH = '/v1/messages';
 const DEFAULT_TIMEOUT_MS = 58_000;
+// Быстрая модель для перевода интерфейса/карточек/биографий по умолчанию —
+// используется автоматически, если секреты TRANSLATE_MODEL и
+// TRANSLATE_MODEL_AI не заданы. Deepseek V4 Flash — самая быстрая и самая
+// дешёвая модель из доступного списка (×0.60), это и есть выбор "самая
+// быстрая модель" для перевода. Переопределяется через
+// `wrangler secret put TRANSLATE_MODEL`.
+const DEFAULT_TRANSLATE_MODEL = 'deepseek-v4-flash';
 const MAX_UPSTREAM_TIMEOUT_MS = 120_000;
 const MAX_PAYLOAD_BYTES = 200_000;
 const MAX_MODEL_TOKENS = 8000;
@@ -995,10 +1004,12 @@ async function handleChat(request, env) {
     request.headers.get('X-Translate') === '1';
   // Модель для перевода: сначала явный секрет TRANSLATE_MODEL (простое имя,
   // как просили), затем — старое имя TRANSLATE_MODEL_AI для обратной
-  // совместимости, и только потом общая AI_MODEL.
+  // совместимости, и только потом жёстко заданная по умолчанию самая
+  // быстрая модель (DEFAULT_TRANSLATE_MODEL), а не общая AI_MODEL — так
+  // перевод всегда идёт быстрой моделью, даже если секрет не настраивали.
   safePayload.model =
     (wantsTranslateModel &&
-      (env.TRANSLATE_MODEL || env.TRANSLATE_MODEL_AI)) ||
+      (env.TRANSLATE_MODEL || env.TRANSLATE_MODEL_AI || DEFAULT_TRANSLATE_MODEL)) ||
     env.AI_MODEL;
 
   let targetUrl;
