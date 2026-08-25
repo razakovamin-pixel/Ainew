@@ -1139,6 +1139,31 @@ export default {
       return new Response(null, { headers: corsHeaders() });
     }
 
+
+    // Pretty article URLs:
+    // /statya/article-name.html -> /statya/articles/article-name.html
+    // Keep only simple .html filenames to avoid path traversal and keep the public
+    // URL clean while the physical folder remains separate.
+    const articleMatch = url.pathname.match(/^\/statya\/([^/]+\.html)$/i);
+    if (request.method === 'GET' && articleMatch) {
+      const filename = articleMatch[1];
+      if (!filename.includes('..') && !filename.includes('\\')) {
+        const targetUrl = new URL(`/statya/articles/${filename}`, request.url);
+        const assetRequest = new Request(targetUrl.toString(), request);
+        if (env.ASSETS) {
+          const articleResponse = await env.ASSETS.fetch(assetRequest);
+          if (articleResponse.status !== 404) {
+            return articleResponse;
+          }
+        }
+      }
+    }
+
+    if (url.pathname === '/statya') {
+      const targetUrl = new URL('/statya/', request.url);
+      return Response.redirect(targetUrl.toString(), 301);
+    }
+
     if (url.pathname === '/ai/chat') {
       if (request.method !== 'POST') {
         return json({ error: 'Method not allowed' }, 405);
