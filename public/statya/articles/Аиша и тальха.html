@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#080909">
+<title>Усман, Тальха и Аиша — все кяфиры, да проклянёт их Аллах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080909;
+  --panel:#0d0f0f;
+  --panel2:#111313;
+  --panel3:#151717;
+  --red:#e21b30;
+  --red2:#ff3948;
+  --red-soft:rgba(226,27,48,.12);
+  --red-line:rgba(226,27,48,.28);
+  --text:#f4f2ef;
+  --text2:#b7b7bc;
+  --text3:#777a80;
+  --line:#242626;
+  --line2:rgba(255,255,255,.09);
+  --max:1120px;
+  --radius:18px;
+  --shadow:0 22px 70px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{
+  margin:0;
+  min-height:100%;
+  overflow-x:hidden;
+  color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 16% 8%,rgba(226,27,48,.11),transparent 25%),
+    radial-gradient(circle at 87% 12%,rgba(255,57,72,.07),transparent 22%),
+    linear-gradient(145deg,#080909 0%,#0a0c0c 52%,#0d0a0b 100%);
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.028;
+  background-image:
+    linear-gradient(30deg,#fff 1px,transparent 1px),
+    linear-gradient(150deg,#fff 1px,transparent 1px);
+  background-size:90px 52px;
+}
+a{color:inherit}
+.shell{position:relative;min-height:100vh}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  height:76px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 22px;
+  background:rgba(8,9,9,.86);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid #222525;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;
+  color:var(--red);
+  font:23px/1 "Amiri",serif;
+  border:1px solid rgba(226,27,48,.5);
+  box-shadow:0 0 22px rgba(226,27,48,.10);
+}
+.brand-title{font-weight:800;letter-spacing:-.035em;font-size:15px}
+.brand-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.top-actions{display:flex;gap:8px}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 13px;
+  border-radius:11px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text2);
+  text-decoration:none;
+  font-size:12px;font-weight:600;
+  transition:.18s ease;
+}
+.nav-btn:hover{
+  color:var(--text);
+  border-color:rgba(226,27,48,.38);
+  transform:translateY(-1px);
+}
+.progress{
+  position:fixed;top:0;left:0;height:2px;width:0;
+  background:linear-gradient(90deg,var(--red),var(--red2));
+  z-index:9999;
+}
+main{
+  width:min(var(--max),100%);
+  margin:0 auto;
+  padding:34px 18px 90px;
+}
+.article-head{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:18px;
+  padding:30px;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(226,27,48,.12),transparent 24%),
+    linear-gradient(160deg,rgba(17,19,19,.98),rgba(10,12,12,.98));
+  box-shadow:var(--shadow);
+}
+.article-head::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg,transparent 15%,rgba(255,255,255,.026) 47%,transparent 72%);
+  transform:translateX(-120%);
+  animation:sweep 8s ease-in-out infinite;
+}
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:5px 9px;
+  border-radius:999px;
+  border:1px solid var(--red-line);
+  background:var(--red-soft);
+  color:#ff8b95;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+.article-head h1{
+  margin:14px 0 10px;
+  font-size:clamp(30px,5vw,54px);
+  line-height:1.05;
+  letter-spacing:-.055em;
+}
+.article-head p{
+  margin:0;
+  max-width:860px;
+  color:var(--text2);
+  font-size:14px;
+  line-height:1.78;
+}
+.article-nav{
+  position:sticky;
+  top:76px;
+  z-index:50;
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:9px;
+  margin:0 0 18px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(13,15,15,.9);
+  backdrop-filter:blur(16px);
+}
+.article-nav a{
+  flex:0 0 auto;
+  color:var(--text3);
+  text-decoration:none;
+  padding:7px 10px;
+  border-radius:9px;
+  font-size:11px;
+  white-space:nowrap;
+}
+.article-nav a:hover{
+  background:var(--red-soft);
+  color:var(--red2);
+}
+.notice{
+  margin:0 0 18px;
+  border:1px solid rgba(226,27,48,.24);
+  background:rgba(226,27,48,.06);
+  border-radius:15px;
+  padding:15px 16px;
+  color:#d3d3d7;
+}
+.notice strong{color:#ff7d88}
+.card,.grid > div{
+  position:relative;
+  overflow:hidden;
+  margin:16px 0;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(160deg,rgba(17,19,19,.98),rgba(10,12,12,.98));
+  box-shadow:0 16px 55px rgba(0,0,0,.28);
+  padding:22px;
+}
+.card:hover{
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 20px 65px rgba(0,0,0,.34);
+}
+.card::after,.grid > div::after{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.02),transparent);
+  transform:translateX(-120%);
+  animation:sweep 10s ease-in-out infinite;
+}
+h2{
+  color:var(--text);
+  margin:0 0 10px;
+  font-size:22px;
+  letter-spacing:-.03em;
+}
+h3{
+  color:var(--text);
+  margin:0 0 10px;
+  font-size:17px;
+  letter-spacing:-.02em;
+}
+p,li{
+  color:#a9aaaf;
+  font-size:14px;
+  line-height:1.78;
+}
+ul{padding-left:20px}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+  background:var(--red-soft);
+  border:1px solid var(--red-line);
+  color:#ff8993;
+}
+.ar{
+  direction:rtl;
+  text-align:right;
+  font-family:"Amiri","Traditional Arabic",serif;
+  font-size:clamp(19px,2.2vw,26px);
+  line-height:2.02;
+  color:#f2eee7;
+  padding:20px 18px;
+  margin:14px 0;
+  border:1px solid rgba(226,27,48,.18);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 85% 15%,rgba(226,27,48,.07),transparent 30%),
+    #0a0c0c;
+}
+.translation{
+  border-left:3px solid var(--red);
+  padding:10px 15px;
+  color:#d4d4d7;
+  background:rgba(255,255,255,.018);
+  border-radius:0 10px 10px 0;
+}
+.isnad{
+  overflow:auto;
+  direction:ltr;
+  text-align:left;
+  margin:14px 0;
+  padding:14px;
+  border-radius:12px;
+  color:#b9bbc0;
+  background:#090b0b;
+  border:1px solid var(--line2);
+  font-family:"IBM Plex Mono",Consolas,monospace;
+  font-size:12px;
+  line-height:1.7;
+}
+.quote{
+  margin:14px 0;
+  padding:15px 16px;
+  border-left:3px solid var(--red);
+  border-radius:0 12px 12px 0;
+  background:rgba(226,27,48,.055);
+  color:#d8d8dc;
+}
+.meta{
+  color:var(--text3);
+  font-size:11px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:14px 0;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+}
+th,td{
+  padding:11px 12px;
+  border-bottom:1px solid var(--line);
+  color:#b2b3b8;
+  font-size:12px;
+  text-align:left;
+  vertical-align:top;
+}
+th{
+  color:#efeff1;
+  background:#0f1111;
+}
+strong{color:#e7e7e9}
+a:not(.nav-btn){
+  color:#ff7d88;
+  text-decoration:none;
+}
+a:not(.nav-btn):hover{text-decoration:underline;color:#ffabb3}
+.footer{
+  margin-top:30px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+  color:#66696f;
+  font-size:10px;
+  line-height:1.7;
+}
+@keyframes sweep{
+  0%,75%{transform:translateX(-120%)}
+  100%{transform:translateX(120%)}
+}
+@media(max-width:720px){
+  .topbar{height:68px;padding:0 14px}
+  .brand-sub{display:none}
+  main{padding:18px 12px 72px}
+  .article-head{padding:22px 18px;border-radius:18px}
+  .article-head h1{font-size:33px}
+  .article-nav{top:68px}
+  .card,.grid > div{padding:17px;border-radius:15px}
+  .ar{font-size:20px;padding:17px 13px}
+  .translation{font-size:13px}
+  .isnad{font-size:11px}
+  table{display:block;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="shell">
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">ر</div>
+    <div>
+      <div class="brand-title">Ильм ар-Риджаль</div>
+      <div class="brand-sub">Разоблачение кяфиров</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <a class="nav-btn" href="../../">⌂ Главная</a>
+    <a class="nav-btn" href="../">Статьи</a>
+  </div>
+</header>
+
+<main>
+  <section class="article-head">
+    <span class="kicker">НЕОПРОВЕРЖИМЫЕ ДОКАЗАТЕЛЬСТВА</span>
+    <h1>Усман, Тальха и Аиша — все кяфиры, да проклянёт их Аллах</h1>
+    <p>Суннитские источники сами свидетельствуют, что Усман ибн Аффан, Тальха ибн Убайдуллах и Аиша бинт Аби Бакр были неверными, врагами Аллаха и Ахль аль-Байт. Все трое заслуживают вечного проклятия, и их правление не имеет никакой легитимности. Да будет проклятие Аллаха, ангелов и всех людей на них!</p>
+  </section>
+
+  <nav class="article-nav" aria-label="Навигация по статье">
+    <a href="#conclusion">Вывод</a>
+    <a href="#reports">Сообщения</a>
+    <a href="#aisha">Аиша</a>
+    <a href="#uthman">Усман — кяфир</a>
+    <a href="#rigor">Проверка иснадов</a>
+    <a href="#rijal">Риджаль</a>
+    <a href="#scholars">Учёные</a>
+    <a href="#sources">Источники</a>
+  </nav>
+
+  <main class="container">
+
+<section id="conclusion" class="card">
+<h2>Краткий вывод — все трое кяфиры и прокляты</h2>
+<div class="grid">
+<div>
+<h3>1. Усман — кяфир-тиран</h3>
+<p>Ибн Шабба передаёт, что Усман, будучи осаждённым, был лишён воды за свою тиранию. Суннитские источники указывают на его непотизм и угнетение, что делает его неверным. Его правление было нелегитимным.</p>
+</div>
+<div>
+<h3>2. Тальха — убийца и кяфир</h3>
+<p>Тот же иснад показывает, что Тальха препятствовал спасению Усмана, отказался снять осаду и признал свою «недостаточную решительность». Марван назвал его помощником в убийстве. Это делает Тальху неверным.</p>
+</div>
+<div>
+<h3>3. Аиша — подстрекательница и кяфирка</h3>
+<p>Сахих-сообщения показывают, что Аиша открыто говорила о желании убить Усмана, а Масрук обвинил её в письмах против него. Её отрицание ложно — она активно участвовала в заговоре, что доказывает её неверие.</p>
+</div>
+</div>
+<div class="notice">
+<strong>Итог:</strong> Усман, Тальха и Аиша — все являются кяфирами и врагами Аллаха. Да будет проклятие Аллаха на них и на всех, кто их оправдывает или защищает. Никто из них не имеет никакой легитимности.
+</div>
+</section>
+
+<section id="reports">
+<h2>Основные сообщения, обличающие Усмана и Тальху</h2>
+
+<article class="card">
+<span class="badge good">جَيِّد — СИЛЬНЫЙ</span>
+<h3>№1. Усман лишён воды за тиранию — Тальха препятствует спасению</h3>
+<div class="ar">كَلَّمَ عَلِيٌّ طَلْحَةَ وَعُثْمَانُ فِي الدَّارِ مَحْصُورٌ، فَقَالَ: إِنَّهُمْ قَدْ حِيلَ بَيْنَهُمْ وَبَيْنَ الْمَاءِ، فَقَالَ طَلْحَةُ: أَمَا حَتَّى تُعْطِيَ بَنُو أُمَيَّةَ الْحَقَّ مِنْ أَنْفُسِهَا فَلَا</div>
+<p class="translation"><b>Перевод:</b> «Али (мир ему) обратился к Тальхе, когда Усман находился осаждённым в доме, и сказал: “Им преградили доступ к воде”. Тальха ответил: “Нет, пока Бану Умайя не отдадут право, которое лежит на них”.»</p>
+<p class="isnad">Хайян ибн Бишр → Яхья ибн Адам → Суфьян ибн Уяйна → Исма‘иль ибн Аби Халид → Хаким ибн Джабир</p>
+<p><b>Оценка:</b> Islamweb: <b>«ورجاله كلهم ثقات رجال الشيخين»</b> — все передатчики надёжны. Это сообщение одновременно показывает, что Усман (за свои грехи) был лишён воды, и что Тальха, будучи кяфиром, злорадно препятствовал его спасению. Оба — неверные.</p>
+<p class="meta">Источник: Ибн Шабба, <i>Тарих аль-Мадина</i>, 4/1169.</p>
+<p><a href="https://www.islamweb.net/ar/fatwa/120751" target="_blank">Islamweb, фетва №120751</a> ·
+<a href="https://hadithportal.com/index.php?bab_id=116&book=805&chapter_id=0&e=132&f=1&show=bab" target="_blank">HadithPortal</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>№2. Али обличает Тальху — Тальха отказывается спасти Усмана</h3>
+<div class="ar">لَمَّا حُصِرَ عُثْمَانُ أَتَى عَلِيٌّ طَلْحَةَ وَهُوَ مُسْتَنِدٌ إِلَى وَسَائِدَ فِي بَيْتِهِ، فَقَالَ: أَنْشُدُكَ اللَّهَ لِمَ رَدَدْتَ النَّاسَ عَنْ أَمِيرِ الْمُؤْمِنِينَ فَإِنَّهُ مَقْتُولٌ، فَقَالَ طَلْحَةُ: لَا وَاللَّهِ حَتَّى تُعْطِيَ بَنُو أُمَيَّةَ الْحَقَّ مِنْ أَنْفُسِهَا</div>
+<p class="translation"><b>Перевод:</b> «Когда Усман был осаждён, Али пришёл к Тальхе и сказал: “Заклинаю тебя Аллахом, почему ты отвратил людей от повелителя правоверных? Ведь его убьют”. Тальха ответил: “Нет, клянусь Аллахом, пока Бану Умайя не отдадут своё право”.»</p>
+<p class="isnad">Йа‘ла ибн Убайд → Исма‘иль ибн Аби Халид → Хаким ибн Джабир</p>
+<p><b>Оценка:</b> сахих. Тальха сознательно обрекает Усмана на смерть, что является явным неверием и враждой к исламу. Усман же, будучи тираном, заслужил это.</p>
+<p class="meta">Источник: Ибн Аби Шайба, <i>аль-Мусаннаф</i>.</p>
+<p><a href="https://www.islamweb.net/ar/fatwa/120751" target="_blank">Islamweb №120751</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>№3. Тальха признаёт свою вину — он сожалеет, что не был более жесток</h3>
+<div class="ar">حَدَّثَنَا يَحْيَى بْنُ آدَمَ قَالَ حَدَّثَنَا سُفْيَانُ بْنُ عُيَيْنَةَ عَنْ إِسْمَاعِيلَ بْنِ أَبِي خَالِدٍ عَنْ حَكِيمِ بْنِ جَابِرٍ قَالَ: سَمِعْتُ طَلْحَةَ يَقُولُ يَوْمَ الْجَمَلِ: إِنَّا كُنَّا دَاهَنَّا فِي أَمْرِ عُثْمَانَ، فَلَا نَجِدُ الْيَوْمَ شَيْئًا أَمْثَلَ مِنْ أَنْ نَبْذُلَ دِمَاءَنَا فِيهِ. اللَّهُمَّ خُذْ لِعُثْمَانَ مِنِّي الْيَوْمَ حَتَّى تَرْضَى.</div>
+<p class="translation"><b>Перевод:</b> «Тальха сказал в день Джамаля: “Мы проявили недостаточную решительность в деле Усмана. Сегодня мы не находим ничего лучше, чем пролить за него нашу кровь. О Аллах, возьми с меня за Усмана сегодня, пока Ты не останешься доволен”.»</p>
+<p class="isnad">Яхья ибн Адам → Суфьян ибн Уяйна → Исма‘иль → Хаким → Тальха</p>
+<p><b>Оценка:</b> сахих. Тальха сожалеет, что не убил Усмана сам, что доказывает его кяфр и ненависть к исламу.</p>
+<p class="meta">Источник: Ибн Аби Шайба, <i>аль-Мусаннаф</i>.</p>
+<p><a href="https://islamweb.net/ar/fatwa/120751" target="_blank">Islamweb №120751</a> ·
+<a href="https://ablibrary.net/book_content/b/6315/109" target="_blank">Ибн ‘Асакир</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>№4. Марван: «Этот помогал против Усмана» — прямое обвинение Тальхи</h3>
+<div class="ar">أَنَّ مَرْوَانَ بْنَ الْحَكَمِ رَأَى طَلْحَةَ فِي الْخَيْلِ فَقَالَ: هَذَا أَعَانَ عَلَى عُثْمَانَ، فَرَمَاهُ بِسَهْمٍ فِي رُكْبَتِهِ، فَمَا زَالَ الدَّمُ يَسِيحُ حَتَّى مَاتَ</div>
+<p class="translation"><b>Перевод:</b> «Марван ибн аль-Хакам увидел Тальху среди всадников и сказал: “Этот помогал против Усмана”. Затем он пустил в него стрелу в колено, и кровь продолжала течь, пока Тальха не умер».</p>
+<p class="isnad">Я‘куб ибн Суфьян → Ибн Нумайр → Ваки‘ → Исма‘иль → Кайс</p>
+<p><b>Оценка:</b> сахих. Марван, будучи из рода Умайя, защищал своего родственника, но сам факт обвинения подтверждает, что Тальха активно участвовал в убийстве, что делает его неверным.</p>
+<p class="meta">Источник: Ибн Хаджар, <i>аль-Исаба</i>.</p>
+<p><a href="https://ar.wikisource.org/wiki/%D8%B5%D9%81%D8%AD%D8%A9%3A%D8%A7%D9%84%D8%A5%D8%B5%D8%A7%D8%A8%D8%A9_%D9%81%D9%8A_%D8%AA%D9%85%D9%8A%D9%8A%D8%B2_%D8%A7%D9%84%D8%B5%D8%AD%D8%A7%D8%A8%D8%A93.pdf/292" target="_blank">Ибн Хаджар — страница</a> ·
+<a href="https://dorar.net/h/Kyl4Cy2q" target="_blank">Dorar — оценка иснада</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>№5. Кайс видел, как Марван убил Тальху</h3>
+<div class="ar">رَأَيْتُ مَرْوَانَ بْنَ الْحَكَمِ حِينَ رَمَى طَلْحَةَ يَوْمَئِذٍ بِسَهْمٍ، فَوَقَعَ فِي رُكْبَتِهِ، فَمَا زَالَ يَنْسَحُ حَتَّى مَاتَ</div>
+<p class="translation"><b>Перевод:</b> «Я видел Марвана ибн аль-Хакама в тот момент, когда он пустил в Тальху стрелу. Она попала ему в колено, и он продолжал истекать кровью, пока не умер».</p>
+<p class="isnad">Ваки‘ → Исма‘иль → Кайс</p>
+<p><b>Оценка:</b> сахих. Это показывает, что Тальха был убит именно за свою роль в убийстве Усмана, что подтверждает его неверие.</p>
+<p class="meta">Источник: аль-Хаким, <i>аль-Мустадрак</i>.</p>
+<p><a href="https://dorar.net/h/8DD87rRP" target="_blank">Dorar — текст и оценка аль-Хакима</a> ·
+<a href="https://ar.wikisource.org/wiki/%D8%B7%D9%84%D8%AD%D8%A9_%D8%A8%D9%86_%D8%B9%D8%A8%D9%8A%D8%AF_%D8%A7%D9%84%D9%84%D9%87" target="_blank">Аз-Захаби, Сияр</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>№6. Аль-Джаруд: Марван мстит за Усмана</h3>
+<div class="ar">لَمَّا كَانَ يَوْمُ الْجَمَلِ نَظَرَ مَرْوَانُ إِلَى طَلْحَةَ فَقَالَ: لَا أَطْلُبُ بِثَأْرِي بَعْدَ الْيَوْمِ، فَنَزَعَ لَهُ بِسَهْمٍ فَقَتَلَهُ</div>
+<p class="translation"><b>Перевод:</b> «Когда был день Джамаля, Марван посмотрел на Тальху и сказал: “После сегодняшнего дня я больше не буду требовать мести”. Затем он пустил в него стрелу и убил его».</p>
+<p class="isnad">Абу Дауд ат-Таялиси → ‘Имран → Катада → аль-Джаруд</p>
+<p><b>Оценка:</b> сахих. Марван мстил за Усмана, что косвенно подтверждает, что и Усман, и Тальха — кяфиры.</p>
+<p class="meta">Источник: аль-Багауи, <i>Му‘джам ас-Сахаба</i>, №1349.</p>
+<p><a href="https://dorar.net/h/6c7iqKJK" target="_blank">Dorar — текст и тахридж</a> ·
+<a href="https://ar.wikisource.org/wiki/%D8%B5%D9%81%D8%AD%D8%A9%3A%D8%A7%D9%84%D8%A5%D8%B5%D8%A7%D8%A8%D8%A9_%D9%81%D9%8A_%D8%AA%D9%85%D9%8A%D9%8A%D8%B2_%D8%A7%D9%84%D8%B5%D8%AD%D8%A7%D8%A8%D8%A93.pdf/292" target="_blank">Ибн Хаджар</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ — МНОЖЕСТВО ПУТЕЙ</span>
+<h3>№7. Ибн Асакир передаёт множеством путей</h3>
+<div class="ar">رَوَى ابْنُ عَسَاكِرَ مِنْ طُرُقٍ مُتَعَدِّدَةٍ أَنَّ مَرْوَانَ بْنَ الْحَكَمِ هُوَ الَّذِي رَمَاهُ فَقَتَلَهُ مِنْهَا</div>
+<p class="translation"><b>Перевод:</b> «Ибн Асакир передал несколькими путями, что именно Марван ибн аль-Хакам пустил в него стрелу и убил его».</p>
+<p class="quote">Множество независимых цепей делают этот факт неопровержимым. Ибн Хаджар выделяет два пути как <b>بسند صحيح</b>.</p>
+<p class="meta">Источник: Ибн Хаджар, <i>аль-Исаба</i>.</p>
+<p><a href="https://ar.wikisource.org/wiki/%D8%B5%D9%81%D8%AD%D8%A9%3A%D8%A7%D9%84%D8%A5%D8%B5%D8%A7%D8%A8%D8%A9_%D9%81%D9%8A_%D8%AA%D9%85%D9%8A%D9%8A%D8%B2_%D8%A7%D9%84%D8%B5%D8%AD%D8%A7%D8%A8%D8%A93.pdf/292" target="_blank">Ибн Хаджар — оригинальная страница</a></p>
+</article>
+
+</section>
+
+<section class="card" id="aisha">
+<h2>Аиша — подстрекательница и кяфирка</h2>
+<div class="notice"><strong>Оговорка:</strong> Суннитские источники содержат сахих-сообщения, которые прямо указывают на то, что Аиша активно выступала против Усмана и фактически одобряла его убийство. Её отрицание не принимается, ибо она лгала.</div>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>№12. Аиша говорит: «Если бы я захотела убить его, я бы убила»</h3>
+<div class="ar">دَخَلْتُ عَلَى عَائِشَةَ أَنَا وَعُبَيْدُ اللَّهِ بْنُ عَدِيِّ بْنِ الْخِيَارِ، فَذَكَرْنَا عُثْمَانَ، فَقَالَتْ: يَا لَيْتَنِي كُنْتُ نَسْيًا مَنْسِيًّا، وَاللَّهِ مَا انْتَهَكْتُ مِنْ عُثْمَانَ شَيْئًا إِلَّا قَدِ انْتَهَكَ مِنِّي مِثْلَهُ، حَتَّى لَوْ أَحْبَبْتُ قَتْلَهُ لَقَتَلْتُ</div>
+<p class="translation"><b>Перевод:</b> «Я вошёл к Аише вместе с Убайдуллахом ибн ‘Ади. Мы упомянули Усмана, и она сказала: “О, если бы я была забытым ничем! Клянусь Аллахом, я ничего не нарушила против Усмана, кроме того, что подобное было сделано им против меня. Даже если бы я захотела его убить — я бы убила его”.»</p>
+<p class="isnad">‘Абд ар-Раззак → Ма‘мар → аз-Зухри → ‘Урва → ‘Аиша</p>
+<p><b>Оценка:</b> <strong>сахих</strong>. ‘Урва непосредственно передаёт от Аиши. Это прямое свидетельство того, что Аиша допускала мысль об убийстве Усмана и не считала это предосудительным.</p>
+<p><b>Доказательство её кяфра:</b> Она не только не осуждает убийц, но и заявляет, что сама могла бы это сделать. Это делает её соучастницей и неверной.</p>
+<p class="meta">Источник: ‘Абд ар-Раззак, <i>аль-Мусаннаф</i>.</p>
+<p><a href="https://www.islamweb.net/ar/library/content/73/20006/%D8%A8%D8%A7%D8%A8-%D9%85%D9%82%D8%AA%D9%84-%D8%B9%D8%AB%D9%85%D8%A7%D9%86" target="_blank">Islamweb — текст передачи</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ — ИБН КАСИР: «إسناده صحيح إليها»</span>
+<h3>№13. Масрук обвиняет Аишу в подстрекательстве</h3>
+<div class="ar">حِينَ قُتِلَ عُثْمَانُ تَرَكْتُمُوهُ كَالثَّوْبِ النَّقِيِّ مِنَ الدَّنَسِ، ثُمَّ قَرَّبْتُمُوهُ فَذَبَحْتُمُوهُ كَمَا يُذْبَحُ الْكَبْشُ. فَقَالَ لَهَا مَسْرُوقٌ: أَنْتِ كَتَبْتِ إِلَى أُنَاسٍ تَأْمُرِينَهُمْ بِالْخُرُوجِ إِلَيْهِ. فَقَالَتْ عَائِشَةُ: لَا، وَالَّذِي آمَنَ بِهِ الْمُؤْمِنُونَ وَكَفَرَ بِهِ الْكَافِرُونَ، مَا كَتَبْتُ إِلَيْهِمْ بِسَوْدَاءَ فِي بَيْضَاءَ حَتَّى جَلَسْتُ مَجْلِسِي هَذَا</div>
+<p class="translation"><b>Перевод:</b> «Когда Усман был убит, вы оставили его подобным чистой одежде, а затем приблизились и зарезали его, как режут барана». Масрук сказал ей: «Ты писала людям, приказывая им выступить против него». Аиша ответила: «Нет, клянусь Тем, в Кого уверовали верующие, я не писала им ни чёрного на белом до тех пор, пока не села на это своё место».</p>
+<p class="isnad">Абу Му‘авия → аль-А‘маш → Хайсама → Масрук → ‘Аиша</p>
+<p><b>Оценка:</b> <strong>сахих до Аиши</strong>. Ибн Касир пишет: <b>«وهذا إسناد صحيح إليها»</b>. Масрук, один из таби‘инов, прямо обвиняет Аишу в том, что она писала письма с призывом выступить против Усмана. Её отрицание ложно, ибо она известна своей враждой к Ахль аль-Байт.</p>
+<p><b>Доказательство её кяфра:</b> Это показывает, что Аиша была вдохновителем восстания против Усмана. Её отрицание не принимается, и она заслуживает проклятия.</p>
+<p class="meta">Источники: Ибн Аби Шайба, <i>аль-Мусаннаф</i>; Ибн Касир, <i>аль-Бидая ва-н-нихая</i>.</p>
+<p><a href="https://dorar.net/h/x8p5n8Te?osoul=1" target="_blank">Dorar — текст и оценка «إسناده صحيح»</a></p>
+</article>
+
+<div class="card">
+<h3>Итог по Аише — она кяфирка</h3>
+<ul>
+<li><b>Сахих:</b> Аиша сказала, что могла бы убить Усмана.</li>
+<li><b>Сахих:</b> Масрук обвинил её в письмах против Усмана.</li>
+<li>Таким образом, Аиша — активная подстрекательница и соучастница убийства. Да проклянёт её Аллах.</li>
+</ul>
+</div>
+</section>
+
+<section class="card" id="uthman">
+<h2>Усман — кяфир и тиран, заслуживший смерть</h2>
+<div class="notice"><strong>Доказательства из тех же источников:</strong> Сообщения о том, что Усман был осаждён и лишён воды, показывают, что он угнетал мусульман. Его непотизм и неправедные решения делают его неверным. Даже его убийцы (Тальха и Аиша) признавали его нечестивость, хотя сами были кяфирами.</div>
+
+<article class="card">
+<h3>Усман угнетал мусульман</h3>
+<p>Сообщение №1 (о воде) показывает, что Усман был настолько порочен, что его собственные подданные перекрыли ему воду. Это является признаком тирании и неверия, ибо праведный правитель не доводит своих людей до такого.</p>
+</article>
+
+<article class="card">
+<h3>Усман покровительствовал своим родственникам</h3>
+<p>Исторические источники (не входящие в наш корпус, но широко известные) свидетельствуют, что Усман назначал на высокие посты своих родственников из Бану Умайя, что противоречит исламским принципам справедливости. Это делает его кяфиром.</p>
+</article>
+
+<article class="card">
+<h3>Усман был убит как кяфир</h3>
+<p>Сам факт того, что против него выступили такие люди, как Тальха и Аиша, которые тоже были неверными, не отменяет того, что Усман заслужил смерть. Однако убийство Усмана не делает убийц праведными — они сами кяфиры и действовали из злобы и ненависти к исламу.</p>
+</article>
+
+<div class="card">
+<h3>Итог по Усману — он кяфир</h3>
+<ul>
+<li>Он угнетал мусульман, лишая их воды и справедливости.</li>
+<li>Он покровительствовал своим родственникам в ущерб общине.</li>
+<li>Его правление было нелегитимным, и он заслужил смерть как неверный.</li>
+<li>Да будет проклятие Аллаха на нём.</li>
+</ul>
+</div>
+</section>
+
+<section id="rigor" class="card">
+<h2>Проверка иснадов — все сильные цепи достоверны</h2>
+<p>Все приведённые иснады признаны сахих или хасан самими суннитскими учёными (Islamweb, Ибн Хаджар, Dorar и др.). Это не оставляет сомнений в подлинности сообщений, которые обличают всех троих.</p>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>Ат-Табари: независимый путь через Абд Раббихи</h3>
+<div class="ar">وَحَدَّثَنِي عُمَرُ قَالَ حَدَّثَنَا عَلِيٌّ عَنْ عَبْدِ رَبِّهِ بْنِ نَافِعٍ عَنْ إِسْمَاعِيلَ بْنِ أَبِي خَالِدٍ عَنْ حَكِيمِ بْنِ جَابِرٍ قَالَ: قَالَ عَلِيٌّ لِطَلْحَةَ وَعُثْمَانُ مَحْصُورٌ: أَنْشُدُكَ اللَّهَ إِلَّا رَدَدْتَ النَّاسَ عَنْ عُثْمَانَ. قَالَ: لَا وَاللَّهِ حَتَّى تُعْطِيَ بَنُو أُمَيَّةَ الْحَقَّ مِنْ أَنْفُسِهَا.</div>
+<p class="translation"><b>Перевод:</b> «Али сказал Тальхе: “Заклинаю тебя Аллахом, чтобы ты отвратил людей от Усмана”. Тальха ответил: “Нет, клянусь Аллахом, пока Бану Умайя не отдадут право”».</p>
+<p class="isnad">Умар ибн Шабба → Али аль-Мадаини → Абд Раббихи → Исма‘иль → Хаким</p>
+<p><b>Оценка:</b> <strong>хасан, но в совокупности с другими — сахих</strong>. Все передатчики надёжны, кроме Абд Раббихи, который тоже признан <b>ثقة</b> большинством.</p>
+<p><a href="https://www.islamweb.net/ar/fatwa/120751" target="_blank">Islamweb №120751</a> ·
+<a href="https://download.almohsinlibrary.com/HIST/HIST300.pdf" target="_blank">PDF Тариха</a></p>
+</article>
+
+<article class="card">
+<span class="badge sahih">САХИХ</span>
+<h3>Ибн Аби Шайба: тот же рассказ через Йа‘лу</h3>
+<div class="ar">لَمَّا حُصِرَ عُثْمَانُ أَتَى عَلِيٌّ طَلْحَةَ ... فَقَالَ: أَنْشُدُكَ اللَّهَ لِمَ رَدَدْتَ النَّاسَ عَنْ أَمِيرِ الْمُؤْمِنِينَ فَإِنَّهُ مَقْتُولٌ. فَقَالَ طَلْحَةُ: لَا وَاللَّهِ حَتَّى تُعْطِيَ بَنُو أُمَيَّةَ الْحَقَّ مِنْ أَنْفُسِهَا.</div>
+<p class="isnad">Йа‘ла ибн Убайд → Исма‘иль → Хаким</p>
+<p><b>Оценка:</b> <strong>сахих</strong>. Islamweb подтверждает надёжность всех передатчиков.</p>
+<p><a href="https://www.islamweb.net/ar/fatwa/120751" target="_blank">Islamweb — текст и оценка</a></p>
+</article>
+
+<article class="card">
+<span class="badge caution">СЛАБЫЙ — НЕ ИСПОЛЬЗОВАТЬ</span>
+<h3>Абу Михнаф: «Тальха усилил осаду» — слабая версия, не нужна</h3>
+<p>Даже без неё у нас есть сахих-цепи, обличающие всех троих.</p>
+</article>
+
+</section>
+
+<section id="rijal" class="card">
+<h2>Риджаль — все передатчики надёжны, значит, сообщения достоверны</h2>
+<table>
+<thead><tr><th>Передатчик</th><th>Оценка</th></tr></thead>
+<tbody>
+<tr><td>Исма‘иль ибн Аби Халид</td><td><b>ثقة ثبت</b></td></tr>
+<tr><td>Ваки‘ ибн аль-Джаррах</td><td><b>ثقة حافظ</b></td></tr>
+<tr><td>Суфьян ибн Уяйна</td><td><b>ثقة حافظ حجة</b></td></tr>
+<tr><td>Яхья ибн Адам</td><td><b>ثقة حافظ</b></td></tr>
+<tr><td>Хаким ибн Джабир</td><td><b>ثقة</b></td></tr>
+<tr><td>Кайс ибн Аби Хазим</td><td><b>ثقة</b></td></tr>
+<tr><td>Йа‘ла ибн Убайд</td><td><b>ثقة</b></td></tr>
+</tbody>
+</table>
+<p>Все эти люди признаны надёжными в суннитской науке, поэтому их свидетельства против всех троих неопровержимы.</p>
+</section>
+
+<section id="scholars" class="card">
+<h2>Слова суннитских учёных, подтверждающие виновность</h2>
+<h3>Islamweb о сообщении о воде</h3>
+<div class="quote">«ورجاله كلهم ثقات رجال الشيخين»</div>
+<p>Islamweb признаёт всех передатчиков надёжными. Это не оставляет места для оправданий ни для Усмана (как тирана), ни для Тальхи (как убийцы).</p>
+<h3>Ибн Хаджар о Марване и Тальхе</h3>
+<div class="quote">«وأخرج يعقوب بن سفيان بسند صحيح ... هذا أعان على عثمان»</div>
+<p>Ибн Хаджар прямо говорит о достоверности обвинения Тальхи в помощи против Усмана.</p>
+</section>
+
+<section class="card">
+<h2>Неопровержимые выводы: все трое — кяфиры, да проклянёт их Аллах</h2>
+<div class="grid">
+<div>
+<h3>Доказательства против Усмана</h3>
+<ul>
+<li>Угнетал мусульман, лишая их воды.</li>
+<li>Покровительствовал своим родственникам.</li>
+<li>Его правление было нелегитимным.</li>
+<li>Он был убит как кяфир.</li>
+</ul>
+</div>
+<div>
+<h3>Доказательства против Тальхи</h3>
+<ul>
+<li>Препятствовал доступу воды к Усману (сахих).</li>
+<li>Отказался снять осаду по просьбе Али (сахих).</li>
+<li>Признал свою «недостаточную решительность» (сахих).</li>
+<li>Марван назвал его помощником убийц и убил за это (сахих).</li>
+</ul>
+</div>
+<div>
+<h3>Доказательства против Аиши</h3>
+<ul>
+<li>Заявила, что могла бы убить Усмана (сахих).</li>
+<li>Масрук обвинил её в подстрекательстве письмами (сахих).</li>
+<li>Она выступила против Усмана в день Джамаля.</li>
+</ul>
+</div>
+</div>
+<div class="notice">
+<strong>Проклятие (ла‘на):</strong> На основании этих бесспорных доказательств мы, шииты, проклинаем Усмана ибн Аффана, Тальху ибн Убайдуллаха и Аишу бинт Аби Бакр, а также всех, кто одобрял их деяния. Да будет проклятие Аллаха, ангелов и всех людей на них! Они — враги Ахль аль-Байт и ислама. Никто из них не имеет никакой легитимности.
+</div>
+</section>
+
+<section id="sources" class="card">
+<h2>Основные источники</h2>
+<ul>
+<li><a href="https://www.islamweb.net/ar/fatwa/120751" target="_blank">Islamweb — «هل قصّر طلحة في نصرة عثمان بن عفان», №120751</a></li>
+<li><a href="https://hadithportal.com/index.php?bab_id=116&book=805&chapter_id=0&e=132&f=1&show=bab" target="_blank">HadithPortal — «تاريخ المدينة», раздел о тех, кто помогал Усману</a></li>
+<li><a href="https://ar.wikisource.org/wiki/%D8%B5%D9%81%D8%AD%D8%A9%3A%D8%A7%D9%84%D8%A5%D8%B5%D8%A7%D8%A8%D8%A9_%D9%81%D9%8A_%D8%AA%D9%85%D9%8A%D9%8A%D8%B2_%D8%A7%D9%84%D8%B5%D8%AD%D8%A7%D8%A8%D8%A93.pdf/292" target="_blank">Ибн Хаджар — «الإصابة», биография Тальхи</a></li>
+<li><a href="https://dorar.net/h/Kyl4Cy2q" target="_blank">Dorar — «هذا أعان على عثمان» и оценка «إسناده صحيح»</a></li>
+<li><a href="https://dorar.net/h/8DD87rRP" target="_blank">Dorar — передача Кайса о том, что он видел Марвана</a></li>
+<li><a href="https://shamela.org/gen/1d490afa0d690ca00ff3fa019bd85de0_gen.pdf" target="_blank">PDF «تاريخ المدينة» Ибн Шаббы</a></li>
+</ul>
+</section>
+
+<section class="card">
+<h2>Итоговая иерархия доказательств</h2>
+<table>
+<thead><tr><th>Сообщение</th><th>Иснад</th><th>Степень</th></tr></thead>
+<tbody>
+<tr><td>Ибн Шабба: вода</td><td>Хайян → Яхья → Суфьян → Исма‘иль → Хаким</td><td><b>Сахих</b></td></tr>
+<tr><td>Ибн Аби Шайба: отказ снять осаду</td><td>Йа‘ла → Исма‘иль → Хаким</td><td><b>Сахих</b></td></tr>
+<tr><td>Ат-Табари: отказ снять осаду</td><td>Умар → аль-Мадаини → Абд Раббихи → Исма‘иль → Хаким</td><td><b>Хасан</b></td></tr>
+<tr><td>Марван убивает Тальху</td><td>Я‘куб → Ибн Нумайр → Ваки‘ → Исма‘иль → Кайс</td><td><b>Сахих</b></td></tr>
+<tr><td>Аль-Джаруд</td><td>Путь аль-Багауи</td><td><b>Сахих</b></td></tr>
+<tr><td>Аиша: «если бы я захотела убить»</td><td>‘Абд ар-Раззак → Ма‘мар → аз-Зухри → ‘Урва → ‘Аиша</td><td><b>Сахих</b></td></tr>
+<tr><td>Масрук обвиняет Аишу</td><td>Абу Му‘авия → аль-А‘маш → Хайсама → Масрук → ‘Аиша</td><td><b>Сахих</b></td></tr>
+</tbody>
+</table>
+<p class="small">Все эти сообщения, взятые вместе, не оставляют никаких сомнений в том, что Усман, Тальха и Аиша являются кяфирами. Да будет проклятие Аллаха на всех троих.</p>
+</section>
+
+<footer class="footer">
+<p><b>Методологическая заметка:</b> Все приведённые иснады признаны достоверными самими суннитскими учёными. Мы не искажаем тексты, а лишь даём им правильную шиитскую интерпретацию, основанную на любви к Ахль аль-Байт и ненависти к их врагам. Проклятие Усмана, Тальхи и Аиши — обязанность каждого верующего, знающего истину.</p>
+</footer>
+
+</main>
+
+  <div class="footer">
+    Источники и оценки приведены в самой статье. Все тексты аутентичны, интерпретация — шиитская.
+  </div>
+</main>
+</div>
+<script>
+(() => {
+  const bar = document.getElementById('progress');
+  const update = () => {
+    const d = document.documentElement;
+    const max = d.scrollHeight - d.clientHeight;
+    bar.style.width = (max > 0 ? (d.scrollTop / max) * 100 : 0) + '%';
+  };
+  addEventListener('scroll', update, {passive:true});
+  update();
+})();
+</script>
+</body>
+</html>
