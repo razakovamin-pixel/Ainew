@@ -1106,6 +1106,44 @@ html[lang="ar"] .analysis-box {
 }
 
 .tab-btn.active { color: var(--teal); }
+.tab-btn-articles {
+  position: relative;
+}
+.articles-bottom-link{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-width:132px;
+  height:44px;
+  padding:0 18px;
+  color:var(--text);
+  text-decoration:none;
+  background:rgba(13,15,15,.94);
+  border:1px solid rgba(226,27,48,.42);
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.42),0 0 24px rgba(226,27,48,.08);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  z-index:450;
+  font-size:12px;
+  font-weight:700;
+  transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease;
+}
+.articles-bottom-link svg{color:var(--teal);flex:none}
+.articles-bottom-link:hover{
+  color:#fff;
+  border-color:rgba(226,27,48,.78);
+  box-shadow:0 14px 38px rgba(0,0,0,.5),0 0 28px rgba(226,27,48,.15);
+  transform:translateX(-50%) translateY(-2px);
+}
+@media (max-width:768px){
+  .articles-bottom-link{display:none}
+}
 
 .tab-btn svg { transition: transform .2s; }
 .tab-btn.active svg { transform: scale(1.15); }
@@ -3544,7 +3582,7 @@ textarea:focus{
     width: 100% !important;
     height: 82px !important;
     display: grid !important;
-    grid-template-columns: repeat(5, 1fr) !important;
+    grid-template-columns: repeat(6, 1fr) !important;
     align-items: center !important;
     justify-content: stretch !important;
   }
@@ -3736,6 +3774,15 @@ textarea:focus{
       </svg>
       <span id="btnFiqhLabel">Фикх</span>
     </button>
+
+    <button class="tab-btn tab-btn-articles" id="btnStatya" title="Статьи" aria-label="Статьи">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17.5A2.5 2.5 0 0 0 17.5 18H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+        <path d="M7 7h9M7 10.5h9M7 14h6"/>
+      </svg>
+      <span id="btnStatyaLabel">Статьи</span>
+    </button>
+
   </div>
 </nav>
 
@@ -3753,8 +3800,23 @@ textarea:focus{
         window.location.href = 'fiqh/';
       });
     }
+    var btnStatya = document.getElementById('btnStatya');
+    if (btnStatya) {
+      btnStatya.addEventListener('click', function(){
+        window.location.href = 'statya/';
+      });
+    }
   })();
 </script>
+
+
+<a class="articles-bottom-link" id="desktopArticlesLink" href="statya/" aria-label="Статьи">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17.5A2.5 2.5 0 0 0 17.5 18H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+    <path d="M7 7h9M7 10.5h9M7 14h6"/>
+  </svg>
+  <span>Статьи</span>
+</a>
 
 <!-- App Body -->
 <div class="app-body">
@@ -4048,6 +4110,7 @@ const i18n = {
     aiChatLabel: 'ИИ-чат',
     hadisLabel: 'Хадисы',
     fiqhLabel: 'Фикх',
+    statyaLabel: 'Статьи',
     clearAria: 'Очистить',
     filtersLabel: 'Фильтры',
     filtersShowLabel: 'Показать',
@@ -4096,6 +4159,7 @@ const i18n = {
     aiChatLabel: 'دردشة ذكية',
     hadisLabel: 'الأحاديث',
     fiqhLabel: 'الفقه',
+    statyaLabel: 'المقالات',
     clearAria: 'مسح',
     filtersLabel: 'الفلاتر',
     filtersShowLabel: 'إظهار',
@@ -4297,6 +4361,8 @@ function applyLang() {
   if ($('btnHadisLabel')) $('btnHadisLabel').textContent = t('hadisLabel');
   if ($('btnFiqh')) $('btnFiqh').setAttribute('title', t('fiqhLabel'));
   if ($('btnFiqhLabel')) $('btnFiqhLabel').textContent = t('fiqhLabel');
+  if ($('btnStatya')) $('btnStatya').setAttribute('title', t('statyaLabel'));
+  if ($('btnStatyaLabel')) $('btnStatyaLabel').textContent = t('statyaLabel');
 
   // Search
   $('searchInput').placeholder = t('searchPlaceholder');
@@ -7507,3 +7573,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+<style>
+
+</style>
