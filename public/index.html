@@ -3554,6 +3554,240 @@ textarea:focus{
 @keyframes sweep{0%,65%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
 
 
+
+/* ═══════════════════════════════════════
+   SHIRAZI WELCOME SCREEN — MATCHES ORIGINAL UI
+═══════════════════════════════════════ */
+.shirazi-welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(14px, 3vw, 32px);
+  overflow: auto;
+  background:
+    radial-gradient(circle at 82% 10%, rgba(226,27,48,.13), transparent 30%),
+    radial-gradient(circle at 18% 90%, rgba(169,121,27,.08), transparent 34%),
+    #090a0a;
+}
+.shirazi-welcome::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(30deg, rgba(255,255,255,.9) 1px, transparent 1px),
+    linear-gradient(150deg, rgba(255,255,255,.9) 1px, transparent 1px);
+  background-size: 90px 52px;
+  mask-image: linear-gradient(90deg, black, transparent 78%);
+  opacity: .055;
+}
+.shirazi-welcome::after {
+  content: '';
+  position: absolute;
+  width: min(680px, 72vw);
+  height: min(680px, 72vw);
+  right: -210px;
+  top: -240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226,27,48,.16) 0, rgba(226,27,48,.045) 42%, transparent 70%);
+  border: 1px solid rgba(226,27,48,.12);
+  box-shadow: 0 0 0 90px rgba(226,27,48,.028), 0 0 0 180px rgba(226,27,48,.014);
+  pointer-events: none;
+}
+.shirazi-welcome-card {
+  position: relative;
+  z-index: 1;
+  width: min(1040px, 100%);
+  max-height: min(820px, calc(100dvh - 28px));
+  display: grid;
+  grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #36363a;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #121214 0%, #0d0f0f 100%);
+  box-shadow: 0 28px 90px rgba(0,0,0,.56), 0 0 70px rgba(226,27,48,.08);
+}
+.shirazi-welcome-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(226,27,48,.7) 50%, transparent);
+  opacity: .7;
+  pointer-events: none;
+}
+.shirazi-welcome-photo {
+  position: relative;
+  min-height: 620px;
+  overflow: hidden;
+  background: #050505;
+  border-right: 1px solid #36363a;
+}
+.shirazi-welcome-photo::before {
+  content: 'ر';
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px solid rgba(226,27,48,.45);
+  background: rgba(8,8,9,.72);
+  color: var(--teal);
+  font-family: var(--font-arabic);
+  font-size: 28px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.28), 0 0 28px rgba(226,27,48,.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.shirazi-welcome-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.05) 48%, rgba(5,5,5,.82) 100%),
+    linear-gradient(90deg, transparent 62%, rgba(9,10,10,.56) 100%);
+  pointer-events: none;
+}
+.shirazi-welcome-photo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+.shirazi-welcome-content {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 4vw, 42px) clamp(22px, 4vw, 42px) 24px;
+}
+.shirazi-welcome-head {
+  padding-bottom: 18px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  position: relative;
+}
+.shirazi-welcome-head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 84px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--teal), transparent);
+}
+.shirazi-welcome-kicker {
+  color: #8f8f94;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.shirazi-welcome-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(25px, 3.2vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  color: #fff;
+}
+.shirazi-welcome-text {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 20px 10px 6px 0;
+  color: #c9c9cd;
+  font-size: 15px;
+  line-height: 1.72;
+  scrollbar-gutter: stable;
+}
+.shirazi-welcome-text p {
+  margin: 0 0 16px;
+}
+.shirazi-welcome-text p:first-child {
+  color: #ededee;
+  font-weight: 600;
+}
+.shirazi-welcome-text p:last-child {
+  margin-bottom: 0;
+  color: #f0f0f2;
+  font-weight: 600;
+}
+.shirazi-welcome-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 18px;
+}
+.shirazi-welcome-enter {
+  appearance: none;
+  border: 1px solid rgba(226,27,48,.42);
+  border-radius: 14px;
+  min-height: 46px;
+  padding: 0 20px;
+  background: #0d0f0f;
+  color: #f0f0f2;
+  font: 700 13px/1 var(--font-body);
+  cursor: pointer;
+  transition: .2s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,.28);
+}
+.shirazi-welcome-enter:hover {
+  color: #fff;
+  background: rgba(226,27,48,.10);
+  border-color: rgba(226,27,48,.75);
+  box-shadow: 0 14px 38px rgba(0,0,0,.36), 0 0 28px rgba(226,27,48,.11);
+  transform: translateY(-1px);
+}
+.shirazi-welcome-enter:active { transform: translateY(0); }
+.shirazi-welcome.is-closing {
+  opacity: 0;
+  transition: opacity .22s ease;
+  pointer-events: none;
+}
+body.welcome-open { overflow: hidden !important; }
+@media (max-width: 820px) {
+  .shirazi-welcome { padding: 10px; align-items: center; }
+  .shirazi-welcome-card {
+    width: min(640px, 100%);
+    max-height: calc(100dvh - 20px);
+    grid-template-columns: 1fr;
+  }
+  .shirazi-welcome-photo {
+    min-height: 230px;
+    height: min(34dvh, 300px);
+    max-height: 300px;
+    border-right: 0;
+    border-bottom: 1px solid #36363a;
+  }
+  .shirazi-welcome-photo::after {
+    background: linear-gradient(180deg, rgba(0,0,0,.02) 42%, rgba(5,5,5,.76) 100%);
+  }
+  .shirazi-welcome-content {
+    padding: 22px 18px 16px;
+    max-height: calc(100dvh - 330px);
+  }
+  .shirazi-welcome-title { font-size: clamp(24px, 6vw, 31px); }
+  .shirazi-welcome-text { padding-right: 6px; font-size: 14px; line-height: 1.64; }
+  .shirazi-welcome-enter { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shirazi-welcome.is-closing,
+  .shirazi-welcome-enter { transition: none; }
+}
+
 </style>
 
 <!-- SHIAWAY BOTTOM NAV OVERRIDE -->
@@ -3693,7 +3927,34 @@ textarea:focus{
 <div class="bg-glow" aria-hidden="true"></div>
 
 <!-- Загрузка -->
-<div class="loading-overlay" id="loading">
+
+<!-- Opening welcome: transmitters are not requested until the visitor enters the site. -->
+<div class="shirazi-welcome" id="shiraziWelcome" role="dialog" aria-modal="true" aria-labelledby="shiraziWelcomeTitle">
+  <div class="shirazi-welcome-card">
+    <div class="shirazi-welcome-photo">
+      <img src="assets/shirazi-welcome.png" alt="Сейид Садык Хусейни Ширази">
+    </div>
+    <section class="shirazi-welcome-content">
+      <div class="shirazi-welcome-head">
+        <div class="shirazi-welcome-kicker">shiaisnad.ru</div>
+        <h1 class="shirazi-welcome-title" id="shiraziWelcomeTitle">Во имя Аллаха, Милостивого, Милосердного.</h1>
+      </div>
+      <div class="shirazi-welcome-text">
+        <p>Хвала Господу миров, и благословение нашему господину Мухаммаду и его чистейшему роду!</p>
+        <p>С глубочайшим уважением и почтением я хочу отметить, что ресурс shiaisnad.ru был создан как скромный, но искренний шаг на пути распространения света учения Ахль аль-Бейт (мир им!) на русском языке.</p>
+        <p>Этот проект вдохновлён неустанными трудами великого аятоллы, Сейида Садыка Хусейни Ширази (да возвысит Аллах его степень и освятит его душу!). Именно его обширнейшие познания в фикхе, усуль аль-фикхе и науке хадисов (иснад) стали тем прочным фундаментом, на котором зиждется этот сайт.</p>
+        <p>Создатели портала, руководствуясь призывом макарема Ширази к возвращению к чистым источникам ислама — Корану и Достоверной Сунне, — поставили своей целью донести до русскоязычного читателя подлинное учение, свободное от нововведений. Каждая статья и перевод на этом сайте пронизаны духом того подхода, которому учил Садык Ширази: совмещать глубину знания с ясностью изложения, а строгость в вопросах веры — с милосердием к людям.</p>
+        <p>Мы молим Всевышнего, чтобы этот труд стал савабом (благом) для ушедших учёных и настольной книгой для ищущих истину. Пусть Аллах примет этот сайт как средство для укрепления единства вокруг Ахль аль-Бейт и наградит всех, кто приложил к нему руку, наилучшей наградой в этом мире и в мире вечном!</p>
+        <p>Ваш брат по вере и последователь пути садыка Ширази.</p>
+      </div>
+      <div class="shirazi-welcome-actions">
+        <button class="shirazi-welcome-enter" id="shiraziWelcomeEnter" type="button">Перейти к сайту</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading" style="display:none;">
   <div class="loading-card">
     <div class="loading-emblem">ر</div>
     <div class="loading-title">جارٍ تحميل قاعدة بيانات الرجال</div>
@@ -7444,10 +7705,11 @@ function openSort() {
 
 
 // ─────────────────────────────────────────────────────────────────
-// Service Worker inline via blob
-
-if ('serviceWorker' in navigator) {
-  const swCode = `const CACHE_NAME = 'rijal-v2';
+// Service Worker inline via blob. Registration waits until the visitor enters the site,
+// so the opening screen does not cause transmitters.json to be fetched or cached first.
+function registerRijalServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `const CACHE_NAME = 'rijal-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -7455,9 +7717,6 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  // Кэшируем каждый файл по отдельности: если один запрос вдруг не
-  // удастся (например, файла нет), это не должно ломать установку SW
-  // целиком, как это было раньше с несуществующим manifest.json.
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
       Promise.all(ASSETS.map(url => cache.add(url).catch(() => {})))
@@ -7487,11 +7746,32 @@ self.addEventListener('fetch', e => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  init().catch(err => {
-    console.error('Init failed:', err);
-    const loading = document.getElementById('loading');
-    if (loading) loading.style.display = 'none';
-  });
+  const welcome = document.getElementById('shiraziWelcome');
+  const enter = document.getElementById('shiraziWelcomeEnter');
+  let started = false;
+
+  const startApp = () => {
+    if (started) return;
+    started = true;
+    document.body.classList.remove('welcome-open');
+    if (welcome) {
+      welcome.classList.add('is-closing');
+      setTimeout(() => {
+        welcome.hidden = true;
+      }, 220);
+    }
+
+    registerRijalServiceWorker();
+    init().catch(err => {
+      console.error('Init failed:', err);
+      const loading = document.getElementById('loading');
+      if (loading) loading.style.display = 'none';
+    });
+  };
+
+  document.body.classList.add('welcome-open');
+  if (enter) enter.addEventListener('click', startApp, { once: true });
+  if (enter) enter.focus();
 });
 
 
