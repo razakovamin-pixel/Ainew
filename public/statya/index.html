@@ -9,41 +9,30 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#080909;--panel:#0d0f0f;--panel2:#111313;--red:#e21b30;--red2:#ff3948;
-  --text:#f4f2ef;--muted:#85858b;--line:#242626;--max:1180px;
-}
+:root{--bg:#080909;--panel:#0d0f0f;--red:#e21b30;--red2:#ff3948;--text:#f4f2ef;--muted:#85858b;--line:#242626;--max:1180px}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
-body{background:
-radial-gradient(circle at 15% 12%,rgba(226,27,48,.11),transparent 24%),
-radial-gradient(circle at 86% 8%,rgba(255,57,72,.07),transparent 22%),
-linear-gradient(145deg,#080909 0%,#0b0c0c 55%,#0d0a0b 100%);
-}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.035;background-image:
-linear-gradient(30deg,#fff 1px,transparent 1px),linear-gradient(150deg,#fff 1px,transparent 1px);background-size:90px 52px}
-.shell{width:min(var(--max),100%);margin:auto;min-height:100vh;position:relative}
+body{background:radial-gradient(circle at 15% 12%,rgba(226,27,48,.11),transparent 24%),radial-gradient(circle at 86% 8%,rgba(255,57,72,.07),transparent 22%),linear-gradient(145deg,#080909 0%,#0b0c0c 55%,#0d0a0b 100%)}
+.shell{width:min(var(--max),100%);margin:auto;min-height:100vh}
 header{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid #222525;background:rgba(8,9,9,.84);backdrop-filter:blur(18px);position:sticky;top:0;z-index:5}
-.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:38px;height:38px;border:1px solid rgba(226,27,48,.6);border-radius:50%;display:grid;place-items:center;color:var(--red);font-family:Amiri,serif;font-size:22px;box-shadow:0 0 25px rgba(226,27,48,.12)}
-.brand-title{font-weight:800;letter-spacing:-.03em}.brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.home{color:var(--muted);text-decoration:none;border:1px solid var(--line);background:var(--panel);padding:9px 13px;border-radius:10px;font-size:12px;transition:.2s}
-.home:hover{color:var(--red2);border-color:rgba(226,27,48,.45);transform:translateY(-1px)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:38px;height:38px;border:1px solid rgba(226,27,48,.6);border-radius:50%;display:grid;place-items:center;color:var(--red);font-family:Amiri,serif;font-size:22px;box-shadow:0 0 25px rgba(226,27,48,.12)}
+.brand-title{font-weight:800;letter-spacing:-.03em}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.home{color:var(--muted);text-decoration:none;border:1px solid var(--line);background:var(--panel);padding:9px 13px;border-radius:10px;font-size:12px}
 main{padding:42px 22px 70px}
-.hero{text-align:center;max-width:780px;margin:0 auto 34px}.eyebrow{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--red);font-weight:800}
+.hero{text-align:center;max-width:780px;margin:0 auto 34px}
+.eyebrow{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--red);font-weight:800}
 h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin:12px 0 14px}
 .lead{color:#aaaab0;font-size:15px;line-height:1.75;margin:0 auto}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;max-width:1060px;margin:32px auto}
 .card{background:linear-gradient(160deg,rgba(17,19,19,.97),rgba(11,12,12,.97));border:1px solid var(--line);border-radius:18px;padding:20px;position:relative;overflow:hidden;transition:.22s;box-shadow:0 16px 50px rgba(0,0,0,.24)}
-.card::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.025),transparent);transform:translateX(-110%);transition:.7s}
 .card:hover{transform:translateY(-3px);border-color:rgba(226,27,48,.35);box-shadow:0 24px 70px rgba(0,0,0,.33)}
-.card:hover::after{transform:translateX(110%)}
 .card a{text-decoration:none;color:inherit;display:block}
 .badge{display:inline-flex;border:1px solid rgba(226,27,48,.27);background:rgba(226,27,48,.08);color:#ff8892;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800}
 .card h2{font-size:20px;line-height:1.25;margin:15px 0 8px;letter-spacing:-.025em}
 .card p{color:#9d9da3;font-size:13px;line-height:1.7;margin:0}
 .meta{display:flex;justify-content:space-between;gap:12px;margin-top:18px;color:#6f7076;font-size:10px}
-.empty{max-width:680px;margin:28px auto 0;text-align:center;padding:26px;border:1px dashed #2b2d2d;border-radius:16px;color:#72737a;background:rgba(17,19,19,.65)}
-.note{max-width:860px;margin:20px auto;color:#76777d;font-size:11px;line-height:1.7;text-align:center}
 footer{padding:0 22px 26px;text-align:center;color:#55575c;font-size:10px}
 @media(max-width:640px){header{height:68px;padding:0 15px}.brand-sub{display:none}main{padding:32px 15px 58px}.grid{grid-template-columns:1fr}}
 </style>
@@ -61,48 +50,51 @@ footer{padding:0 22px 26px;text-align:center;color:#55575c;font-size:10px}
   <section class="hero">
     <div class="eyebrow">SHIAISNAD.RU</div>
     <h1>Статьи</h1>
-    <p class="lead">Подборка исследований по хадисам, иснадам, риджалю и истории.</p>
+    <p class="lead">Подборка исследований по хадисам, иснадам, риджаль и истории.</p>
   </section>
-
   <section class="grid">
+
     <article class="card">
-      <a href="%D0%9A%D0%BE%D1%80%D0%B0%D0%BD%20%D0%BD%D0%B5%20%D0%B8%D1%81%D0%BA%D0%B0%D0%B6%D1%91%D0%BD%20%E2%80%94%20%D0%B2%D1%82%D0%BE%D1%80%D0%B0%D1%8F%20%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F.html">
-        <h2>Коран не искажён — вторая статья</h2>
-        <p>40 доводов из первого тома «Джам‘ аль-Кур’ан»: десять предпосылок, мусхаф Имама Али, хадисы об «искажении» и их разбор.</p>
-        <div class="meta"><span>Исследование</span><span>Коран</span></div>
+      <a href="./articles/ten-promised-paradise.html">
+        <span class="badge">СТАТЬЯ</span>
+        <h2>Хадис о «десяти обрадованных раем»: разбор иснадов и убийство Усмана</h2>
+        <p>Хадис «Десять в Раю» (аль-'ашара аль-мубашшара) — один из главных доводов, на которые опираются, споря против имамата Али ибн Абу Талиба (мир ему!). Ниже разобран сам…</p>
+        <div class="meta"><span>Хадис</span><span>Открыть →</span></div>
       </a>
     </article>
     <article class="card">
-      <a href="%D0%9A%D0%BE%D1%80%D0%B0%D0%BD%20%D0%BD%D0%B5%20%D0%B8%D1%81%D0%BA%D0%B0%D0%B6%D1%91%D0%BD.html">
-        <h2>Коран не искажён</h2>
-        <p>Как был собран текст Корана: доводы против обвинения в искажённости, с разбором иснадов и противоречий.</p>
-        <div class="meta"><span>Исследование</span><span>Коран</span></div>
+      <a href="./articles/quran.html">
+        <span class="badge">СТАТЬЯ</span>
+        <h2>Коран не искажён: как был собран текст Священного Писания</h2>
+        <p>Обвинение в адрес шиитов, будто они верят в искажённость Корана, — один из самых распространённых полемических штампов. В действительности учение Ахль аль-Бейт…</p>
+        <div class="meta"><span>Коран</span><span>Открыть →</span></div>
       </a>
     </article>
     <article class="card">
-      <a href="%D0%A7%D0%B8%D1%81%D1%82%D0%B0%D1%8F%20%D1%81%D1%83%D1%82%D1%8C%20%D0%B8%D1%81%D0%BB%D0%B0%D0%BC%D0%B0%20%D0%B8%20%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD%D1%8B%20%D1%80%D0%B5%D0%BB%D0%B8%D0%B3%D0%B8%D0%B8.html">
+      <a href="./articles/pure-islam.html">
+        <span class="badge">СТАТЬЯ</span>
         <h2>Чистая суть ислама и законы религии</h2>
-        <p>Полный перевод послания имама ар-Риды халифу аль-Ма'муну: акида, фикх и вилаят — с арабским текстом и сканами страниц источника.</p>
-        <div class="meta"><span>Первоисточник</span><span>Акида и фикх</span></div>
+        <p>Полный русский перевод послания восьмого имама Али ибн Мусы ар-Риды (мир ему), которое он по просьбе халифа аль-Ма'муна написал ему, кратко и сжато изложив «чистую…</p>
+        <div class="meta"><span>Акида и фикх</span><span>Открыть →</span></div>
       </a>
     </article>
     <article class="card">
-      <a href="%D0%90%D0%B8%D1%88%D0%B0%20%D0%B8%20%D1%82%D0%B0%D0%BB%D1%8C%D1%85%D0%B0.html">
-        <h2>Тальха, Аиша и события вокруг убийства Усмана</h2>
-        <p>Арабские тексты, переводы, иснады, оценки передатчиков и критическая проверка сообщений.</p>
-        <div class="meta"><span>Исследование</span><span>Статья</span></div>
+      <a href="./articles/quran-v2.html">
+        <span class="badge">СТАТЬЯ</span>
+        <h2>Коран не искажён — вторая статья: доводы из первого тома</h2>
+        <p>Первая статья была построена на втором томе исследования сайида Али аш-Шахристани «Джам‘ аль-Кур’ан: накд аль-ватаик ва ‘ард аль-хакаик» («Сбор Корана: критика…</p>
+        <div class="meta"><span>Коран</span><span>Открыть →</span></div>
       </a>
     </article>
     <article class="card">
-      <a href="%D0%94%D0%B5%D1%81%D1%8F%D1%82%D1%8C%20%D0%BE%D0%B1%D1%80%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D1%8B%D1%85%20%D1%80%D0%B0%D0%B5%D0%BC.html">
-        <h2>Хадис о «десяти обрадованных раем»</h2>
-        <p>Разбор иснадов хадиса и доказательства того, что Тальха ибн Убайдуллах участвовал в убийстве халифа Усмана.</p>
-        <div class="meta"><span>Исследование</span><span>Критика хадиса</span></div>
+      <a href="./articles/aisha-talha.html">
+        <span class="badge">СТАТЬЯ</span>
+        <h2>Усман, Тальха и Аиша — все кяфиры, да проклянёт их Аллах</h2>
+        <p>Суннитские источники сами свидетельствуют, что Усман ибн Аффан, Тальха ибн Убайдуллах и Аиша бинт Аби Бакр были неверными, врагами Аллаха и Ахль аль-Байт. Все трое…</p>
+        <div class="meta"><span>Исследование</span><span>Открыть →</span></div>
       </a>
     </article>
   </section>
-
-  
 </main>
 <footer>Ильм ар-Риджаль · shiaisnad.ru</footer>
 </div>
