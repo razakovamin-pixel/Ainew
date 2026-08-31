@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#080909">
+<title>Коран не искажён: как был собран текст Священного Писания</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080909;
+  --panel:#0d0f0f;
+  --panel2:#111313;
+  --panel3:#151717;
+  --red:#e21b30;
+  --red2:#ff3948;
+  --red-soft:rgba(226,27,48,.12);
+  --red-line:rgba(226,27,48,.28);
+  --text:#f4f2ef;
+  --text2:#b7b7bc;
+  --text3:#777a80;
+  --line:#242626;
+  --line2:rgba(255,255,255,.09);
+  --max:1120px;
+  --radius:18px;
+  --shadow:0 22px 70px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{
+  margin:0;
+  min-height:100%;
+  overflow-x:hidden;
+  color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 16% 8%,rgba(226,27,48,.11),transparent 25%),
+    radial-gradient(circle at 87% 12%,rgba(255,57,72,.07),transparent 22%),
+    linear-gradient(145deg,#080909 0%,#0a0c0c 52%,#0d0a0b 100%);
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.028;
+  background-image:
+    linear-gradient(30deg,#fff 1px,transparent 1px),
+    linear-gradient(150deg,#fff 1px,transparent 1px);
+  background-size:90px 52px;
+}
+a{color:inherit}
+.shell{position:relative;min-height:100vh}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  height:76px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 22px;
+  background:rgba(8,9,9,.86);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid #222525;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;
+  color:var(--red);
+  font:23px/1 "Amiri",serif;
+  border:1px solid rgba(226,27,48,.5);
+  box-shadow:0 0 22px rgba(226,27,48,.10);
+}
+.brand-title{font-weight:800;letter-spacing:-.035em;font-size:15px}
+.brand-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.top-actions{display:flex;gap:8px}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 13px;
+  border-radius:11px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text2);
+  text-decoration:none;
+  font-size:12px;font-weight:600;
+  transition:.18s ease;
+}
+.nav-btn:hover{
+  color:var(--text);
+  border-color:rgba(226,27,48,.38);
+  transform:translateY(-1px);
+}
+.progress{
+  position:fixed;top:0;left:0;height:2px;width:0;
+  background:linear-gradient(90deg,var(--red),var(--red2));
+  z-index:9999;
+}
+main{
+  width:min(var(--max),100%);
+  margin:0 auto;
+  padding:34px 18px 90px;
+}
+.article-head{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:18px;
+  padding:30px;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(226,27,48,.12),transparent 24%),
+    linear-gradient(160deg,rgba(17,19,19,.98),rgba(10,12,12,.98));
+  box-shadow:var(--shadow);
+}
+.article-head::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg,transparent 15%,rgba(255,255,255,.026) 47%,transparent 72%);
+  transform:translateX(-120%);
+  animation:sweep 8s ease-in-out infinite;
+}
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:5px 9px;
+  border-radius:999px;
+  border:1px solid var(--red-line);
+  background:var(--red-soft);
+  color:#ff8b95;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+.article-head h1{
+  margin:14px 0 10px;
+  font-size:clamp(26px,4.4vw,46px);
+  line-height:1.08;
+  letter-spacing:-.05em;
+}
+.article-head p{
+  margin:0;
+  max-width:860px;
+  color:var(--text2);
+  font-size:14px;
+  line-height:1.78;
+}
+.byline{
+  margin-top:14px;
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  font-size:11px;
+  color:var(--text3);
+}
+.byline b{color:var(--text2)}
+.article-nav{
+  position:sticky;
+  top:76px;
+  z-index:50;
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:9px;
+  margin:0 0 18px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(13,15,15,.9);
+  backdrop-filter:blur(16px);
+}
+.article-nav a{
+  flex:0 0 auto;
+  color:var(--text3);
+  text-decoration:none;
+  padding:7px 10px;
+  border-radius:9px;
+  font-size:11px;
+  white-space:nowrap;
+}
+.article-nav a:hover{
+  background:var(--red-soft);
+  color:var(--red2);
+}
+.notice{
+  margin:0 0 18px;
+  border:1px solid rgba(226,27,48,.24);
+  background:rgba(226,27,48,.06);
+  border-radius:15px;
+  padding:15px 16px;
+  color:#d3d3d7;
+}
+.notice strong{color:#ff7d88}
+.card{
+  position:relative;
+  overflow:hidden;
+  margin:16px 0;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(160deg,rgba(17,19,19,.98),rgba(10,12,12,.98));
+  box-shadow:0 16px 55px rgba(0,0,0,.28);
+  padding:22px;
+}
+.card:hover{
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 20px 65px rgba(0,0,0,.34);
+}
+.card::after{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.02),transparent);
+  transform:translateX(-120%);
+  animation:sweep 10s ease-in-out infinite;
+}
+h2{
+  color:var(--text);
+  margin:0 0 10px;
+  font-size:22px;
+  letter-spacing:-.03em;
+}
+h3{
+  color:var(--text);
+  margin:18px 0 8px;
+  font-size:16px;
+  letter-spacing:-.02em;
+}
+h3:first-child{margin-top:0}
+p,li{
+  color:#a9aaaf;
+  font-size:14px;
+  line-height:1.78;
+}
+ul,ol{padding-left:20px}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+  background:var(--red-soft);
+  border:1px solid var(--red-line);
+  color:#ff8993;
+  margin-bottom:10px;
+}
+.isnad{
+  overflow:auto;
+  direction:ltr;
+  text-align:left;
+  margin:12px 0;
+  padding:12px 14px;
+  border-radius:12px;
+  color:#b9bbc0;
+  background:#090b0b;
+  border:1px solid var(--line2);
+  font-family:"IBM Plex Mono",Consolas,monospace;
+  font-size:11.5px;
+  line-height:1.7;
+}
+.quote{
+  margin:12px 0;
+  padding:14px 16px;
+  border-left:3px solid var(--red);
+  border-radius:0 12px 12px 0;
+  background:rgba(226,27,48,.055);
+  color:#d8d8dc;
+  font-size:14px;
+  line-height:1.75;
+}
+.quote i{color:#c8c8ce}
+.meta{
+  color:var(--text3);
+  font-size:11px;
+  margin-top:6px;
+}
+.verdict{
+  margin:12px 0;
+  padding:12px 14px;
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px dashed var(--line2);
+  color:#c3c4c8;
+  font-size:13px;
+}
+.verdict b{color:#ffb4bb}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:14px 0;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+}
+th,td{
+  padding:11px 12px;
+  border-bottom:1px solid var(--line);
+  color:#b2b3b8;
+  font-size:12px;
+  text-align:left;
+  vertical-align:top;
+}
+th{
+  color:#efeff1;
+  background:#0f1111;
+}
+strong{color:#e7e7e9}
+a:not(.nav-btn){
+  color:#ff7d88;
+  text-decoration:none;
+}
+a:not(.nav-btn):hover{text-decoration:underline;color:#ffabb3}
+.footer{
+  margin-top:30px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+  color:#66696f;
+  font-size:10px;
+  line-height:1.7;
+}
+@keyframes sweep{
+  0%,75%{transform:translateX(-120%)}
+  100%{transform:translateX(120%)}
+}
+.scan{margin:16px 0 4px}
+.scan img{
+  display:block;
+  width:100%;
+  max-width:440px;
+  margin:0 auto;
+  border-radius:12px;
+  border:1px solid var(--line);
+  box-shadow:0 14px 40px rgba(0,0,0,.35);
+}
+.scan-cap{
+  text-align:center;
+  font-size:11px;
+  color:var(--text3);
+  margin-top:8px;
+}
+@media(max-width:720px){
+  .topbar{height:68px;padding:0 14px}
+  .brand-sub{display:none}
+  main{padding:18px 12px 72px}
+  .article-head{padding:22px 18px;border-radius:18px}
+  .article-head h1{font-size:26px}
+  .article-nav{top:68px}
+  .card{padding:17px;border-radius:15px}
+  table{display:block;overflow-x:auto}
+}
+
+.scan-image-link{display:block;text-decoration:none}
+.scan img{display:block;width:100%;max-width:440px;height:auto;margin:0 auto;border-radius:12px;border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.scan-image-link:focus-visible img{outline:2px solid #ff5b68;outline-offset:3px}
+</style>
+</head>
+<body>
+<div class="notice" style="margin:14px 0">Сканы встроены локально в архив. Нажмите на любой скан, чтобы открыть его в полном размере.</div>
+
+<div class="progress" id="progress"></div>
+<div class="shell">
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">ر</div>
+    <div>
+      <div class="brand-title">Ильм ар-Риджаль</div>
+      <div class="brand-sub">Хадисы и вероучение</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <a class="nav-btn" href="../../index.html">⌂ Главная</a>
+    <a class="nav-btn" href="../index.html">Статьи</a>
+  </div>
+</header>
+
+<main>
+  <section class="article-head">
+    <span class="kicker">ИССЛЕДОВАНИЕ · СОХРАННОСТЬ КОРАНА</span>
+    <h1>Коран не искажён: как был собран текст Священного Писания</h1>
+    <p>Обвинение в адрес шиитов, будто они верят в искажённость Корана, — один из самых распространённых полемических штампов. В действительности учение Ахль аль-Бейт настаивает на прямо противоположном: Коран сохранён в точности таким, каким он был ниспослан, без убавления и прибавления. Ниже — главные доводы в пользу этого, основанные на масштабном источниковедческом исследовании сайида Али аш-Шахристани «Сбор Корана: критика документов и изложение фактов» (т. 2, «Сбор во времена двух шейхов и Усмана»).</p>
+  </section>
+
+  <nav class="article-nav" aria-label="Навигация по статье">
+    <a href="#intro">Введение</a>
+    <a href="#lifetime">Собран при жизни Пророка</a>
+    <a href="#contradictions">Противоречия в рассказах о «сборе»</a>
+    <a href="#summary-intro">Резюме — 30 доводов</a>
+    <a href="#p6">Мусхаф Имама Али (6–8)</a>
+    <a href="#p13">Ахль аль-Бейт и неискажённость (13–16)</a>
+    <a href="#p21">Роль Хузайфы (21–22)</a>
+    <a href="#p24">Коран сегодня (24, 28–29)</a>
+    <a href="#p25">Богословское доказательство (25)</a>
+    <a href="#conclusion">Вывод</a>
+  </nav>
+
+<section id="intro" class="card">
+<h2>Введение</h2>
+<p>Сам Коран содержит прямое обещание Аллаха о своей сохранности: <i>«Поистине, Мы ниспослали Напоминание, и Мы его непременно охраняем»</i> (сура 15 «Аль-Хиджр», аят 9); <i>«Воистину, на Нас лежит обязанность собрать его и прочитать»</i> (сура 75 «Аль-Кыяма», аят 17); а о самой Книге сказано: <i>«Ложь не подберётся к нему ни спереди, ни сзади — оно ниспослано от Мудрого, Достохвального»</i> (сура 41 «Фуссылят», аят 42).</p>
+<p>Проблема, которую разбирает автор, — не в тексте Корана, а в позднейших, зачастую противоречивых рассказах о его «сборе» уже после смерти Пророка (с). Эти рассказы, доведённые до крайности, рисуют картину, будто до Абу Бакра, Умара или Усмана Коран существовал лишь разрозненно — «в сердцах, а не на страницах», — что при внимательном разборе оказывается несостоятельным и само по себе создаёт почву для сомнений. Исследование показывает: подлинная история — иная, и именно она гарантирует полную сохранность Писания.</p>
+</section>
+
+<section id="lifetime" class="card">
+<h2>Коран был собран уже при жизни Пророка</h2>
+<p>Сам Пророк (с) и ангел Джибриль были первыми, кто «собрал» ниспосылаемый по частям Коран — расположив аяты и суры Книги Господа миров, что немыслимо было бы поручить кому-то другому. Пророк (с) лично обучал общину Корану на протяжении двадцати трёх лет — двумя путями: через коллективную передачу и через устную передачу от тех, кто читал ему свои чтения вслух. Это долгое, непрерывное наставничество само по себе оберегало текст от искажения и подделки.</p>
+<p>Более того, Пророк (с) готовил специальных писцов, немедленно записывавших каждое ниспосланное откровение на пальмовых листьях, костях лопаток и кусках кожи. Учёный Махмуд Абу Райя, чьи слова приводит автор, замечает:</p>
+<div class="quote">«Если мы примем на веру известные хадисы Бухари о том, как Умар обратился к Абу Бакру с просьбой собрать Коран, из этого следует, что только сподвижники держали Коран в своей памяти, и если бы они умерли, Коран был бы утрачен и забыт, — как будто не существовало другого источника, хранящего его. Тогда как в достоверных сообщениях говорится обратное: Пророк (с) записывал каждое ниспосланное откровение сразу же, и завёл для этого писцов, чьи имена перечисляет история. Куда же делась эта рукопись, в существовании которой никто не сомневается? Ведь именно она — та самая рукопись, которой Аллах хранил Коран согласно словам: “Мы ниспослали Напоминание, и Мы его охраняем”».</div>
+<p class="meta">Цитируется по: Махмуд Абу Райя, «Адва’ аля-с-Сунна аль-Мухаммадия», с. 252.</p>
+<p>Автор отвечает на этот риторический вопрос: рукопись действительно существовала — она хранилась за изголовьем постели Пророка (с), и именно её собрал воедино Имам Али (мир ему!), исполняя волю и завещание Посланника Аллаха.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p15.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p15.jpg" alt="Скан страницы 15" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — аш-Шахристани, «Джам‘ аль-Кур’ан», т. 2, с. 15</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p16.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p16.jpg" alt="Скан страницы 16" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 16 (цитата Абу Райи и коранические аяты о сохранности Корана)</div></div>
+</section>
+
+<section id="contradictions" class="card">
+<h2>Противоречия в самих рассказах о «сборе» после Пророка</h2>
+<p>Автор подробно разбирает хрестоматийные хадисы Бухари и Тирмизи о «сборе Абу Бакра» и показывает, что сами эти рассказы внутренне противоречивы:</p>
+<ul>
+<li><b>Кто предложил сбор?</b> В одной версии (Бухари, Тирмизи) именно Абу Бакр обращается к Зейду ибн Сабиту с просьбой собрать Коран. В другой версии («Аль-Масахиф» Ибн Абу Дауда) сам Абу Бакр «испугался» гибели чтецов Корана и лишь после того, как Зейд отказался, был вынужден прибегнуть к помощи Умара, чтобы убедить его.</li>
+<li><b>Кто убедил Зейда?</b> В одних версиях — Абу Бакр, в других — Умар; в третьей версии (Ибн аль-Анбари) сам Зейд встречает Умара после битвы при Ямаме и первым предлагает собрать Коран, после чего оба идут за разрешением к Абу Бакру.</li>
+<li><b>Требование двух свидетелей.</b> По приказу Абу Бакра Зейд и Умар садились у дверей мечети и принимали записанные аяты только при свидетельстве двух благочестивых мужчин. Автор указывает на логическую проблему (порочный круг, «даур»): достоверность аята зависела от честности свидетеля-сподвижника, а честность сподвижника обосновывалась как раз аятами Корана, ниспосланными в его похвалу, — то есть одно доказывалось через другое.</li>
+</ul>
+<div class="quote">«Разве требование двух свидетелей не означает, что среди сподвижников были те, кто мог по собственному желанию добавить в Коран аят, выдав его за подлинный? Как вообще можно предположить такое о сподвижниках, о которых сказано то, что сказано? А если это не так — не означает ли это, что сподвижники поодиночке попросту не знали текста Корана наизусть?»</div>
+<p>Пророк (с), в отличие от позднейшей практики «двух свидетелей», сам лично проверял точность записи: попросив Зейда ибн Сабита записать аят, он затем просил его прочитать записанное вслух, чтобы исправить любую неточность («Прочти его мне — и если найдётся пропуск, исправь его — и лишь затем выходи с ним к людям»). Ибн Мас'уду он говорил: «Прочти мне», — хотя аят был ниспослан именно ему, — «потому что я хочу услышать его от кого-то другого», после чего Ибн Мас'уд читал ему суру «Ан-Ниса». Такая практика взаимной проверки при жизни Пророка (с) — куда более надёжная гарантия точности текста, чем формальная процедура «двух свидетелей» много лет спустя.</p>
+<p class="meta">Ибн Хаджар, «Фатх аль-Бари», 9:16–18; аз-Заркани, «Манахиль аль-‘ирфан», 1:172–176; «Маджма‘ аз-заваид», 1:152, 8:257; Бухари, «Сахих», хадис 4676, 4768.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p13.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p13.jpg" alt="Скан страницы 13" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 13 (противоречия в рассказах о сборе Абу Бакра)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p46.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p46.jpg" alt="Скан страницы 46" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 46 (разбор слов аз-Заркани о «двух свидетелях»)</div></div>
+</section>
+
+<section id="summary-intro" class="card">
+<h2>Резюме автора: 30 доводов о неискажённости Корана</h2>
+<p>В заключительном разделе своего исследования («Хуляса ва-стинтадж» — «Резюме и выводы») автор подводит итог всей проделанной работе в тридцати пунктах. Ниже приведён полный перевод каждого пункта — без сокращений — с сопровождающим сканом той страницы книги, на которой он находится.</p>
+</section>
+
+<section id="p1" class="card">
+<span class="badge">ДОВОД 1</span>
+<p>Мы опровергли распространённое среди большинства мнение, отрицающее сбор Корана при жизни Посланника Аллаха, и утверждающее, что если сбор и был, то это был сбор «сухуф» (отдельных листов), а не «мусхафа» (цельной книги). Напротив, мы подтвердили обратное — существование мусхафов у сподвижников, хотя они не были полными, как это стало после Посланника Аллаха. А то, что Посланник Аллаха настаивал на запрете брать мусхаф на землю врага и настаивал на увеличении награды тому, кто читает по мусхафу, по сравнению с тем, кто читает наизусть, — подтверждает его существование среди мусульман.</p>
+<p>Мы также подтвердили, что то, что Посланник Аллаха не читал и не писал, не означает, что он этого не знал: <i>«Ты не читал прежде него никакого писания и не переписывал его своей десницей. В противном случае усомнились бы приверженцы лжи»</i> (сура 29 «Аль-Анкабут», аят 48).</p>
+<p>Да, они использовали этот и подобные аяты, чтобы подготовить почву для утверждения о сборе халифов, и в особенности о его необходимости после гибели чтецов Корана в битве при Ямаме!! И их цель для нас окончательно подтвердилась, когда мы увидели, как они настаивают: даже если сбор и был при жизни Посланника Аллаха, то он был «в груди», а не «на строках».</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p332.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p332.jpg" alt="Скан страницы 332" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 331 (начало раздела «Резюме и выводы», довод 1)</div></div>
+</section>
+
+<section id="p2" class="card">
+<span class="badge">ДОВОД 2</span>
+<p>Мы подтвердили, что Посланник Аллаха и верный Джибриль были первыми, кто собрал Коран после его ниспослания по частям, «звезда за звездой», и что именно они привели в порядок Книгу Господа господ — ведь немыслимо представить, чтобы это сделал кто-то другой. А также то, что именно Величайший Посланник лично взялся за обучение своей общины и чтение им Корана вслух на протяжении двадцати трёх лет — двумя путями: 1) коллективная передача; 2) устная передача через тех, кто читал ему свои чтения. И то, что непрерывное чтение Пророком Корана своей общине на протяжении двадцати трёх лет оберегало Коран от искажения и подделки.</p>
+<p>К этому добавляется, что Посланник Аллаха подготовил мужей из числа своих сподвижников для миссии обучения и чтения — таких, как повелитель верующих Али ибн Абу Талиб, Убайй ибн Ка‘б и Ибн Мас‘уд. Именно они были опорой общины в чтении Корана, и именно они противостояли попыткам других исказить его: известно, что Убайй ибн Ка‘б противостоял тем, кто опустил союз «и» из благородного аята о накопителях золота и серебра, а от Ибн Мас‘уда достоверно передано, что он велел своим сподвижникам беречь свои мусхафы и не отдавать их тем, кто может их исказить.</p>
+<p>Небезызвестно тебе, что оба этих великих сподвижника были из числа шиитов повелителя верующих Али (мир ему!) и из тех, кто укрылся в доме Фатимы аз-Захры вместе с группой хашимитов, отвергнувших Сакифу, — и неверно то, что распространяют другие об их следовании за халифами. Добавим к сказанному ранее и то, что пришло в книге «Аль-Ихтиджадж» от имама ас-Садика (мир ему): Убайй ибн Ка‘б сказал Абу Бакру: «О Абу Бакр, не отрицай право, которое Аллах дал не тебе, и не будь первым, кто ослушался Посланника Аллаха в отношении его преемника и избранника, и не препятствуй его делу».</p>
+<p>А также в «Аль-Хисаль», с иснадом от Зейда ибн Вахба: те, кто выразил несогласие с воссиживанием Абу Бакра на посту халифа и его превосходством над Али ибн Абу Талибом, — было двенадцать мужей из мухаджиров и ансаров, среди которых были Убайй ибн Ка‘б и Ибн Мас‘уд, наряду с Салманом, Абу Зарром, Аммаром, Микдадом, Хузаймой, Халидом ибн Саидом, Бурайдой аль-Аслями, Сахлем ибн Хунайфом, Абу Аййубом аль-Ансари и Абу-ль-Хайсамом ибн ат-Тайиханом.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p332.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p332.jpg" alt="Скан страницы 332" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 331 (начало довода 2)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p333.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p333.jpg" alt="Скан страницы 333" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 332 (продолжение довода 2 — Убайй ибн Ка‘б и Ибн Мас‘уд)</div></div>
+</section>
+
+<section id="p3" class="card">
+<span class="badge">ДОВОД 3</span>
+<p>Молчание Абу Бакра относительно сбора Корана Имамом Али после Посланника Аллаха можно понять так, что это было по завещанию самого Посланника Аллаха; а то, что задача сбора Корана была возложена именно на Зейда, указывает на то, что Абу Бакр не был лучшим чтецом среди людей и не запомнил Коран лучше всех, — что подтверждается отсутствием его имени среди тех, кто читал свои чтения Посланнику Аллаха, согласно аз-Захаби.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p334.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p334.jpg" alt="Скан страницы 334" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 333 (довод 3)</div></div>
+</section>
+
+<section id="p4" class="card">
+<span class="badge">ДОВОД 4</span>
+<p>Мы подтвердили в этом исследовании, что проблема была не в том, кто собрал Коран при жизни Посланника Аллаха, а в том, что они не приняли того, кто собрал его вместе с его толкованием, — потому что Али стал «отцом рода (‘Итры)», и поэтому, по их представлению, ему не подобало быть также и собирателем Корана; дело это подобно тому, что они прежде говорили о невозможности соединения пророчества и халифата в одном доме.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p334.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p334.jpg" alt="Скан страницы 334" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 333 (довод 4)</div></div>
+</section>
+
+<section id="p5" class="card">
+<span class="badge">ДОВОД 5</span>
+<p>Мы доказали связь этого Корана с Имамом Али и то, что четыре или пять из семи канонических чтений восходят именно к нему, и что Абу Абд ар-Рахман ас-Сулями не перенимал чтение ни от кого, кроме Али ибн Абу Талиба, а также то, что всё сказанное в ослабление сообщений о мусхафе Имама Али — слабо и подвержено политическим факторам.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p334.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p334.jpg" alt="Скан страницы 334" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 333 (довод 5)</div></div>
+</section>
+
+<section id="p6" class="card">
+<span class="badge">ДОВОД 6</span>
+<p>Из вышесказанного стало известно, что повелитель верующих Али был первым из сподвижников, кто различал в своей работе между тем, что является толкованием и обстоятельствами ниспослания, и самим текстом (матном) Корана, — то есть он собирал Коран то отдельно от толкования, то вместе с ним.</p>
+<p>Он же (мир ему!) был первым и в переносе читаемого Корана в письменную, выверенную форму согласно особым правилам, которым он обучил своего ученика Абу-ль-Асвада ад-Дуали. Таким образом, ад-Дуали закрепил слова Корана на бумаге и определил огласовки (харакат аль-и‘раб) — а не только хранил их в памяти, — а повелитель верующих — это тот, кто сохранил чтение, взятое от Посланника Аллаха от Джибриля, и передавал его общине из поколения в поколение.</p>
+<div class="quote">Абу Убайда сказал: «Абу-ль-Асвад перенял арабскую грамматику у Али». А в «Аль-Исаба» приводится: сказал Абу Али аль-Кали: рассказал нам Абу Исхак аз-Заджадж, рассказал нам Абу-ль-Аббас аль-Мубаррад, который сказал: первым, кто заложил основы арабской грамматики и расставил точки в мусхафе, был Абу-ль-Асвад; и когда его спросили, кто указал ему этот путь, он ответил: «Я перенял его от Али ибн Абу Талиба».</div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p334.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p334.jpg" alt="Скан страницы 334" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 333 (начало довода 6)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p335.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p335.jpg" alt="Скан страницы 335" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 334 (продолжение довода 6 — Абу-ль-Асвад ад-Дуали)</div></div>
+</section>
+
+<section id="p7" class="card">
+<span class="badge">ДОВОД 7</span>
+<p>Имам Али объяснял своё промедление (с присягой), сидя дома, словами: «Я видел, что в Писание Аллаха вносят добавления» или «Я опасался, что в него будет внесено добавление» или «Я опасался, что Коран будет перевёрнут» или «...что Коран ускользнёт» или «чтобы шайтан не внёс в него добавления», — и подобными выражениями. Не исключена связь этого с тем, что передано от Посланника Аллаха о том, что его община обратится вспять после его смерти и последует пути сынов Исраиля «шаг в шаг», а также со словами Умара, сказанными в более позднее время: «Если бы не боязнь, что люди скажут: “Умар добавил в Коран”, я бы добавил», или его словами: «Мы упустили из того, что упустили, из Писания Аллаха», или: «Из того, что было опущено из Корана, — аят о побивании камнями (раджм)».</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p335.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p335.jpg" alt="Скан страницы 335" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 334 (довод 7)</div></div>
+</section>
+
+<section id="p8" class="card">
+<span class="badge">ДОВОД 8</span>
+<p>Мы разъяснили причины преувеличения (числа) погибших при Ямаме, возвеличивания роли Зейда и настойчивого приписывания сбора Корана Усману ибн Аффану, а также настойчивости Омейядов в том, что именно они просветили общину и обучили её чтению и письму, что Харб ибн Умайя обучил арабов письму, что Муавия ибн Абу Суфьян был писцом откровения, и что усманово написание (расм) — установлено самим Аллахом (таукыфи), — и многое подобное этому.</p>
+<p>В противовес этому они утверждали, что Посланник Аллаха не знал чтения и письма и пренебрегал Кораном, пока его не собрал Усман ибн Аффан, и что Али плохо знал Коран и умер, не выучив его наизусть, — и многое подобное этому тоже.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p335.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p335.jpg" alt="Скан страницы 335" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 334 (начало довода 8)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p336.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p336.jpg" alt="Скан страницы 336" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 335 (продолжение довода 8)</div></div>
+</section>
+
+<section id="p9" class="card">
+<span class="badge">ДОВОД 9</span>
+<p>Мы показали, что два шейха (Абу Бакр и Умар), установив метод сбора Корана с двумя свидетелями, смешали между общей и особой передачей Корана от Посланника Аллаха и открыли простор для множественности чтений в нём и утверждения о доказательности всех их — а ведь именно этого опасался Посланник Аллаха для своей общины, тогда как этого желали иудеи и христиане из-за множественности и различия их Евангелий.</p>
+<p>Также и сама идея сбора Корана спустя два десятилетия после смерти Посланника Аллаха, да ещё и в дни смуты (фитны), — тоже не служит его доказательности.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p336.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p336.jpg" alt="Скан страницы 336" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 335 (довод 9)</div></div>
+</section>
+
+<section id="p10" class="card">
+<span class="badge">ДОВОД 10</span>
+<p>Мы допустили, что идея множественности чтений возникла из-за того, что сподвижники забывали точную формулировку Корана, сохраняя при этом его смысл, и заменяли слово другим, синонимичным ему по смыслу, — как замену «спешите» на «идите», «поторопитесь» или «поспешите». Отсюда, возможно, и произошло их мнение о допустимости чтения Корана по смыслу или в любой форме, при условии, что аят милости не превращается в аят наказания, — поскольку они полагали, что Коран включает слова вроде «сюда», «иди», «моё намерение» и «ко мне», которые можно менять, сохраняя саму мысль. Таково мышление Ибн Абу Сарха и ему подобных, а не то, что пришло через откровение.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p336.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p336.jpg" alt="Скан страницы 336" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 335 (довод 10)</div></div>
+</section>
+
+<section id="p11" class="card">
+<span class="badge">ДОВОД 11</span>
+<p>Мы подтвердили, что учение школы Халифата пришло к утверждению, что Коран не является чудом (му‘джиз), — потому что если бы он был чудом и чем-то сверхъестественным, он не нуждался бы в свидетельстве свидетелей о себе, а сам был бы свидетельством самому себе благодаря своей неповторимости (таватур) и красноречию, — а это как раз то, что утверждает школа Ахль аль-Бейт.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p336.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p336.jpg" alt="Скан страницы 336" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 335 (довод 11)</div></div>
+</section>
+
+<section id="p12" class="card">
+<span class="badge">ДОВОД 12</span>
+<p>Школа Ахль аль-Бейт не согласна с тем, чтобы Коран был собран рукой не-непорочного (гайр аль-ма‘сум), но настаивает на том, что его собрал преемник (васый) Мухаммада — Али ибн Абу Талиб, — потому что нельзя полагаться на Коран, к которому может подступить ложь, если он собран рукой не-непорочного.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p336.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p336.jpg" alt="Скан страницы 336" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 335 (начало довода 12)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p337.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p337.jpg" alt="Скан страницы 337" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 336 (окончание довода 12)</div></div>
+</section>
+
+<section id="p13" class="card">
+<span class="badge">ДОВОД 13</span>
+<p>Мы подтвердили, что Ахль аль-Бейт — гарантия против искажения Корана, и что подлинную суть Корана способен понять лишь тот, кто ему равновелик (‘адль), — поэтому словесного искажения в нём нет, хотя мы не отрицаем, что произошло смысловое искажение (тахриф ма‘навий).</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p337.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p337.jpg" alt="Скан страницы 337" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 336 (довод 13)</div></div>
+</section>
+
+<section id="p14" class="card">
+<span class="badge">ДОВОД 14</span>
+<p>Школа Ахль аль-Бейт не приемлет разногласия и призывает к единству слова в вопросе Корана и в других вопросах; Имам Али выступил против призывающих к расколу, сказав: «Коран не должен колебаться (быть предметом раздора) после сегодняшнего нашего дня», — так же Ахль аль-Бейт настаивали на необходимости чтения так, как это распространено и известно среди людей, и на недопустимости отклонения от общеизвестного ради сохранения единства исламской общины.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p337.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p337.jpg" alt="Скан страницы 337" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 336 (довод 14)</div></div>
+</section>
+
+<section id="p15" class="card">
+<span class="badge">ДОВОД 15</span>
+<p>Мы доказали широкую распространённость сообщений (истифада), если не их массовую передачу (таватур), — о существовании мусхафа Имама Али в книгах обеих школ (суннитской и шиитской), вопреки распространённому среди них мнению об отсутствии у Имама собственного мусхафа.</p>
+<p>Мы также подтвердили, что разница в порядке между ниспосланным мусхафом и толковательным (при Имаме Али) не означает разницы в самом Коране, — потому что первый был Кораном для чтения (тилява), и он собрал его за три дня, а второй — книга знания, и он собрал её за шесть месяцев; первый умещался под его мечом, а для перевозки второго требовался верблюд.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p337.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p337.jpg" alt="Скан страницы 337" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 336 (довод 15)</div></div>
+</section>
+
+<section id="p16" class="card">
+<span class="badge">ДОВОД 16</span>
+<p>Мы разъяснили связь темы сбора Корана с вопросом халифата — хотя школа Халифата и обходит это стороной, — потому что многочисленные тексты, имеющиеся в книгах обеих школ, ставят в затруднительное положение любого, кто хотел бы это отрицать: ведь всем известно, что Имам Али задержался с присягой под предлогом сбора Корана, и в этом сообщении заключено многое.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p337.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p337.jpg" alt="Скан страницы 337" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 336 (довод 16)</div></div>
+</section>
+
+<section id="p17" class="card">
+<span class="badge">ДОВОД 17</span>
+<p>Мы показали негативные последствия, которыми сопровождался (рассказ о) сборе Корана в школе Халифата, со стороны востоковедов и других, и то, как враги использовали эти тексты, чтобы преступить через ценности и утверждать больше, чем действительно есть в источниках.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p337.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p337.jpg" alt="Скан страницы 337" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 336 (начало довода 17)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p338.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p338.jpg" alt="Скан страницы 338" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 337 (окончание довода 17)</div></div>
+</section>
+
+<section id="p18" class="card">
+<span class="badge">ДОВОД 18</span>
+<p>Мы подтвердили, что порядок сур не является установленным свыше (таукыфи), хотя некоторые и придерживаются такого мнения; что же касается порядка аятов внутри суры, то он установлен свыше по мнению большинства мусульман, хотя в словах Аиши, Матери верующих, есть то, что указывает на допущение перестановки сур и их аятов, — судя по её словам иракцу, спросившему её о её мусхафе: «Не важно, какой аят ты прочтёшь сначала», — после чего она продиктовала ему аяты сур, а не суру за сурой полностью.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p338.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p338.jpg" alt="Скан страницы 338" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 337 (довод 18)</div></div>
+</section>
+
+<section id="p19" class="card">
+<span class="badge">ДОВОД 19</span>
+<p>Мы подтвердили, что не исключаем, что сподвижник мог называть то, что он собрал, «мусхафом» или «Кораном» по примеру наименования части именем целого — так, например, о десятой части Корана можно сказать «Коран» и «мусхаф» в порядке обобщения (тагълиб), и так же можно назвать частицу его «Кораном» и подобное этому.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p338.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p338.jpg" alt="Скан страницы 338" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 337 (довод 19)</div></div>
+</section>
+
+<section id="p20" class="card">
+<span class="badge">ДОВОД 20</span>
+<p>Мы разъяснили, что различие в порядке чтения (тилява) от порядка ниспослания (нузуль) не вредит основе Корана, так же как не вредит и различие чтений (кираат).</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p338.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p338.jpg" alt="Скан страницы 338" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 337 (довод 20)</div></div>
+</section>
+
+<section id="p21" class="card">
+<span class="badge">ДОВОД 21</span>
+<p>Мы сказали, что ход событий убедил нас в том, что Хузайфа ибн аль-Яман был связующим звеном между халифами и Имамом Али в вопросе Корана, — потому что именно он предложил Усману объединить чтение среди мусульман, и именно он передал Усману «очищенный» (от толкований) мусхаф, который был у Имама Али, согласно словам Ибн Тавуса, приведённым ранее, — потому что Имам надеялся на общую пользу для общины в вопросе Корана, а именно на их согласие в едином чтении, а эта польза не могла быть достигнута через передачу его собственного мусхафа — который был мусхафом Посланника Аллаха — Усману напрямую, зная, что Усман не оценит его собственной инициативы и проявит к нему резкость, и что этот труд будет записан на имя кого-то другого; но он (мир ему!) сделал всё это ради сохранения единства мусульман и защиты целостности («яйца») ислама.</p>
+<p>Необходимо подчеркнуть, что Хузайфа ибн аль-Яман тоже был из числа последователей Али ибн Абу Талиба и сторонников рода (‘Итры), несмотря на то, что он был одним из великих сподвижников Посланника Аллаха. В «Аль-Каши», в жизнеописании Салмана аль-Фариси, от Зурары от Абу Джафара аль-Бакира передаётся, что он (Хузайфа) — один из семи, благодаря которым ниспосылается дождь на землю... Также в другом месте он причислен к «четырём столпам» — на месте своего брата Аммара ибн Ясира, которого Посланник Аллаха побратал с ним. Сайид Бахр аль-Улюм добавляет: «величие Хузайфы, его храбрость, его знание, его отвага и его приверженность повелителю верующих очевидны... его верность и его приверженность (ташаййу‘) повелителю верующих Али и его семье подтверждается тем, что приведено у аль-Каши в словах учёных о нём, включая то, что Али (мир ему!) причислял его к числу шиитов, благодаря которым оказывается помощь и ниспосылается дождь, и что он был среди тех, кто молился над (телом) Фатимы аз-Захры, и среди тех, кто вернулся (в своей верности) к повелителю верующих».</p>
+<div class="quote">В «Мурудж аз-захаб»: «В тот день, — то есть в день Сиффина, — погибли мученической смертью Сафван и Саад, сыновья Хузайфы, а сам Хузайфа был болен в Куфе в тридцать шестом году, и когда до него дошла весть об убийстве Усмана и присяге людей Али, он сказал: “Выведите меня...”» — и далее по тексту сообщения.</div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p338.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p338.jpg" alt="Скан страницы 338" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 337 (начало довода 21)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p339.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p339.jpg" alt="Скан страницы 339" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 338 (продолжение довода 21 — Хузайфа ибн аль-Яман)</div></div>
+</section>
+
+<section id="p22" class="card">
+<span class="badge">ДОВОД 22</span>
+<p>Мы сказали, что идея объединения общины вокруг одного мусхафа не была особенностью одного лишь Усмана ибн Аффана, — Умар опередил его в этом, то есть идея исправления и возвращения общины к единому чтению началась ещё в последние годы жизни Умара, но ему это не удалось, и то, что он начал в отношении множественности чтений, продолжало существовать среди мусульман, пока не пришёл Усман и не постарался их объединить, но и ему это не удалось, — так что чтения умножились, и даже сами мусхафы Усмана, разосланные по провинциям, разошлись между собой. И тогда пришла роль Имама Али через Хузайфу — для утверждения мусхафа Посланника Аллаха.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p339.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p339.jpg" alt="Скан страницы 339" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 338 (довод 22)</div></div>
+</section>
+
+<section id="p23" class="card">
+<span class="badge">ДОВОД 23</span>
+<p>Мы подтвердили, что нет нужды обвинять ни одну из двух сторон (сунну или шиитов) в наличии в их книгах сообщений об искажении (Корана), — потому что это сообщения, признаваемые несостоятельными (недостоверными) у обеих сторон одинаково; более того, сам коранический строй (назм) отрицает наличие прибавления в Коране, а если оно и есть, то это относится к толкованию и разъяснению (тафсир и та’виль) этих аятов со стороны Аллаха. Да, множественность чтений повлияла на установившееся правильное чтение, и поэтому имамы Ахль аль-Бейт настаивали на недопустимости отклонения от того, что твёрдо установлено и общеизвестно среди людей; мы также подробно и обстоятельно разъяснили иснад шиитской передачи того Корана, что распространён сегодня среди мусульман, и что он был собран и упорядочен ещё при Посланнике Аллаха, а его форма была унифицирована, и собрал его между двух обложек Али ибн Абу Талиб, мир ему.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p340.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p340.jpg" alt="Скан страницы 340" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 339 (довод 23)</div></div>
+</section>
+
+<section id="p24" class="card">
+<span class="badge">ДОВОД 24</span>
+<p>После всего этого изложения и анализа мы можем утверждать, что «мусхаф-имам» (эталонный список) — это мусхаф Посланника Аллаха, который собрал Имам Али, а не то, что якобы читал Усман, — ввиду его расхождения с мусхафами других.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p340.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p340.jpg" alt="Скан страницы 340" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 339 (довод 24)</div></div>
+</section>
+
+<section id="p25" class="card">
+<span class="badge">ДОВОД 25</span>
+<p>Мы сказали, что имамы Ахль аль-Бейт приняли этот мусхаф несмотря на все обстоятельства, и что Имам Али не выступал против него, когда были подняты (свитки) мусхафов (при Сиффине); ты не найдёшь, чтобы имамы ссылались на аят, противоречащий тому, что общеизвестно среди мусульман, — ни в проповеди, ни в послании Имама Али, ни аз-Захры, ни кого-либо из имамов Ахль аль-Бейт, — ведь если бы мусхаф был, по его мнению, искажён, он не согласился бы на третейский суд по этому Корану. Всё это подтверждает устойчивость положения Корана у них и то, что он не искажён.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p340.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p340.jpg" alt="Скан страницы 340" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 339 (довод 25)</div></div>
+</section>
+
+<section id="p26" class="card">
+<span class="badge">ДОВОД 26</span>
+<p>Мы разъяснили, что Усман использовал имена группы сподвижников, чтобы узаконить работу своей комиссии и утвердить чтение (харф) Зейда ибн Сабита, но ему это не удалось, так что он был вынужден вернуться к тому, что было общеизвестно среди людей, приняв то, что предложил Хузайфа и чего желали сами мусульмане.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p340.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p340.jpg" alt="Скан страницы 340" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 339 (довод 26)</div></div>
+</section>
+
+<section id="p27" class="card">
+<span class="badge">ДОВОД 27</span>
+<p>Школа Халифата приписывает постыдные вещи соперникам Усмана в вопросе Корана: говорят об Убайе ибн Ка‘бе, что он добавил в Коран суры «Аль-Хафд» и «Аль-Хал‘», хотя они читались ещё до Умара; рассказывают об Ибн Мас‘уде, что он выскоблил из своего мусхафа две «защитные» суры (аль-Му‘аввизатайн); а об Ибн Аббасе говорят, что он передавал израильские предания (исраилийят), — и всё это ради того, чтобы утвердить положение Усмана за счёт других.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p340.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p340.jpg" alt="Скан страницы 340" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 339 (начало довода 27)</div></div>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p341.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p341.jpg" alt="Скан страницы 341" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 340 (окончание довода 27)</div></div>
+</section>
+
+<section id="p28" class="card">
+<span class="badge">ДОВОД 28</span>
+<p>Читателю стало ясно, что мусхаф, находящийся в руках мусульман, — это мусхаф Посланника Аллаха и мусхаф Имама Али, а не мусхаф халифов, и в особенности не мусхаф Усмана ибн Аффана, — ввиду множества указывающих на это признаков, среди которых наличие басмалы в этом Коране, при том что халифы не читали её в молитве и не признавали её частью суры, тогда как школа Ахль аль-Бейт, напротив, настаивает на произнесении её вслух в молитве и считает её одним из пяти отличительных признаков верующего.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p341.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p341.jpg" alt="Скан страницы 341" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 340 (довод 28)</div></div>
+</section>
+
+<section id="p29" class="card">
+<span class="badge">ДОВОД 29</span>
+<p>Школа Халифата потерпела неудачу в объединении общины на том, чего хотел Усман, — напротив, число чтений среди мусульман умножилось, — в отличие от школы Ахль аль-Бейт, которая призывала к единству в Коране и принятию того, что стало общеизвестным среди людей; а их чтение — это то самое известное и распространённое сегодня чтение: Хафс от Асыма, от Абу Абд ар-Рахмана ас-Сулями, от Али, от Посланника Аллаха, от Джибриля, от Аллаха, Велик Он и Свят.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p341.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p341.jpg" alt="Скан страницы 341" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 340 (довод 29)</div></div>
+</section>
+
+<section id="p30" class="card">
+<span class="badge">ДОВОД 30</span>
+<p>То, что представила школа Халифата в вопросе сбора Корана, можно считать пороком (мазлаба) для халифов, а не достоинством (манкаба) для них, потому что это подтачивает корни религии, закладывает ложные основы и даёт оправдание для злоупотреблений.</p>
+<div class="quote">И этим стало ясно всем, что шииты Ахль аль-Бейт, следуя за повелителем верующих Али и его семьёй, утверждают сохранность Корана от искажения и были в числе тех, кто его берёг, — в отличие от школы Халифата, которая своей ошибочной методологией едва не вовлекла общину в искажение, но Аллах сохранил Свою Книгу.</div>
+<p><i>«И последний зов наш — хвала Аллаху, Господу миров, и мир и благословение — лучшему из Его творений и господину Его посланных пророков Мухаммаду и его чистому, непорочному роду, светлому и благословенному»</i> — этими словами автор завершает своё исследование.</p>
+<div class="scan"><a class="scan-image-link" href="/statya/articles/images/jam-quran/p341.jpg" target="_blank" rel="noopener"><img src="/statya/articles/images/jam-quran/p341.jpg" alt="Скан страницы 341" loading="eager" decoding="async"></a><div class="scan-cap">Скан страницы источника — т. 2, с. 340 (довод 30 и заключительная мольба автора)</div></div>
+</section>
+
+<section id="conclusion" class="card">
+<h2>Вывод</h2>
+<p>Коран не был впервые «собран» спустя годы после смерти Пророка (с) из разрозненных запоминаний перепуганных полководцев — он был записан и выверен уже при жизни Пророка (с), под его непосредственным наблюдением, а сразу после его смерти — окончательно оформлен и сохранён рукой непорочного преемника, Имама Али ибн Абу Талиба (мир ему!), в точности по завету Посланника Аллаха. Позднейшие, зачастую противоречащие друг другу рассказы о «сборе» при Абу Бакре, Умаре и Усмане не подрывают целостности самого текста — они лишь описывают процесс приведения общины к единому написанию и огласовке уже существующего, полного и неповреждённого Писания.</p>
+<p>Школа Ахль аль-Бейт, вопреки распространённому обвинению, настаивает именно на полной словесной сохранности Корана: это подтверждается и практикой самих имамов, никогда не ссылавшихся на «иной» текст, и фетвами шиитских правоведов, опирающихся на этот же самый мусхаф, и самим строем Книги, исключающим возможность добавления в неё чего-либо постороннего. Аллах Всевышний исполнил Своё обещание: <i>«Мы ниспослали Напоминание, и Мы его непременно охраняем»</i>.</p>
+</section>
+
+<footer class="footer">
+<p><b>Методологическая заметка:</b> Все доводы и цитаты, приведённые в этой статье, изложены в точном переводе на основе оригинального арабского текста источника — Сайид Али аш-Шахристани, «Джам‘ аль-Кур’ан: накд аль-ватаик ва ‘ард аль-хакаик» («Сбор Корана: критика документов и изложение фактов»), т. 2, «Сбор во времена двух шейхов и Усмана», раздел «Хуляса ва-стинтадж» («Резюме и выводы»), с. 331–340, а также разделы о сборе при Абу Бакре, с. 12–46.</p>
+</footer>
+</main>
+</div>
+<script>
+(() => {
+  const bar = document.getElementById('progress');
+  const update = () => {
+    const d = document.documentElement;
+    const max = d.scrollHeight - d.clientHeight;
+    bar.style.width = (max > 0 ? (d.scrollTop / max) * 100 : 0) + '%';
+  };
+  addEventListener('scroll', update, {passive:true});
+  update();
+})();
+</script>
+</body>
+</html>
