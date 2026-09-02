@@ -280,7 +280,16 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
 <script>
 (function(){
-  var DATA = null;
+  // Больше не грузим весь hadis_data.json (~18-19 МБ) сразу. Вместо этого:
+  // — booksIndex: лёгкий список книг с метаданными (hadis/books-index.json);
+  // — bookCache: книги, реально загруженные по требованию (hadis/books/<id>.json),
+  //   то есть при нажатии на конкретную книгу качается только она.
+  // Полная загрузка всех книг (ensureAllBooksLoaded) запускается лениво — только
+  // когда пользователю реально нужен полнотекстовый поиск или ИИ-чат по всей базе.
+  var booksIndex = null;
+  var bookCache = {};
+  var allBooksLoaded = false;
+  var allBooksLoadingPromise = null;
 
   // ── Язык (общий с главным сайтом shiaisnad.ru через localStorage) ──
   var LANG_KEY = 'rijal_lang';
@@ -355,28 +364,69 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     }
   }
 
-  // dataReadyPromise разрешается, когда DATA полностью загружена (успешно
-  // или нет). Чат-функции (sendChatMessage) дожидаются его перед поиском по
-  // локальной базе, чтобы никогда не сообщать пользователю «ничего не
-  // найдено» просто из-за того, что 18 МБ ещё не успели докачаться.
-  var dataReadyPromise = fetch('/hadis/hadis_data.json').then(function(r){
+  // booksIndexReadyPromise разрешается, когда загружен лёгкий список книг
+  // (метаданные, без текстов хадисов) — этого достаточно для показа списка книг.
+  var booksIndexReadyPromise = fetch('/hadis/books-index.json').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(json){
-    DATA = json;
+    booksIndex = json;
     render();
   }).catch(function(){
-    // Фолбэк: пробуем относительный путь (на случай другого расположения)
-    return fetch('hadis_data.json').then(function(r){
+    return fetch('books-index.json').then(function(r){
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function(json){
-      DATA = json;
+      booksIndex = json;
       render();
     }).catch(function(err){
-      mainArea.innerHTML = '<div class="state-msg">Не удалось загрузить базу хадисов.<br>' + (err && err.message ? err.message : '') + '</div>';
+      mainArea.innerHTML = '<div class="state-msg">Не удалось загрузить список книг.<br>' + (err && err.message ? err.message : '') + '</div>';
     });
   });
+
+  // Загружает ОДНУ книгу (тексты хадисов) по требованию — именно то, что
+  // происходит при нажатии на книгу в списке.
+  function fetchBook(id){
+    if (bookCache[id]) return Promise.resolve(bookCache[id]);
+    return fetch('/hadis/books/' + id + '.json').then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).catch(function(){
+      return fetch('books/' + id + '.json').then(function(r){
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    }).then(function(book){
+      bookCache[id] = book;
+      return book;
+    });
+  }
+
+  // Открывает книгу: если уже в кэше — сразу колбэк, иначе показывает
+  // спиннер, качает только эту книгу и затем вызывает колбэк (обычно render).
+  function openBook(id, cb){
+    if (bookCache[id]) { cb(); return; }
+    mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>Загрузка книги…</div>';
+    fetchBook(id).then(function(){ cb(); }).catch(function(err){
+      mainArea.innerHTML = '<div class="state-msg">Не удалось загрузить книгу.<br>' + (err && err.message ? err.message : '') + '</div>';
+    });
+  }
+
+  // Полная фоновая загрузка ВСЕХ книг — нужна только полнотекстовому поиску
+  // и ИИ-чату (им требуется вся база сразу). Запускается один раз, лениво,
+  // при первом обращении к поиску/чату, не блокируя обычный просмотр книг.
+  function ensureAllBooksLoaded(){
+    if (allBooksLoaded) return Promise.resolve();
+    if (allBooksLoadingPromise) return allBooksLoadingPromise;
+    allBooksLoadingPromise = booksIndexReadyPromise.then(function(){
+      var ids = (booksIndex || []).map(function(b){ return b.id; });
+      return Promise.all(ids.map(function(id){ return fetchBook(id).catch(function(){ return null; }); }));
+    }).then(function(){
+      allBooksLoaded = true;
+      flatHadithCache = null; // пересобрать плоский список из полного кэша
+    });
+    return allBooksLoadingPromise;
+  }
 
   function esc(s){
     return String(s || '').replace(/[&<>"]/g, function(c){
@@ -410,8 +460,9 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   function getFlatHadith(){
     if (flatHadithCache) return flatHadithCache;
     flatHadithCache = [];
-    if (!DATA) return flatHadithCache;
-    DATA.forEach(function(book){
+    (booksIndex || []).forEach(function(meta){
+      var book = bookCache[meta.id];
+      if (!book) return;
       (book.chapters || []).forEach(function(ch){
         (ch.h || []).forEach(function(h){
           if (!h || !h.text) return;
@@ -446,7 +497,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   function buildStrictHadithSystemPrompt(matches){
     var flat = getFlatHadith();
     var books = [];
-    (DATA || []).forEach(function(b){ if (b.title) books.push(b.title); });
+    (booksIndex || []).forEach(function(b){ if (b.title) books.push(b.title); });
     var matchesBlock;
     if (matches.length) {
       matchesBlock = '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ (' + matches.length + ') ===\n' +
@@ -502,8 +553,17 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   function renderChat(){
+    // Открытие чата — сигнал, что скоро понадобится полная база; запускаем
+    // её фоновую догрузку заранее (не дожидаясь), чтобы к моменту, когда
+    // пользователь допишет вопрос, она уже была готова.
+    ensureAllBooksLoaded().then(function(){
+      if (state.view === 'chat') {
+        hdSub.textContent = 'Строго по локальной библиотеке (' + getFlatHadith().length + ')';
+      }
+    });
+    var totalKnown = (booksIndex || []).reduce(function(sum, b){ return sum + b.hadithCount; }, 0);
     hdTitle.textContent = 'ИИ-чат по хадисам';
-    hdSub.textContent = 'Строго по локальной библиотеке (' + getFlatHadith().length + ')';
+    hdSub.textContent = 'Строго по локальной библиотеке (' + totalKnown + ')';
     setCrumb([{ label: 'Хадисы', action: 'books' }, { label: 'ИИ-чат' }]);
     mainArea.innerHTML =
       '<div class="chat-wrap"><div class="chat-msgs" id="chatMsgs"></div>' +
@@ -526,10 +586,10 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     chatHistory.push({ role: 'assistant', content: 'Ищу в локальной библиотеке…', thinking: true });
     renderChatMessages();
 
-    // Дожидаемся полной загрузки базы хадисов, если пользователь успел
-    // написать сообщение раньше, чем она докачалась — иначе поиск ниже
-    // мог бы ошибочно вернуть «ничего не найдено».
-    try { await dataReadyPromise; } catch (e) {}
+    // Дожидаемся полной загрузки ВСЕХ книг (запускается лениво прямо здесь,
+    // если ещё не начиналась) — иначе поиск ниже мог бы ошибочно вернуть
+    // «ничего не найдено» просто потому, что докачаны не все книги.
+    try { await ensureAllBooksLoaded(); } catch (e) {}
 
     var matches = findLocalHadith(text, 6);
     var systemText = buildStrictHadithSystemPrompt(matches);
@@ -564,7 +624,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   function render(){
-    if (!DATA) return;
+    if (!booksIndex) return;
     window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
 
     var chatBar = document.getElementById('chatInputBar');
@@ -583,27 +643,29 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   function renderBooks(){
-    var totalBooks = DATA.length;
-    var totalH = DATA.reduce(function(sum, b){ return sum + b.chapters.reduce(function(a,c){return a + c.h.length;}, 0); }, 0);
+    var totalBooks = booksIndex.length;
+    var totalH = booksIndex.reduce(function(sum, b){ return sum + b.hadithCount; }, 0);
     hdTitle.textContent = 'Библиотека хадисов';
     hdSub.textContent = totalH + ' ' + pluralize(totalH,'хадис','хадиса','хадисов') + ' · ' + totalBooks + ' ' + pluralize(totalBooks,'книга','книги','книг');
     setCrumb([{label:'Все книги'}]);
     var html = '';
-    DATA.forEach(function(book){
-      var hcount = book.chapters.reduce(function(a,c){return a + c.h.length;}, 0);
+    booksIndex.forEach(function(book){
       html += '<div class="book-card" data-book="' + book.id + '">' +
         '<div class="book-num">' + book.id + '</div>' +
         '<div class="book-info"><div class="book-title">' + esc(book.title) + '</div>' +
-        '<div class="book-meta">' + book.chapters.length + ' ' + pluralize(book.chapters.length,'глава','главы','глав') + ' · ' + hcount + ' ' + pluralize(hcount,'хадис','хадиса','хадисов') + '</div></div>' +
+        '<div class="book-meta">' + book.chaptersCount + ' ' + pluralize(book.chaptersCount,'глава','главы','глав') + ' · ' + book.hadithCount + ' ' + pluralize(book.hadithCount,'хадис','хадиса','хадисов') + '</div></div>' +
         '<div class="book-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>' +
       '</div>';
     });
     mainArea.innerHTML = html;
     mainArea.querySelectorAll('.book-card').forEach(function(el){
       el.addEventListener('click', function(){
-        state.bookId = parseInt(el.getAttribute('data-book'), 10);
+        var id = parseInt(el.getAttribute('data-book'), 10);
+        // Нажатие на книгу качает ТОЛЬКО её файл (hadis/books/<id>.json),
+        // а не всю базу хадисов.
+        state.bookId = id;
         state.view = 'chapters';
-        render();
+        openBook(id, render);
       });
     });
   }
@@ -616,7 +678,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   function getBook(id){
-    return DATA.find(function(b){ return b.id === id; });
+    return bookCache[id];
   }
 
   function renderChapters(){
@@ -677,9 +739,23 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   function renderSearch(){
     hdTitle.textContent = 'Поиск';
     hdSub.textContent = '«' + state.query + '»';
+
+    // Полнотекстовый поиск требует всех книг сразу — если ещё не всё
+    // загружено, показываем спиннер и дозагружаем базу в фоне (запускается
+    // лениво, один раз), а затем перерисовываем результаты.
+    if (!allBooksLoaded) {
+      mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>Загрузка базы для поиска…</div>';
+      ensureAllBooksLoaded().then(function(){
+        if (state.query) render();
+      });
+      return;
+    }
+
     var q = state.query.toLowerCase();
     var results = [];
-    DATA.forEach(function(book){
+    (booksIndex || []).forEach(function(meta){
+      var book = bookCache[meta.id];
+      if (!book) return;
       book.chapters.forEach(function(ch){
         ch.h.forEach(function(h){
           if (h.text.toLowerCase().indexOf(q) !== -1) {
@@ -722,7 +798,10 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   var searchInput = document.getElementById('searchInput');
   document.getElementById('searchToggle').addEventListener('click', function(){
     searchBar.classList.toggle('open');
-    if (searchBar.classList.contains('open')) searchInput.focus();
+    if (searchBar.classList.contains('open')) {
+      searchInput.focus();
+      ensureAllBooksLoaded(); // прогреваем базу заранее, пока пользователь печатает
+    }
   });
   var searchTimer;
   searchInput.addEventListener('input', function(){
