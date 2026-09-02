@@ -6600,22 +6600,38 @@ async function init() {
   const loadingEl = $('loading');
   if (loadingEl) loadingEl.style.display = 'flex';
 
-  // Все передатчики объединены в один файл transmitters.json — один запрос
-  // вместо девяти (раньше index.html пытался загрузить transmitters.json
-  // .. transmitters9.json, из которых реально существовали только 5, а
-  // остальные запросы просто впустую тратили время на гарантированные 404).
+  // Передатчики теперь разбиты на чанки (public/data/transmitters/0.json,
+  // 1.json, ...), чтобы не грузить все ~10 300 записей (7+ МБ) одним блокирующим
+  // запросом. Загружаем только первый чанк синхронно — этого достаточно, чтобы
+  // сразу отрисовать список и снять экран загрузки. Остальные чанки дозагружаются
+  // в фоне (см. state.transmittersReadyPromise ниже) и дописываются в state.data
+  // по мере поступления, с перерисовкой списка — так поиск/фильтры постепенно
+  // "видят" всё больше записей, не блокируя интерфейс.
   let raw = [];
+  let chunkMeta = null;
   try {
-    const res = await fetch('transmitters.json');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    raw = await res.json();
+    const metaRes = await fetch('data/transmitters/meta.json');
+    if (!metaRes.ok) throw new Error('HTTP ' + metaRes.status);
+    chunkMeta = await metaRes.json();
+    const firstRes = await fetch('data/transmitters/0.json');
+    if (!firstRes.ok) throw new Error('HTTP ' + firstRes.status);
+    raw = await firstRes.json();
   } catch(e) {
-    console.error('Failed to load transmitters.json:', e);
-    const loadingErrorEl = $('loading');
-    if (loadingErrorEl) {
-      loadingErrorEl.innerHTML = '<div style="color:#fb7185;font-size:14px;text-align:center;padding:20px">⚠ Не удалось загрузить transmitters.json<br><small style="color:#475569">Убедитесь что файл transmitters.json находится рядом с index.html</small></div>';
+    console.warn('Chunked transmitters load failed, falling back to transmitters.json:', e);
+    try {
+      const res = await fetch('transmitters.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      raw = await res.json();
+      raw.forEach((item, i) => { item.id = i; });
+      chunkMeta = null;
+    } catch (e2) {
+      console.error('Failed to load transmitters:', e2);
+      const loadingErrorEl = $('loading');
+      if (loadingErrorEl) {
+        loadingErrorEl.innerHTML = '<div style="color:#fb7185;font-size:14px;text-align:center;padding:20px">⚠ Не удалось загрузить базу передатчиков<br><small style="color:#475569">Убедитесь что файлы данных находятся рядом с index.html</small></div>';
+      }
+      return;
     }
-    return;
   }
 
   // База хадисов (Аль-Кафи и др.) весит ~18 МБ, поэтому грузим её в фоне,
@@ -6626,20 +6642,53 @@ async function init() {
   // то есть либо использует уже готовые данные мгновенно, либо один раз
   // дожидается их полной загрузки. Так поиск по хадисам для ИИ никогда не
   // будет "пустым" из-за гонки с фоновой загрузкой.
+  // База хадисов теперь хранится как лёгкий индекс книг (hadis/books-index.json)
+  // + отдельный файл на каждую книгу (hadis/books/<id>.json). Грузим её книга за
+  // книгой параллельно — тот же суммарный объём, что раньше был одним файлом на
+  // ~18 МБ, но так браузер и Cloudflare-кэш видят 16 маленьких файлов, а страница
+  // /hadis переиспользует уже закэшированные книги, если пользователь туда перейдёт.
   state.hadithReadyPromise = (async () => {
     try {
-      const hadithRes = await fetch('hadis/hadis_data.json');
-      if (hadithRes.ok) {
-        const hadithBooks = await hadithRes.json();
-        state.hadithData = flattenHadithData(hadithBooks);
-      }
+      const idxRes = await fetch('hadis/books-index.json');
+      if (!idxRes.ok) throw new Error('HTTP ' + idxRes.status);
+      const booksIndex = await idxRes.json();
+      const books = await Promise.all(booksIndex.map(async (meta) => {
+        try {
+          const r = await fetch('hadis/books/' + meta.id + '.json');
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return await r.json();
+        } catch (e) {
+          console.warn('Не удалось загрузить книгу хадисов', meta.id, e);
+          return null;
+        }
+      }));
+      state.hadithData = flattenHadithData(books.filter(Boolean));
     } catch (err) {
-      console.info('hadis/hadis_data.json не найден или не удалось загрузить — поиск по хадисам будет недоступен');
+      console.info('hadis/books-index.json не найден или не удалось загрузить — поиск по хадисам будет недоступен');
     }
   })();
-  // Назначаем ID по индексу — гарантирует уникальность
-  raw.forEach((item, i) => { item.id = i; });
+
+  // Чанки уже несут корректный id (= исходный индекс в полном списке),
+  // назначенный при сборке файлов на сервере — переиндексация здесь не нужна
+  // и в чанковом режиме сломала бы соответствие id ⇄ будущим чанкам.
   state.data = raw;
+
+  // Догружаем оставшиеся чанки передатчиков в фоне, не блокируя первый показ.
+  state.transmittersReadyPromise = (async () => {
+    if (!chunkMeta || chunkMeta.chunks <= 1) return;
+    for (let i = 1; i < chunkMeta.chunks; i++) {
+      try {
+        const r = await fetch(`data/transmitters/${i}.json`);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const part = await r.json();
+        state.data = state.data.concat(part);
+        renderСписок();
+        updateStats();
+      } catch (e) {
+        console.warn('Failed to load transmitters chunk', i, e);
+      }
+    }
+  })();
 
   renderСписок();
   updateStats();
@@ -6657,11 +6706,18 @@ async function init() {
   // Ensure welcome is visible before restoring a selection
   setDetailOpen(false);
 
-  // Restore last selection
+  // Restore last selection. Если сохранённый id ещё не в загруженном чанке —
+  // дожидаемся фоновой догрузки остальных чанков, а затем пробуем ещё раз.
   try {
     const lastId = parseInt(localStorage.getItem('rijal_lastId'));
-    if (!isNaN(lastId) && state.data[lastId]) {
-      selectTransmitter(lastId);
+    if (!isNaN(lastId)) {
+      if (state.data[lastId]) {
+        selectTransmitter(lastId);
+      } else if (state.transmittersReadyPromise) {
+        state.transmittersReadyPromise.then(() => {
+          if (state.data[lastId] && state.activeId === null) selectTransmitter(lastId);
+        }).catch(() => {});
+      }
     }
   } catch(e) {}
 
@@ -7439,6 +7495,12 @@ async function sendAiChatMessage(userText) {
     if (state.hadithReadyPromise) {
       try { await state.hadithReadyPromise; } catch (e) {}
     }
+    // Аналогично дожидаемся полной догрузки всех чанков передатчиков —
+    // первый чанк (для мгновенного показа списка) может не содержать
+    // того, о ком спрашивает пользователь.
+    if (state.transmittersReadyPromise) {
+      try { await state.transmittersReadyPromise; } catch (e) {}
+    }
 
     // Build enhanced system prompt with user text for lang detection + web results
     const sysPrompt = buildSystemPrompt(userText);
@@ -7709,11 +7771,12 @@ function openSort() {
 // so the opening screen does not cause transmitters.json to be fetched or cached first.
 function registerRijalServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
-  const swCode = `const CACHE_NAME = 'rijal-v3';
+  const swCode = `const CACHE_NAME = 'rijal-v4';
 const ASSETS = [
   './',
   './index.html',
-  './transmitters.json'
+  './data/transmitters/meta.json',
+  './data/transmitters/0.json'
 ];
 
 self.addEventListener('install', e => {
@@ -7734,9 +7797,25 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Чанки передатчиков и книги хадисов кэшируются по мере запроса (runtime
+// caching) — так повторные визиты не тянут по сети то, что уже качалось,
+// но и не форсируют скачивание ~7-19 МБ данных заранее при первом визите.
 self.addEventListener('fetch', e => {
+  const url = e.request.url;
+  const isData = url.indexOf('/data/transmitters/') !== -1 ||
+                 url.indexOf('/hadis/books/') !== -1 ||
+                 url.indexOf('/hadis/books-index.json') !== -1;
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(resp => {
+        if (isData && resp && resp.ok) {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, copy)).catch(() => {});
+        }
+        return resp;
+      });
+    })
   );
 });
 `;
