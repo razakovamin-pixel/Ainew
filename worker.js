@@ -55,8 +55,12 @@ const MAX_MODEL_TOKENS = 8000;
 const MAX_SOURCE_TEXT_CHARS = 6000;
 const MAX_SOURCES_PER_ANSWER = 4;
 const SEARCH_LIMIT = 4;
-const MEMORY_CACHE_TTL_MS = 10 * 60_000;
-const MEMORY_CTX_TTL_MS = 5 * 60_000;
+// Расширенный TTL кэша (было 10/5 минут) — большинство вопросов повторяются
+// (одни и те же передатчики/хадисы спрашивают разные посетители), поэтому
+// более долгий кэш заметно ускоряет типичный повторный запрос, отвечая из
+// памяти/edge-кэша вместо нового похода в DuckDuckGo и на сайты-источники.
+const MEMORY_CACHE_TTL_MS = 30 * 60_000;
+const MEMORY_CTX_TTL_MS = 15 * 60_000;
 
 const ALLOWED_SOURCE_HOSTS = new Set([
   'lib.eshia.ir',
@@ -79,6 +83,25 @@ const ALLOWED_SOURCE_HOSTS = new Set([
   'islamquest.net',
   'shiavault.com',
   'arsh313.com',
+  // ── Дополнительные шиитские форумы/сайты хадисов и слов учёных ──
+  'balagh.net',
+  'imamreza.net',
+  'rafed.net',
+  'sistani.org',
+  'khamenei.ir',
+  'islamic-laws.com',
+  'al-mostafa.com',
+  'maaref-foundation.com',
+  'thaqalayn.net',
+  'shiapen.com',
+  'duas.org',
+  'ziaraat.org',
+  'taghrib.org',
+  'yahusayn.com',
+  'iqraonline.net',
+  'al-shia.org',
+  'ahlulbayt.org',
+  'jafariyanews.com',
 ]);
 
 const SOURCE_KEYWORDS = [
@@ -110,8 +133,60 @@ const SOURCE_KEYWORDS = [
   },
   {
     test: /(форум|discussion|дискусс|community|сообщество|forum)/i,
-    hosts: ['shiachat.com', 'shiatent.com', 'twelvers.com', 'shiaquest.net'],
+    hosts: [
+      'shiachat.com',
+      'shiatent.com',
+      'twelvers.com',
+      'shiaquest.net',
+      'yahusayn.com',
+    ],
   },
+  { test: /(balagh|балаг)/i, hosts: ['balagh.net'] },
+  { test: /(imam\s*reza|имам\s*реза)/i, hosts: ['imamreza.net'] },
+  { test: /(rafed|рафед)/i, hosts: ['rafed.net'] },
+  { test: /(sistani|систани)/i, hosts: ['sistani.org'] },
+  { test: /(khamenei|хаменеи)/i, hosts: ['khamenei.ir'] },
+  {
+    test: /(islamic[\s-]?laws|исламские\s*законы)/i,
+    hosts: ['islamic-laws.com'],
+  },
+  { test: /(al[\s-]?mostafa|аль[\s-]?мустафа)/i, hosts: ['al-mostafa.com'] },
+  { test: /(maaref|маариф)/i, hosts: ['maaref-foundation.com'] },
+  { test: /(thaqalayn|сакалайн)/i, hosts: ['thaqalayn.net'] },
+  { test: /(shiapen|шиапен)/i, hosts: ['shiapen.com'] },
+  { test: /(дуа|dua(?!h))/i, hosts: ['duas.org'] },
+  { test: /(зиярат|ziaraat)/i, hosts: ['ziaraat.org'] },
+  { test: /(тагриб|taghrib)/i, hosts: ['taghrib.org'] },
+  { test: /(iqra|икра)/i, hosts: ['iqraonline.net'] },
+  { test: /(al[\s-]?shia|аль[\s-]?шиа)/i, hosts: ['al-shia.org'] },
+  { test: /(ahlulbayt|ахль\s*аль[\s-]?бейт|ахлюль\s*бейт)/i, hosts: ['ahlulbayt.org'] },
+  { test: /(jafariya|джафария)/i, hosts: ['jafariyanews.com'] },
+];
+
+// Единый список хостов для хадисных/риджальных запросов без явного
+// указания конкретного сайта — используется и как источник для инференса
+// хостов (inferHosts), и как запасной список в collectSourceContext, чтобы
+// не держать два расходящихся списка (раньше при добавлении нового форума
+// приходилось помнить про оба места — легко было забыть про одно из них).
+const DEFAULT_HADITH_HOSTS = [
+  'shiaisnad.ru',
+  'arsh313.com',
+  'lib.eshia.ir',
+  'shamela.ws',
+  'noorlib.ir',
+  'hawzah.net',
+  'al-islam.org',
+  'islamquest.net',
+  'wikishia.net',
+  'balagh.net',
+  'imamreza.net',
+  'al-mostafa.com',
+  'thaqalayn.net',
+  'shiapen.com',
+  'shiachat.com',
+  'shiatent.com',
+  'twelvers.com',
+  'yahusayn.com',
 ];
 
 const SOURCE_PRIORITY = {
@@ -131,10 +206,28 @@ const SOURCE_PRIORITY = {
   'islamweb.net': 68,
   'shiaquest.net': 64,
   'arsh313.com': 60,
+  'sistani.org': 59,
+  'khamenei.ir': 58,
+  'islamic-laws.com': 57,
+  'al-mostafa.com': 56,
+  'maaref-foundation.com': 55,
+  'thaqalayn.net': 54,
+  'balagh.net': 53,
+  'imamreza.net': 52,
+  'rafed.net': 51,
+  'shiapen.com': 50,
+  'ahlulbayt.org': 49,
+  'al-shia.org': 48,
+  'taghrib.org': 47,
+  'iqraonline.net': 46,
+  'duas.org': 45,
+  'ziaraat.org': 44,
+  'jafariyanews.com': 42,
   'shiachat.com': 40,
   'shiatent.com': 38,
   'twelvers.com': 36,
   'shiavault.com': 34,
+  'yahusayn.com': 32,
 };
 
 const rateBuckets = new Map();
@@ -288,19 +381,7 @@ function inferHosts(queryText) {
     );
 
   if (hosts.length === 0 && hadithish) {
-    hosts.push(
-      'shiaisnad.ru',
-      'lib.eshia.ir',
-      'shamela.ws',
-      'noorlib.ir',
-      'hawzah.net',
-      'al-islam.org',
-      'islamquest.net',
-      'wikishia.net',
-      'shiachat.com',
-      'shiatent.com',
-      'twelvers.com',
-    );
+    hosts.push(...DEFAULT_HADITH_HOSTS);
   }
 
   return [...new Set(hosts)].filter((h) => isAllowedHost(h));
@@ -385,7 +466,7 @@ async function cachePutText(prefix, key, response) {
   await caches.default.put(req, response);
 }
 
-async function fetchTextWithTimeout(url, timeoutMs = 15000) {
+async function fetchTextWithTimeout(url, timeoutMs = 11000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -539,11 +620,16 @@ async function searchDuckDuckGo(query, siteHost, limit = SEARCH_LIMIT) {
     'accept-language': 'ru,en;q=0.8',
   };
 
-  // Primary attempt: html.duckduckgo.com via POST form submit (matches
-  // what a real browser sends — GET with a query string is the classic
-  // scraper fingerprint and gets blocked far more often).
-  let results = [];
-  const primary = await fetchDdgPage(
+  // Оба DDG-эндпоинта ЗАПУСКАЮТСЯ одновременно (fire-and-await-lazily) вместо
+  // строго последовательного "ждём html.duckduckgo.com целиком → и только
+  // при пустом результате идём в lite.duckduckgo.com". Раньше это означало,
+  // что при блокировке/пустом ответе html-эндпоинта пользователь ждал ДВА
+  // полных таймаута подряд (до 12с + 12с). Теперь fallback стартует сразу же,
+  // параллельно с primary, но ожидается только если primary не дал
+  // результатов — в успешном случае (чаще всего) задержка не увеличивается,
+  // а в случае блокировки primary — fallback уже почти готов, а не только
+  // начинает выполняться.
+  const primaryPromise = fetchDdgPage(
     'https://html.duckduckgo.com/html/',
     {
       method: 'POST',
@@ -555,20 +641,22 @@ async function searchDuckDuckGo(query, siteHost, limit = SEARCH_LIMIT) {
       },
       body: `q=${encodeURIComponent(q)}`,
     },
-    12000,
+    9000,
   );
+  const fallbackPromise = fetchDdgPage(
+    `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(q)}`,
+    { method: 'GET', headers: commonHeaders },
+    9000,
+  );
+
+  let results = [];
+  const primary = await primaryPromise;
   if (primary.ok && primary.body) {
     results = parseDdgLinks(primary.body, siteHost, limit);
   }
 
-  // Fallback: lite.duckduckgo.com — simpler markup, sometimes reachable
-  // when the html endpoint is challenged.
   if (results.length === 0) {
-    const fallback = await fetchDdgPage(
-      `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(q)}`,
-      { method: 'GET', headers: commonHeaders },
-      12000,
-    );
+    const fallback = await fallbackPromise;
     if (fallback.ok && fallback.body) {
       results = parseDdgLinks(fallback.body, siteHost, limit);
     }
@@ -736,18 +824,25 @@ async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
   return added > 0;
 }
 
+// Приоритетные хосты для строгого хадисного каскада — ищутся ОДНОВРЕМЕННО
+// (не по очереди), так что добавление ещё двух источников (помимо
+// shiaisnad.ru и arsh313.com) расширяет покрытие хадисов/слов учёных, не
+// увеличивая задержку: итоговый порядок всё равно определяется score в
+// collectSourceContext.
+const HADITH_CASCADE_HOSTS = [
+  'shiaisnad.ru',
+  'arsh313.com',
+  'al-mostafa.com',
+  'thaqalayn.net',
+];
+
 async function searchHadithCascade(queryVariants, pushSource, seen) {
-  // Раньше это были два строго последовательных шага (shiaisnad.ru, и
-  // только при пустом результате — arsh313.com), что удваивало задержку
-  // в худшем случае. Итоговый порядок источников всё равно определяется
-  // сортировкой по score в collectSourceContext (shiaisnad.ru = 100,
-  // arsh313.com = 60), так что можно смело искать по обоим хостам
-  // одновременно — результат идентичен, но быстрее примерно в 2 раза.
-  const [shiaisnadHit, arshHit] = await Promise.all([
-    searchSingleHostHadith('shiaisnad.ru', queryVariants, pushSource, seen).catch(() => false),
-    searchSingleHostHadith('arsh313.com', queryVariants, pushSource, seen).catch(() => false),
-  ]);
-  return shiaisnadHit || arshHit;
+  const hits = await Promise.all(
+    HADITH_CASCADE_HOSTS.map((host) =>
+      searchSingleHostHadith(host, queryVariants, pushSource, seen).catch(() => false),
+    ),
+  );
+  return hits.some(Boolean);
 }
 
 async function collectSourceContext(userText) {
@@ -803,23 +898,10 @@ async function collectSourceContext(userText) {
 
     if (!hadithCascadeHit && sources.length < MAX_SOURCES_PER_ANSWER) {
     const hostPlan = inferHosts(rawText);
-    const hosts = (
-      hostPlan.length
-        ? hostPlan
-        : [
-            'shiaisnad.ru',
-            'lib.eshia.ir',
-            'shamela.ws',
-            'noorlib.ir',
-            'hawzah.net',
-            'al-islam.org',
-            'islamquest.net',
-            'wikishia.net',
-            'shiachat.com',
-            'shiatent.com',
-            'twelvers.com',
-          ]
-    ).slice(0, 6);
+    const hosts = (hostPlan.length ? hostPlan : DEFAULT_HADITH_HOSTS).slice(
+      0,
+      8,
+    );
 
     // ── Subrequest budget guard ──────────────────────────────────
     // Cloudflare caps the number of fetch() subrequests a single Worker
