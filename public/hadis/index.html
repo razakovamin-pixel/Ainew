@@ -183,6 +183,13 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 /* SEARCH RESULTS */
 .result-highlight{background:var(--gold-glow);color:var(--text);border-radius:2px;padding:0 1px;}
 .result-path{font-size:11px;color:var(--text-3);margin-bottom:4px;font-family:var(--font-mono);}
+.btn-online-search{
+  width:100%;padding:12px;border-radius:10px;border:1px solid var(--border-bright);
+  background:var(--ink-1);color:var(--gold);font-family:var(--font-body);font-size:14px;
+  font-weight:600;cursor:pointer;
+}
+.btn-online-search:disabled{opacity:.55;cursor:default;}
+.btn-online-search:active{transform:scale(.98);}
 
 /* BOTTOM NAV (matches main site tab bar) */
 .tab-bar{
@@ -434,11 +441,42 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     });
   }
 
+  // Нормализация текста для поиска (та же идея, что и в риджале на главной
+  // странице): убирает разницу ё/е и вариации арабских букв, из-за которых
+  // локальный поиск по хадисам раньше не находил совпадения при малейшей
+  // разнице в написании запроса и текста хадиса.
+  function normalizeSearchText(s){
+    if (!s) return '';
+    return String(s)
+      .toLowerCase()
+      .replace(/ё/g, 'е')
+      .replace(/[\u064B-\u0652\u0670\u06D6-\u06ED]/g, '')
+      .replace(/\u0640/g, '')
+      .replace(/[آأإٱ]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/[ىی]/g, 'ي')
+      .replace(/ؤ/g, 'و')
+      .replace(/ئ/g, 'ي')
+      .replace(/ء/g, '');
+  }
+
+  function searchWords(query){
+    return normalizeSearchText(query).split(/[^a-zа-яё0-9\u0600-\u06FF]+/i).filter(function(w){ return w.length >= 2; });
+  }
+
+  // Подсвечивает ВСЕ найденные слова запроса (а не только первое вхождение
+  // целиком, как раньше) — раньше подсветка (и по сути сам локальный поиск
+  // в renderSearch) требовала точного вхождения всей фразы целиком, из-за
+  // чего "плохо искало" при запросе из нескольких слов не в том порядке.
   function highlight(text, q){
-    if (!q) return esc(text);
-    var idx = text.toLowerCase().indexOf(q.toLowerCase());
-    if (idx === -1) return esc(text);
-    return esc(text.slice(0, idx)) + '<span class="result-highlight">' + esc(text.slice(idx, idx+q.length)) + '</span>' + esc(text.slice(idx+q.length));
+    var words = searchWords(q);
+    if (!words.length) return esc(text);
+    var escaped = words
+      .slice()
+      .sort(function(a, b){ return b.length - a.length; })
+      .map(function(w){ return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+    var re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+    return esc(text).replace(re, function(m){ return '<mark class="result-highlight">' + m + '</mark>'; });
   }
 
   function setCrumb(parts){
@@ -466,13 +504,18 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
       (book.chapters || []).forEach(function(ch){
         (ch.h || []).forEach(function(h){
           if (!h || !h.text) return;
-          flatHadithCache.push({
+          var item = {
             bookTitle: book.title || '',
             chapterN: ch.n,
             chapterName: ch.name || '',
             hadithId: h.id,
             text: h.text,
-          });
+          };
+          // Предпосчитываем нормализованный "слепок" один раз при сборке
+          // плоского списка — а не на каждый символ поиска для тысяч
+          // хадисов (это и есть "ускорь поиск" для локальной базы).
+          item._blob = normalizeSearchText(item.text + ' ' + item.bookTitle + ' ' + item.chapterName);
+          flatHadithCache.push(item);
         });
       });
     });
@@ -481,11 +524,11 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
   function findLocalHadith(query, limit){
     var flat = getFlatHadith();
-    var words = String(query || '').toLowerCase().split(/[^a-zа-яёàâ0-9]+/i).filter(function(w){ return w.length >= 3; });
+    var words = searchWords(query);
     if (!flat.length || !words.length) return [];
     var scored = [];
     flat.forEach(function(item){
-      var hay = (item.text + ' ' + item.bookTitle + ' ' + item.chapterName).toLowerCase();
+      var hay = item._blob || normalizeSearchText(item.text + ' ' + item.bookTitle + ' ' + item.chapterName);
       var score = 0;
       words.forEach(function(w){ if (hay.indexOf(w) !== -1) score++; });
       if (score > 0) scored.push({ item: item, score: score });
@@ -498,17 +541,13 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     var flat = getFlatHadith();
     var books = [];
     (booksIndex || []).forEach(function(b){ if (b.title) books.push(b.title); });
-    var matchesBlock;
-    if (matches.length) {
-      matchesBlock = '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ (' + matches.length + ') ===\n' +
-        matches.map(function(h){
-          var loc = (h.bookTitle || '') + ', глава ' + h.chapterN + (h.chapterName ? ' («' + h.chapterName + '»)' : '') + ', №' + h.hadithId;
-          var text = h.text.length > 900 ? h.text.slice(0, 900) + '…' : h.text;
-          return '• ' + loc + ':\n  ' + text;
-        }).join('\n\n');
-    } else {
-      matchesBlock = '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ ===\nНичего не найдено по этому запросу в hadis_data.json.';
-    }
+    var matchesBlock =
+      '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ (' + matches.length + ') ===\n' +
+      matches.map(function(h){
+        var loc = (h.bookTitle || '') + ', глава ' + h.chapterN + (h.chapterName ? ' («' + h.chapterName + '»)' : '') + ', №' + h.hadithId;
+        var text = h.text.length > 900 ? h.text.slice(0, 900) + '…' : h.text;
+        return '• ' + loc + ':\n  ' + text;
+      }).join('\n\n');
 
     return (
       'Ты — узкоспециализированный ИИ-ассистент раздела «Библиотека хадисов» проекта ShiaIsnad ' +
@@ -523,13 +562,27 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
       'фикх и фетвы, общие исламские вопросы, любые посторонние темы — на них коротко и дружелюбно ' +
       'скажи, что этот чат ограничен только текстами хадисов из локальной библиотеки, и предложи ' +
       'общий ИИ-чат на shiaisnad.ru для таких вопросов.\n' +
-      '✓ Если блок «НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ» пуст — прямо и честно скажи, что подходящего хадиса ' +
-      'в этой библиотеке не нашлось, и предложи переформулировать запрос. Не выдумывай ответ и не ' +
-      'отправляй на внешние сайты.\n' +
       '✓ Ссылайся на источник в формате «Книга, глава X, №Y» — только из блока ниже.\n' +
       '✓ Пиши на языке вопроса пользователя. Коротко и по делу (обычно 3–8 предложений), подробнее — ' +
       'только если прямо просят.\n\n' +
       matchesBlock
+    );
+  }
+
+  // Когда локальная база (hadis_data.json) ничего не нашла по запросу,
+  // строгий режим больше не глушит ответ фразой "ничего не нашлось" —
+  // вместо этого запрос уходит БЕЗ заголовка X-Hadith-Strict, и воркер сам
+  // ищет хадис в интернете (shiaisnad.ru, arsh313.com и другие шиитские
+  // сайты/форумы из worker.js) и подмешивает найденное в системный промпт.
+  function buildWebHadithSystemPrompt(){
+    return (
+      'Ты — ассистент раздела «Библиотека хадисов» проекта ShiaIsnad (страница /hadis). ' +
+      'В локальной библиотеке (hadis_data.json) подходящего хадиса по запросу пользователя не нашлось. ' +
+      'Используй серверные источники из интернета (shiaisnad.ru, arsh313.com и другие шиитские сайты и ' +
+      'форумы), если они подмешаны в этот системный промпт ниже, чтобы найти нужный хадис или слова учёных. ' +
+      'Обязательно укажи, из какого источника взят ответ. Если надёжного источника не нашлось — прямо ' +
+      'скажи об этом и предложи переформулировать запрос; не выдумывай текст, номер хадиса или книгу. ' +
+      'Пиши на языке вопроса пользователя, коротко и по делу.'
     );
   }
 
@@ -542,7 +595,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     var el = document.getElementById('chatMsgs');
     if (!el) return;
     if (!chatHistory.length) {
-      el.innerHTML = '<div class="chat-bubble ai">Спрашивайте о любом хадисе из этой библиотеки — отвечаю строго по её текстам, с указанием книги, главы и номера.</div>';
+      el.innerHTML = '<div class="chat-bubble ai">Спрашивайте о любом хадисе — сначала ищу в этой библиотеке, а если там ничего нет, ищу в интернете (shiaisnad.ru, arsh313.com и другие шиитские сайты) и указываю источник.</div>';
       return;
     }
     el.innerHTML = chatHistory.map(function(m){
@@ -567,7 +620,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     setCrumb([{ label: 'Хадисы', action: 'books' }, { label: 'ИИ-чат' }]);
     mainArea.innerHTML =
       '<div class="chat-wrap"><div class="chat-msgs" id="chatMsgs"></div>' +
-      '<div class="chat-hint">Отвечает только по текстам из этой библиотеки — не по риджалю и не по фикху.</div></div>';
+      '<div class="chat-hint">Ищет сначала в локальной библиотеке, затем — если нужно — в интернете. Не по риджалю и не по фикху.</div></div>';
     renderChatMessages();
   }
 
@@ -592,16 +645,23 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     try { await ensureAllBooksLoaded(); } catch (e) {}
 
     var matches = findLocalHadith(text, 6);
-    var systemText = buildStrictHadithSystemPrompt(matches);
+    var hasLocalMatches = matches.length > 0;
+    // Есть локальные совпадения → строгий режим (только hadis_data.json, без
+    // веба). Совпадений нет → заголовок X-Hadith-Strict не отправляется,
+    // и воркер сам ищет хадис в интернете (см. worker.js: collectSourceContext
+    // пропускается только когда X-Hadith-Strict реально установлен).
+    var systemText = hasLocalMatches ? buildStrictHadithSystemPrompt(matches) : buildWebHadithSystemPrompt();
     var apiMessages = chatHistory
       .filter(function(m){ return !m.thinking; })
       .slice(-12)
       .map(function(m){ return { role: m.role, content: m.content }; });
 
     try {
+      var headers = { 'Content-Type': 'application/json' };
+      if (hasLocalMatches) headers['X-Hadith-Strict'] = '1';
       var res = await fetch('/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Hadith-Strict': '1' },
+        headers: headers,
         body: JSON.stringify({ max_tokens: 900, temperature: 0.3, system: systemText, messages: apiMessages }),
       });
       var data = await res.json().catch(function(){ return {}; });
@@ -751,33 +811,47 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
       return;
     }
 
-    var q = state.query.toLowerCase();
-    var results = [];
-    (booksIndex || []).forEach(function(meta){
-      var book = bookCache[meta.id];
-      if (!book) return;
-      book.chapters.forEach(function(ch){
-        ch.h.forEach(function(h){
-          if (h.text.toLowerCase().indexOf(q) !== -1) {
-            results.push({book: book, ch: ch, h: h});
-          }
+    // Поиск по словам с нормализацией (ё/е, арабские варианты написания) и
+    // ранжированием по числу совпавших слов — раньше требовалось точное
+    // вхождение всей фразы целиком в исходном написании, из-за чего
+    // многословные или чуть иначе написанные запросы ничего не находили.
+    var words = searchWords(state.query);
+    var scored = [];
+    if (words.length) {
+      (booksIndex || []).forEach(function(meta){
+        var book = bookCache[meta.id];
+        if (!book) return;
+        book.chapters.forEach(function(ch){
+          ch.h.forEach(function(h){
+            var hay = normalizeSearchText(h.text);
+            var score = 0;
+            words.forEach(function(w){ if (hay.indexOf(w) !== -1) score++; });
+            if (score > 0) scored.push({book: book, ch: ch, h: h, score: score});
+          });
         });
       });
-    });
-    setCrumb([{label:'Все книги', action:'books'}, {label:'Результаты: ' + results.length}]);
-    if (!results.length) {
-      mainArea.innerHTML = '<div class="state-msg">Ничего не найдено по запросу «' + esc(state.query) + '»</div>';
-      return;
+      scored.sort(function(a, b){ return b.score - a.score; });
     }
+    var results = scored;
+    setCrumb([{label:'Все книги', action:'books'}, {label:'Результаты: ' + results.length}]);
+
     var html = '';
-    results.slice(0, 300).forEach(function(r){
-      html += '<div class="hadith-card" data-book="' + r.book.id + '" data-ch="' + r.ch.n + '" style="cursor:pointer;">' +
-        '<div class="result-path">' + esc(r.book.title.split(' — ')[1] || r.book.title) + ' · Глава ' + r.ch.n + '</div>' +
-        '<div class="hadith-text">' + highlight(r.h.text, state.query) + '</div>' +
-      '</div>';
-    });
-    if (results.length > 300) {
-      html += '<div class="state-msg">Показаны первые 300 из ' + results.length + ' результатов. Уточните запрос.</div>';
+    if (!results.length) {
+      html += '<div class="state-msg">Ничего не найдено по запросу «' + esc(state.query) + '» в локальной библиотеке.</div>' +
+        '<div style="padding:0 16px 16px;"><button class="btn-online-search" id="btnOnlineHadithSearch">Искать в интернете</button></div>' +
+        '<div id="onlineSearchResult"></div>';
+    } else {
+      results.slice(0, 300).forEach(function(r){
+        html += '<div class="hadith-card" data-book="' + r.book.id + '" data-ch="' + r.ch.n + '" style="cursor:pointer;">' +
+          '<div class="result-path">' + esc(r.book.title.split(' — ')[1] || r.book.title) + ' · Глава ' + r.ch.n + '</div>' +
+          '<div class="hadith-text">' + highlight(r.h.text, state.query) + '</div>' +
+        '</div>';
+      });
+      if (results.length > 300) {
+        html += '<div class="state-msg">Показаны первые 300 из ' + results.length + ' результатов. Уточните запрос.</div>';
+      }
+      html += '<div style="padding:0 16px 16px;"><button class="btn-online-search" id="btnOnlineHadithSearch">Также искать в интернете</button></div>' +
+        '<div id="onlineSearchResult"></div>';
     }
     mainArea.innerHTML = html;
     mainArea.querySelectorAll('.hadith-card[data-book]').forEach(function(el){
@@ -791,6 +865,50 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
         render();
       });
     });
+    var onlineBtn = document.getElementById('btnOnlineHadithSearch');
+    if (onlineBtn) onlineBtn.addEventListener('click', function(){ runOnlineHadithSearch(state.query); });
+  }
+
+  // Поиск хадиса в интернете (shiaisnad.ru, arsh313.com и другие шиитские
+  // сайты/форумы — см. worker.js) — используется, когда локальная база
+  // (hadis_data.json) не содержит нужного хадиса или для расширенной
+  // проверки формулировки. В отличие от строгого ИИ-чата на этой странице,
+  // здесь заголовок X-Hadith-Strict НЕ отправляется, поэтому воркер сам
+  // ищет источники в интернете и подмешивает их в системный промпт.
+  async function runOnlineHadithSearch(query){
+    var box = document.getElementById('onlineSearchResult');
+    var btn = document.getElementById('btnOnlineHadithSearch');
+    if (!box || !query) return;
+    if (btn) btn.disabled = true;
+    box.innerHTML = '<div class="state-msg"><div class="spinner"></div>Ищу в интернете…</div>';
+    var systemText =
+      'Ты — ассистент библиотеки хадисов ShiaIsnad. Пользователь искал хадис по запросу «' + query + '», ' +
+      'но в локальной базе (hadis_data.json) подходящего текста не нашлось (или недостаточно). ' +
+      'Используй серверные источники (shiaisnad.ru, arsh313.com и другие шиитские сайты/форумы), ' +
+      'если они подмешаны ниже, чтобы найти этот хадис. Обязательно укажи книгу/источник и, если есть, ' +
+      'номер хадиса или главу. Если ничего надёжного не найдено — прямо скажи об этом, не выдумывай текст.';
+    try {
+      var res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ max_tokens: 900, temperature: 0.3, system: systemText, messages: [{ role: 'user', content: query }] })
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      var reply =
+        (data && data.content && data.content[0] && data.content[0].text) ||
+        (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
+        '';
+      reply = String(reply || '').trim();
+      if (!res.ok || !reply) {
+        box.innerHTML = '<div class="state-msg">' + esc((data && data.error) || 'Не удалось выполнить поиск в интернете. Попробуйте ещё раз.') + '</div>';
+      } else {
+        box.innerHTML = '<div class="hadith-card"><div class="result-path">Результат поиска в интернете</div><div class="hadith-text">' + esc(reply) + '</div></div>';
+      }
+    } catch (e) {
+      box.innerHTML = '<div class="state-msg">Ошибка сети. Попробуйте ещё раз.</div>';
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   // Search bar toggle
