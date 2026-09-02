@@ -25,7 +25,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Аналитическая база данных науки ар-Риджаль">
 <title>علم الرجال — Ilm al-Rijal | Ильм ар-Риджаль</title>
-<!-- manifest.json not available in single-file mode -->
+<!-- Site icon / Android PWA icon -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet" onerror="console.warn('Fonts blocked')">
@@ -7020,7 +7025,7 @@ function flattenHadithData(books) {
       const hadiths = chapter.h || [];
       for (const h of hadiths) {
         if (!h || !h.text) continue;
-        flat.push({
+        const item = {
           bookId: book.id,
           bookTitle: book.title || '',
           chapterN: chapter.n,
@@ -7028,7 +7033,13 @@ function flattenHadithData(books) {
           hadithId: h.id,
           fragmentTitle: h.title || '',
           text: h.text,
-        });
+        };
+        // Кэшируем нормализованный слепок один раз при загрузке базы, а не
+        // на каждый вопрос в чате — иначе полнотекстовый поиск по тысячам
+        // хадисов пересчитывал бы normalizeSearchText() заново на каждое
+        // сообщение (ускорение локального поиска для ИИ-чата).
+        item._blob = normalizeSearchText(item.text + ' ' + item.bookTitle + ' ' + item.chapterName + ' ' + item.fragmentTitle);
+        flat.push(item);
       }
     }
   }
@@ -7036,15 +7047,22 @@ function flattenHadithData(books) {
 }
 
 // ── Поиск хадисов/фрагментов из локальной библиотеки по запросу пользователя ──
+// Раньше использовался toLowerCase() без нормализации ё/е и вариантов
+// арабского написания (в отличие от normalizeSearchText, которым уже
+// пользуется обычный список передатчиков) — из-за этого локальный поиск
+// хадисов для ИИ-чата пропускал очевидные совпадения при малейшей разнице
+// в написании. Теперь используется та же normalizeSearchText, а
+// нормализованный "слепок" каждого хадиса кэшируется один раз в
+// flattenHadithData, а не пересчитывается на каждый вопрос в чате.
 function findLocalHadith(query, limit = 5) {
   if (!state.hadithData || !state.hadithData.length || !query) return [];
-  const words = query.toLowerCase()
-    .split(/[^a-zа-яё0-9]+/i)
-    .filter(w => w.length >= 3);
+  const words = normalizeSearchText(query)
+    .split(/[^a-zа-яё0-9\u0600-\u06FF]+/i)
+    .filter(w => w.length >= 2);
   if (!words.length) return [];
   const scored = [];
   for (const item of state.hadithData) {
-    const haystack = (item.text + ' ' + item.bookTitle + ' ' + item.chapterName + ' ' + item.fragmentTitle).toLowerCase();
+    const haystack = item._blob || normalizeSearchText(item.text + ' ' + item.bookTitle + ' ' + item.chapterName + ' ' + item.fragmentTitle);
     let score = 0;
     for (const w of words) {
       if (haystack.includes(w)) score++;
@@ -7056,16 +7074,48 @@ function findLocalHadith(query, limit = 5) {
 }
 
 // ── Find transmitters from local dataset matching the query ───────
+// БЫЛА СЕРЬЁЗНАЯ ПРИЧИНА ПУТАНИЦЫ ИИ: раньше вся фраза пользователя целиком
+// (например «что такое мута?») искалась как ОДНА подстрока в bio — для
+// обычных вопросов это почти никогда не совпадало (полезного контекста не
+// было), а для однословных запросов вроде отдельного арабского корня
+// («мута», «фатх» и т.п.) неизбежно "случайно" совпадало с середины
+// НЕСВЯЗАННЫХ имён/биографий (например «аль-МУТАваккиль», «МУТАзилиты») —
+// и эта нерелевантная выдержка из локальной базы попадала в системный
+// промпт как «НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ», из-за чего модель начинала жевать
+// не тот предмет и выглядела "тупой" вместо того, чтобы просто объяснить
+// вопрос по фикху своими знаниями.
+// Теперь: запрос разбивается на слова (с той же нормализацией ё/е и
+// арабских написаний, что и обычный список), совпадение по имени/арабскому
+// имени весит намного больше совпадения по биографии, а слабые совпадения
+// только по одному случайному слову в bio отбрасываются — так что случайное
+// пересечение корня слова с чужим именем/биографией больше не выдаётся за
+// «нашли релевантного передатчика».
 function findLocalTransmitters(query) {
   if (!state.data || !query) return [];
-  const q = query.toLowerCase();
-  const matches = state.data.filter(tx => {
-    const name = (tx.name || '').toLowerCase();
-    const arabic = (tx.arabicName || '').toLowerCase();
-    const bio = (tx.bio || '').toLowerCase();
-    return name.includes(q) || arabic.includes(q) || bio.includes(q);
-  });
-  return matches.slice(0, 5); // top 5 matches
+  const words = normalizeSearchText(query)
+    .split(/[^a-zа-яё0-9\u0600-\u06FF]+/i)
+    .filter(w => w.length >= 3);
+  if (!words.length) return [];
+
+  const scored = [];
+  for (const tx of state.data) {
+    const nameBlob = normalizeSearchText((tx.name || '') + ' ' + (tx.arabicName || ''));
+    const bioBlob = normalizeSearchText(tx.bio || '');
+    let nameScore = 0;
+    let bioScore = 0;
+    for (const w of words) {
+      if (nameBlob.includes(w)) nameScore++;
+      else if (bioBlob.includes(w)) bioScore++;
+    }
+    // Совпадение в имени — сильный сигнал релевантности (даже одно слово).
+    // Совпадение только в биографии — слабый сигнал, нужно хотя бы 2 разных
+    // слова, иначе это, скорее всего, случайное пересечение корня.
+    if (nameScore > 0 || bioScore >= 2) {
+      scored.push({ tx, score: nameScore * 3 + bioScore });
+    }
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, 5).map(s => s.tx); // top 5 matches
 }
 
 
@@ -7211,6 +7261,13 @@ ${langInstruction}
    перечисляй сайты, которые ДЕЙСТВИТЕЛЬНО использовались в ответе (например: shiaisnad.ru,
    arsh313.com, lib.eshia.ir, shamela.ws, islamweb.net) — не перечисляй сайты, которые не были
    задействованы.
+13) Блоки «НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ» и «НАЙДЕНО В ЛОКАЛЬНОЙ БИБЛИОТЕКЕ ХАДИСОВ» — это
+   результат автоматического поиска по совпадению слов, а НЕ гарантия релевантности.
+   Если то, что там перечислено, по смыслу НЕ относится к вопросу пользователя (например,
+   совпало только случайное созвучие корня слова с чужим именем или темой) — полностью
+   игнорируй этот блок и отвечай на реальный вопрос по своим знаниям, честно помечая это
+   пунктом 6 выше. Не пытайся притянуть нерелевантные совпадения к ответу — это и есть
+   главная причина путаных, не по делу ответов.
 
 ════════════════════════════════════════
 ИСТОЧНИКИ — ИЕРАРХИЯ ПРИОРИТЕТОВ
