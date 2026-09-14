@@ -43,6 +43,9 @@ h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin
 .card::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.025),transparent);transform:translateX(-110%);transition:.7s}
 .card:hover{transform:translateY(-3px);border-color:rgba(226,27,48,.35);box-shadow:0 24px 70px rgba(0,0,0,.33)}
 .card:hover::after{transform:translateX(110%)}
+.new-card{border-color:rgba(226,27,48,.42);box-shadow:0 20px 60px rgba(226,27,48,.08)}
+.new-card .badge{margin-bottom:2px}
+
 .card a{text-decoration:none;color:inherit;display:block}
 .badge{display:inline-flex;border:1px solid rgba(226,27,48,.27);background:rgba(226,27,48,.08);color:#ff8892;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800}
 .card h2{font-size:20px;line-height:1.25;margin:15px 0 8px;letter-spacing:-.025em}
@@ -71,8 +74,16 @@ footer{padding:0 22px 26px;text-align:center;color:#55575c;font-size:10px}
   </section>
 
   <section class="grid">
-    <article class="card">
+    <article class="card new-card">
       <a href="articles/zaydism-refuted.html">
+        <div class="badge">НОВАЯ</div>
+        <h2>позор зейдитов</h2>
+        <p>Исследование нового материала с разбором доводов и аргументов в полемике с зейдитами.</p>
+        <div class="meta"><span>Новое исследование</span><span>Зейдизм · хадисы</span></div>
+      </a>
+    </article>
+    <article class="card">
+      <a href="articles/zaydism-refuted-old.html">
         <h2>Несостоятельность нападок зейдитов на имамитов</h2>
         <p>Риджаль, противоречия и хадис о двенадцати имамах: доводы из «Камаль ад-дин» шейха ас-Садука со сканами страниц, плюс разбор двойных стандартов в науке о передатчиках.</p>
         <div class="meta"><span>Исследование</span><span>Риджаль и имамат</span></div>
