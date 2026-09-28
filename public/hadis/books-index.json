@@ -1,0 +1,132 @@
+[
+  {
+    "id": 1,
+    "title": "Аль-Кафи — том 1",
+    "sourceBookId": "Al-Kafi-Volume-1-Kulayni",
+    "volume": 1,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 146,
+    "hadithCount": 401,
+    "file": "books/1.json"
+  },
+  {
+    "id": 2,
+    "title": "Аль-Кафи — том 2",
+    "sourceBookId": "Al-Kafi-Volume-2-Kulayni",
+    "volume": 2,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 250,
+    "hadithCount": 866,
+    "file": "books/2.json"
+  },
+  {
+    "id": 3,
+    "title": "Аль-Кафи — том 3",
+    "sourceBookId": "Al-Kafi-Volume-3-Kulayni",
+    "volume": 3,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 290,
+    "hadithCount": 1167,
+    "file": "books/3.json"
+  },
+  {
+    "id": 4,
+    "title": "Аль-Кафи — том 4",
+    "sourceBookId": "Al-Kafi-Volume-4-Kulayni",
+    "volume": 4,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 318,
+    "hadithCount": 1142,
+    "file": "books/4.json"
+  },
+  {
+    "id": 5,
+    "title": "Аль-Кафи — том 5",
+    "sourceBookId": "Al-Kafi-Volume-5-Kulayni",
+    "volume": 5,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 292,
+    "hadithCount": 970,
+    "file": "books/5.json"
+  },
+  {
+    "id": 6,
+    "title": "Аль-Кафи — том 6",
+    "sourceBookId": "Al-Kafi-Volume-6-Kulayni",
+    "volume": 6,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 307,
+    "hadithCount": 976,
+    "file": "books/6.json"
+  },
+  {
+    "id": 7,
+    "title": "Аль-Кафи — том 7",
+    "sourceBookId": "Al-Kafi-Volume-7-Kulayni",
+    "volume": 7,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 146,
+    "hadithCount": 492,
+    "file": "books/7.json"
+  },
+  {
+    "id": 8,
+    "title": "Аль-Кафи — том 8",
+    "sourceBookId": "Al-Kafi-Volume-8-Kulayni",
+    "volume": 8,
+    "author": "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī",
+    "chaptersCount": 162,
+    "hadithCount": 164,
+    "file": "books/8.json"
+  },
+  {
+    "id": 9,
+    "title": "Ман Ля Яхдуруху аль-Факих — том 1",
+    "sourceBookId": "Man-La-Yahduruh-al-Faqih-Volume-1-Saduq",
+    "volume": 1,
+    "author": "Shaykh Muḥammad b. ʿAlī al-Ṣaduq",
+    "chaptersCount": 87,
+    "hadithCount": 1569,
+    "file": "books/9.json"
+  },
+  {
+    "id": 10,
+    "title": "Ман Ля Яхдуруху аль-Факих — том 2",
+    "sourceBookId": "Man-La-Yahduruh-al-Faqih-Volume-2-Saduq",
+    "volume": 2,
+    "author": "Shaykh Muḥammad b. ʿAlī al-Ṣaduq",
+    "chaptersCount": 225,
+    "hadithCount": 1696,
+    "file": "books/10.json"
+  },
+  {
+    "id": 11,
+    "title": "Ман Ля Яхдуруху аль-Факих — том 3",
+    "sourceBookId": "Man-La-Yahduruh-al-Faqih-Volume-3-Saduq",
+    "volume": 3,
+    "author": "Shaykh Muḥammad b. ʿAlī al-Ṣaduq",
+    "chaptersCount": 172,
+    "hadithCount": 1758,
+    "file": "books/11.json"
+  },
+  {
+    "id": 12,
+    "title": "Ман Ля Яхдуруху аль-Факих — том 4",
+    "sourceBookId": "Man-La-Yahduruh-al-Faqih-Volume-4-Saduq",
+    "volume": 4,
+    "author": "Shaykh Muḥammad b. ʿAlī al-Ṣaduq",
+    "chaptersCount": 175,
+    "hadithCount": 964,
+    "file": "books/12.json"
+  },
+  {
+    "id": 13,
+    "title": "Ман Ля Яхдуруху аль-Факих — том 5",
+    "sourceBookId": "Man-La-Yahduruh-al-Faqih-Volume-5-Saduq",
+    "volume": 5,
+    "author": "Shaykh Muḥammad b. ʿAlī al-Ṣaduq",
+    "chaptersCount": 387,
+    "hadithCount": 395,
+    "file": "books/13.json"
+  }
+]

@@ -152,6 +152,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 .chapter-info{flex:1;min-width:0;}
 .chapter-title{font-family:var(--font-serif-body);font-size:15.5px;font-weight:600;line-height:1.3;}
 .chapter-meta{font-size:11px;color:var(--text-3);margin-top:2px;}
+.chapter-category{font-size:10px;color:var(--gold);text-transform:none;letter-spacing:.02em;margin-bottom:3px;font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* HADITH CARD */
 .hadith-card{
@@ -508,6 +509,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
             bookTitle: book.title || '',
             chapterN: ch.n,
             chapterName: ch.name || '',
+            category: ch.category || '',
             hadithId: h.id,
             text: h.text,
           };
@@ -544,7 +546,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     var matchesBlock =
       '=== НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ (' + matches.length + ') ===\n' +
       matches.map(function(h){
-        var loc = (h.bookTitle || '') + ', глава ' + h.chapterN + (h.chapterName ? ' («' + h.chapterName + '»)' : '') + ', №' + h.hadithId;
+        var loc = (h.bookTitle || '') + (h.category ? ', раздел «' + h.category + '»' : '') + ', глава ' + h.chapterN + (h.chapterName ? ' («' + h.chapterName + '»)' : '') + ', №' + h.hadithId;
         var text = h.text.length > 900 ? h.text.slice(0, 900) + '…' : h.text;
         return '• ' + loc + ':\n  ' + text;
       }).join('\n\n');
@@ -751,7 +753,9 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     book.chapters.forEach(function(ch){
       html += '<div class="chapter-card" data-ch="' + ch.n + '">' +
         '<div class="chapter-num">' + ch.n + '</div>' +
-        '<div class="chapter-info"><div class="chapter-title">' + esc(ch.name || ('Глава ' + ch.n)) + '</div>' +
+        '<div class="chapter-info">' +
+        '<div class="chapter-category">' + esc(ch.category || '') + '</div>' +
+        '<div class="chapter-title">' + esc(ch.name || ('Глава ' + ch.n)) + '</div>' +
         '<div class="chapter-meta">' + ch.h.length + ' ' + pluralize(ch.h.length,'хадис','хадиса','хадисов') + '</div></div>' +
       '</div>';
     });
@@ -773,7 +777,9 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     hdTitle.textContent = 'Глава ' + ch.n;
     hdSub.textContent = book.title;
     setCrumb([{label:'Все книги', action:'books'}, {label:'Книга ' + book.id, action:'chapters'}, {label:'Глава ' + ch.n}]);
-    var html = '<div style="font-family:var(--font-serif-body);font-size:16px;font-weight:600;margin:4px 0 14px;color:var(--text-2);">' + esc(ch.name || '') + '</div>';
+    var html = '<div style="margin:4px 0 14px;">' +
+      '<div class="chapter-category" style="margin-bottom:4px;">' + esc(ch.category || '') + '</div>' +
+      '<div style="font-family:var(--font-serif-body);font-size:16px;font-weight:600;color:var(--text-2);">' + esc(ch.name || '') + '</div></div>';
     var isAz = state.lang === 'az';
     var pending = [];
     ch.h.forEach(function(h, i){
@@ -789,7 +795,8 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
           pending.push({ key: key, text: h.text });
         }
       }
-      html += '<div class="hadith-card" data-hkey="' + key + '"><span class="hadith-num">ХАДИС ' + (i+1) + '</span><div class="hadith-text' + loadingCls + '">' + esc(text) + '</div></div>';
+      var sourceNo = (h && h.id !== undefined && h.id !== null) ? h.id : (i + 1);
+      html += '<div class="hadith-card" data-hkey="' + key + '"><span class="hadith-num">ХАДИС №' + esc(sourceNo) + '</span><div class="hadith-text' + loadingCls + '">' + esc(text) + '</div></div>';
     });
     mainArea.innerHTML = html;
 
@@ -830,7 +837,9 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
           });
         });
       });
-      scored.sort(function(a, b){ return b.score - a.score; });
+      scored.sort(function(a, b){
+        return (b.score - a.score) || (a.book.id - b.book.id) || (a.ch.n - b.ch.n) || ((a.h.id || 0) - (b.h.id || 0));
+      });
     }
     var results = scored;
     setCrumb([{label:'Все книги', action:'books'}, {label:'Результаты: ' + results.length}]);
@@ -843,7 +852,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     } else {
       results.slice(0, 300).forEach(function(r){
         html += '<div class="hadith-card" data-book="' + r.book.id + '" data-ch="' + r.ch.n + '" style="cursor:pointer;">' +
-          '<div class="result-path">' + esc(r.book.title.split(' — ')[1] || r.book.title) + ' · Глава ' + r.ch.n + '</div>' +
+          '<div class="result-path">' + esc(r.book.title) + ' · ' + esc(r.ch.category || '') + ' · Глава ' + r.ch.n + ' · №' + esc(r.h.id) + '</div>' +
           '<div class="hadith-text">' + highlight(r.h.text, state.query) + '</div>' +
         '</div>';
       });
