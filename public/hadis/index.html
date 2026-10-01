@@ -4,11 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#080909">
-<meta name="description" content="Библиотека хадисов — Аль-Кафи и другие шиитские источники">
+<meta id="pageDescription" name="description" content="Библиотека хадисов — Аль-Кафи и другие шиитские источники">
+<script src="/site-lang.js"></script>
+<script src="/translator.js"></script>
 <title>Библиотека хадисов | ShiaIsnad</title>
+<!-- Site icon / Android PWA icon (абсолютные пути: страница живёт в /hadis/) -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   /* Same dark red/black tokens as the main index (SHIAWAY VISUAL OVERRIDES) —
@@ -39,7 +47,8 @@
   --font-body: 'Inter', Arial, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
   --header-h: 60px;
-  --tabbar-h: 82px;
+  --bottom-nav-height: 72px;
+  --tabbar-h: var(--bottom-nav-height);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{height:100%;font-size:16px;scroll-behavior:smooth;overscroll-behavior:none;overflow-x:hidden;}
@@ -118,7 +127,7 @@ button{font-family:inherit;cursor:pointer;}
 .crumb span.cur{color:var(--text-2);font-weight:600;}
 
 /* MAIN */
-main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);max-width:840px;margin:0 auto;}
+main{position:relative;z-index:1;padding:10px 14px calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px));max-width:840px;margin:0 auto;}
 
 /* BOOK LIST */
 .book-card{
@@ -194,14 +203,14 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
 /* BOTTOM NAV (matches main site tab bar) */
 .tab-bar{
-  position:fixed;left:0;right:0;bottom:0;z-index:30;height:var(--tabbar-h);
+  position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   background:linear-gradient(180deg, var(--ink-1), var(--ink));
   border-top:1px solid var(--border-bright);box-shadow:0 -6px 20px rgba(58,40,16,.14);
-  padding-bottom:env(safe-area-inset-bottom);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
 }
-.tab-bar-inner{display:flex;height:100%;max-width:840px;margin:0 auto;}
+.tab-bar-inner{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:var(--bottom-nav-height);max-width:840px;margin:0 auto;}
 .tab-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-width:0;width:100%;height:var(--bottom-nav-height);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   background:none;border:none;color:var(--text-3);font-size:11px;font-family:var(--font-body);
 }
 .tab-btn.active{color:var(--gold);}
@@ -210,14 +219,14 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
 /* SCROLL TOP FAB */
 .fab-top{
-  position:fixed;right:16px;bottom:calc(var(--tabbar-h) + 16px);z-index:25;
+  position:fixed;right:16px;bottom:calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);z-index:25;
   width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;border:none;
   box-shadow:var(--shadow);display:none;align-items:center;justify-content:center;
 }
 .fab-top.show{display:flex;}
 
-/* ── ИИ-ЧАТ ПО ЛОКАЛЬНОЙ БИБЛИОТЕКЕ ХАДИСОВ (строго hadis_data.json) ── */
-.chat-wrap{display:flex;flex-direction:column;min-height:calc(100vh - var(--header-h) - var(--tabbar-h) - 40px);}
+/* ── ИИ-ЧАТ ПО ЛОКАЛЬНОЙ БИБЛИОТЕКЕ ХАДИСОВ ── */
+.chat-wrap{display:flex;flex-direction:column;min-height:calc(100vh - var(--header-h) - var(--bottom-nav-height) - 40px);}
 .chat-msgs{flex:1;padding:12px 2px 10px;display:flex;flex-direction:column;gap:10px;}
 .chat-bubble{max-width:88%;padding:10px 13px;border-radius:14px;font-size:14.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;box-shadow:var(--shadow-sm);}
 .chat-bubble.user{align-self:flex-end;background:var(--teal);color:#fdf6e3;border-bottom-right-radius:4px;}
@@ -231,34 +240,49 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 .chat-input-bar textarea:focus{outline:none;border-color:var(--teal-light);}
 .chat-send-btn{width:42px;height:42px;border-radius:50%;border:none;background:var(--teal);color:#fdf6e3;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .chat-send-btn:disabled{opacity:.45;}
+
+/* ── Язык: RTL и перевод ── */
+html[lang="ar"] body, html[lang="ar"] button, html[lang="ar"] input, html[lang="ar"] textarea{font-family:'Noto Naskh Arabic','Inter',system-ui,sans-serif;}
+html[dir="rtl"] .hd-back svg, html[dir="rtl"] .book-chev svg{transform:scaleX(-1);}
+html[dir="rtl"] .hadith-card::before, html[dir="rtl"] .book-card::before, html[dir="rtl"] .chapter-card::before{left:auto;right:0;}
+html[dir="rtl"] .fab-top{right:auto;left:16px;}
+html[dir="rtl"] .chat-bubble.user{border-bottom-right-radius:14px;border-bottom-left-radius:4px;}
+html[dir="rtl"] .chat-bubble.ai{border-bottom-left-radius:14px;border-bottom-right-radius:4px;}
+html[dir="rtl"] .chapter-category{white-space:normal;}
+.hd-lang-btn{height:36px;min-width:42px;padding:0 10px;border-radius:18px;border:1px solid var(--border);background:var(--ink-2);color:var(--text-2);font-family:var(--font-mono);font-size:11px;cursor:pointer;flex-shrink:0;}
+.hd-lang-btn:hover{border-color:var(--gold);color:var(--text);}
+.tr-row{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:11px;color:var(--text-3);}
+.tr-toggle{background:none;border:none;color:var(--gold);cursor:pointer;font-size:11px;padding:0;text-decoration:underline;}
+.chat-bubble strong{font-weight:700;}
 </style>
 </head>
 <body>
 
 <header class="hd-header">
-  <button class="hd-back" id="backBtn" title="Назад" aria-label="Назад">
+  <button class="hd-back" id="backBtn" data-i18n-title="back" data-i18n-aria="back">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
   </button>
   <div class="hd-titles">
-    <div class="hd-title" id="hdTitle">الكافي — Аль-Кафи</div>
-    <div class="hd-sub" id="hdSub">2800 хадисов · 35 книг</div>
+    <div class="hd-title" id="hdTitle"></div>
+    <div class="hd-sub" id="hdSub"></div>
   </div>
-  <button class="hd-search-btn" id="searchToggle" title="Поиск" aria-label="Поиск">
+  <button class="hd-lang-btn" id="langBtn" type="button" data-i18n-aria="langButtonAria">RU</button>
+  <button class="hd-search-btn" id="searchToggle" data-i18n-title="search" data-i18n-aria="search">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   </button>
 </header>
 
 <div class="search-bar" id="searchBar">
-  <input type="text" id="searchInput" placeholder="Поиск по 2800 хадисам…" autocomplete="off">
+  <input type="text" id="searchInput" data-i18n-ph="searchPh" placeholder="" autocomplete="off">
 </div>
 
 <div class="crumb" id="crumb"></div>
 
 <main id="mainArea">
-  <div class="state-msg"><div class="spinner"></div>Загрузка хадисов…</div>
+  <div class="state-msg"><div class="spinner"></div><span data-i18n="loading"></span></div>
 </main>
 
-<button class="fab-top" id="fabTop" title="Наверх">
+<button class="fab-top" id="fabTop" data-i18n-title="top">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 15l-6-6-6 6"/></svg>
 </button>
 
@@ -266,29 +290,29 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   <div class="tab-bar-inner">
     <button class="tab-btn" id="navRijal">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      <span>Риджаль</span>
+      <span data-i18n="tabRijal"></span>
     </button>
     <button class="tab-btn active" id="navHadis">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      <span>Хадисы</span>
+      <span data-i18n="tabHadis"></span>
     </button>
     <button class="tab-btn" id="navChat">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-      <span>ИИ-чат</span>
+      <span data-i18n="tabChat"></span>
     </button>
   </div>
 </nav>
 
 <div class="chat-input-bar" id="chatInputBar">
-  <textarea id="chatInput" rows="1" placeholder="Спросите про хадис из этой библиотеки…"></textarea>
-  <button class="chat-send-btn" id="chatSendBtn" title="Отправить" aria-label="Отправить">
+  <textarea id="chatInput" rows="1" data-i18n-ph="chatPh" placeholder=""></textarea>
+  <button class="chat-send-btn" id="chatSendBtn" data-i18n-title="send" data-i18n-aria="send">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
   </button>
 </div>
 
 <script>
 (function(){
-  // Больше не грузим весь hadis_data.json (~18-19 МБ) сразу. Вместо этого:
+  // Больше не грузим весь локальная библиотека (~18-19 МБ) сразу. Вместо этого:
   // — booksIndex: лёгкий список книг с метаданными (hadis/books-index.json);
   // — bookCache: книги, реально загруженные по требованию (hadis/books/<id>.json),
   //   то есть при нажатии на конкретную книгу качается только она.
@@ -299,78 +323,149 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   var allBooksLoaded = false;
   var allBooksLoadingPromise = null;
 
-  // ── Язык (общий с главным сайтом shiaisnad.ru через localStorage) ──
-  var LANG_KEY = 'rijal_lang';
-  function getLang(){
-    var l = null;
-    try { l = localStorage.getItem(LANG_KEY); } catch(e) {}
-    return l === 'az' ? 'az' : 'ru';
+  // ── Язык: единая глобальная настройка (site-lang.js, ключ rijal_lang) ──
+  var UI = {
+    ru: {
+      back:'Назад', search:'Поиск', searchPh:'Поиск по хадисам…', loading:'Загрузка хадисов…', langButtonAria:'Переключить язык',
+      top:'Наверх', send:'Отправить', tabRijal:'Риджаль', tabHadis:'Хадисы', tabChat:'ИИ-чат',
+      chatPh:'Спросите про хадис из этой библиотеки…',
+      library:'Библиотека хадисов', allBooks:'Все книги', book:'Книга', chapter:'Глава', hadithWord:'ХАДИС',
+      section:'раздел', results:'Результаты', booksFail:'Не удалось загрузить список книг.', bookFail:'Не удалось загрузить книгу.',
+      loadingBook:'Загрузка книги…', loadingSearch:'Загрузка базы для поиска…', translatingQuery:'Перевожу запрос…',
+      chatTitle:'ИИ-чат по хадисам', chatSub:'Строго по локальной библиотеке', chatWelcome:'Спрашивайте о любом хадисе — сначала ищу в этой библиотеке, а если там ничего нет, ищу в интернете (shiaisnad.ru, arsh313.com и другие шиитские сайты) и указываю источник.',
+      chatHint:'Ищет сначала в локальной библиотеке, затем — если нужно — в интернете. Специализирован на хадисах и их источниках.',
+      thinking:'Ищу в локальной библиотеке…', noAnswer:'Не удалось получить ответ. Попробуйте ещё раз.', netError:'Ошибка сети. Попробуйте ещё раз.', timeout:'Сервер не ответил вовремя. Попробуйте ещё раз.',
+      nothing:'Ничего не найдено по запросу', inLocal:'в локальной библиотеке.', webSearch:'Искать в интернете', alsoWeb:'Также искать в интернете',
+      searchingWeb:'Ищу в интернете…', webFail:'Не удалось выполнить поиск в интернете. Попробуйте ещё раз.', webResult:'Результат поиска в интернете',
+      first300:'Показаны первые 300 из {n} результатов. Уточните запрос.',
+      machineTr:'Машинный перевод', arabicOriginal:'Арабский оригинал', showOrig:'Показать оригинал', showTr:'Показать перевод', trWait:'Перевод…', trFail:'Перевод недоступен — показан оригинал'
+    },
+    ar: {
+      back:'رجوع', search:'بحث', searchPh:'ابحث في الأحاديث…', loading:'جارٍ تحميل الأحاديث…', langButtonAria:'تغيير اللغة',
+      top:'إلى الأعلى', send:'إرسال', tabRijal:'الرجال', tabHadis:'الأحاديث', tabChat:'الذكاء الاصطناعي',
+      chatPh:'اسأل عن حديث من هذه المكتبة…',
+      library:'مكتبة الأحاديث', allBooks:'جميع الكتب', book:'كتاب', chapter:'باب', hadithWord:'حديث',
+      section:'قسم', results:'النتائج', booksFail:'تعذّر تحميل قائمة الكتب.', bookFail:'تعذّر تحميل الكتاب.',
+      loadingBook:'جارٍ تحميل الكتاب…', loadingSearch:'جارٍ تحميل قاعدة البحث…', translatingQuery:'جارٍ ترجمة الاستعلام…',
+      chatTitle:'الدردشة الذكية حول الأحاديث', chatSub:'من المكتبة المحلية فقط', chatWelcome:'اسأل عن أي حديث — أبحث أولًا في هذه المكتبة، وإن لم أجد شيئًا أبحث في الإنترنت (shiaisnad.ru وarsh313.com ومواقع شيعية أخرى) وأذكر المصدر.',
+      chatHint:'يبحث أولًا في المكتبة المحلية ثم في الإنترنت عند الحاجة. وهو مخصص للأحاديث ومصادرها.',
+      thinking:'أبحث في المكتبة المحلية…', noAnswer:'تعذّر الحصول على إجابة. حاول مرة أخرى.', netError:'خطأ في الشبكة. حاول مرة أخرى.', timeout:'لم يستجب الخادم في الوقت المناسب. حاول مرة أخرى.',
+      nothing:'لا توجد نتائج للاستعلام', inLocal:'في المكتبة المحلية.', webSearch:'ابحث في الإنترنت', alsoWeb:'ابحث أيضًا في الإنترنت',
+      searchingWeb:'أبحث في الإنترنت…', webFail:'تعذّر البحث في الإنترنت. حاول مرة أخرى.', webResult:'نتيجة البحث في الإنترنت',
+      first300:'تُعرض أول 300 نتيجة من {n}. حدّد استعلامك أكثر.',
+      machineTr:'ترجمة آلية', arabicOriginal:'النص العربي الأصلي', showOrig:'عرض النص الأصلي', showTr:'عرض الترجمة', trWait:'جارٍ الترجمة…', trFail:'الترجمة غير متاحة — يُعرض النص الأصلي'
+    }
+  };
+  UI.fa = {
+    brand:'کتابخانه حدیث', title:'کتابخانهٔ احادیث', subtitle:'کتاب‌های حدیث شیعی — الکافی و دیگر منابع',
+    search:'جست‌وجوی حدیث', close:'بستن', langButtonAria:'زبان', books:'کتاب‌ها', chapters:'فصل‌ها', hadiths:'احادیث', chapter:'فصل',
+    noChapters:'فصلی یافت نشد', noHadiths:'حدیثی یافت نشد', loadingBook:'در حال بارگذاری کتاب…', bookFail:'بارگذاری کتاب ناموفق بود',
+    loadingIndex:'در حال بارگذاری فهرست کتاب‌ها…', indexFail:'بارگذاری فهرست کتاب‌ها ناموفق بود', back:'بازگشت', home:'کتاب‌ها',
+    searchHint:'برای جست‌وجو حداقل ۲ نویسه وارد کنید', searchFail:'جست‌وجوی محلی ناموفق بود', noResults:'نتیجه‌ای یافت نشد',
+    local:'در کتابخانه محلی.', webSearch:'جست‌وجو در اینترنت', alsoWeb:'در اینترنت نیز جست‌وجو کن', searchingWeb:'در حال جست‌وجو در اینترنت…',
+    webFail:'جست‌وجوی اینترنتی ناموفق بود.', webResult:'نتیجهٔ جست‌وجوی اینترنتی', first300:'۳۰۰ نتیجهٔ اول نمایش داده می‌شود.',
+    machineTr:'ترجمهٔ ماشینی', arabicOriginal:'متن اصلی عربی', showOrig:'نمایش متن اصلی', showTr:'نمایش ترجمه', trWait:'در حال ترجمه…',
+    trFail:'ترجمه در دسترس نیست — متن اصلی نمایش داده می‌شود', timeout:'مهلت پاسخ به پایان رسید', netError:'خطای شبکه',
+    chatTitle:'دستیار هوشمند', chatPlaceholder:'سؤال خود را دربارهٔ احادیث بپرسید…', send:'ارسال', clear:'پاک کردن گفتگو',
+    chatWelcome:'سلام! دربارهٔ کتاب‌ها، احادیث و اسناد بپرسید.', chatCleared:'گفتگو پاک شد.', chatThinking:'⏳ در حال بررسی…',
+    chatUnavailable:'دستیار هوشمند در دسترس نیست.', chatRateLimited:'✗ درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید.', chatError:'✗ خطایی رخ داد.', chatEmpty:'پاسخ مفیدی دریافت نشد.'
+  };
+  function curLang(){ return (window.SiteLang && SiteLang.current()) || 'ru'; }
+  function uiLang(){ var l=curLang(); return l==='ar'||l==='fa' ? l : 'ru'; }
+  function L(key){ var d = UI[uiLang()]; return d[key] !== undefined ? d[key] : UI.ru[key]; }
+  function translateTarget(){ var l=curLang(); return l==='ar'||l==='fa' ? l : null; }   // на какой язык переводить тексты
+
+  // Числительные: ru — 3 формы, ar — ед./двойств./мн. (3–10)/ед. (11+)
+  var WORDS = {
+    hadith:  { ru:['хадис','хадиса','хадисов'],  ar:['حديث','حديثان','أحاديث','حديثًا'], fa:['حدیث','حدیث','حدیث'] },
+    book:    { ru:['книга','книги','книг'],       ar:['كتاب','كتابان','كتب','كتابًا'], fa:['کتاب','کتاب','کتاب'] },
+    chapter: { ru:['глава','главы','глав'],       ar:['باب','بابان','أبواب','بابًا'], fa:['فصل','فصل','فصل'] }
+  };
+  function plural(n, kind){
+    var w = WORDS[kind][uiLang()];
+    if (uiLang() === 'ar') {
+      if (n === 1) return w[0];
+      if (n === 2) return w[1];
+      return (n >= 3 && n <= 10) ? w[2] : w[3];
+    }
+    if (uiLang() === 'fa') return WORDS[kind].fa[0];
+    var mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return w[0];
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return w[1];
+    return w[2];
   }
-  function setLang(l){
-    try { localStorage.setItem(LANG_KEY, l); } catch(e) {}
+  function bookTitle(b){
+    if (!b) return '';
+    var meta = (booksIndex || []).filter(function(m){ return m.id === b.id; })[0] || b;
+    var raw = meta.title || b.title || '';
+    if (uiLang() === 'ar' && meta.titleAr) return meta.titleAr;
+    if (uiLang() === 'fa') { var c=window.Translator && Translator.cached ? Translator.cached(raw,'fa') : null; return c || raw; }
+    return raw;
   }
 
-  var state = { view: 'books', bookId: null, chapterN: null, query: '', lang: getLang() };
+  var state = { view: 'books', bookId: null, chapterN: null, query: '' };
   var chatHistory = []; // { role: 'user'|'assistant', content: string, thinking?: bool }
   var flatHadithCache = null;
+  var chatBusy = false;
 
   var mainArea = document.getElementById('mainArea');
   var crumbEl = document.getElementById('crumb');
   var hdTitle = document.getElementById('hdTitle');
   var hdSub = document.getElementById('hdSub');
 
-  // ── Кэш перевода хадисов на азербайджанский ──
-  var AZ_CACHE_KEY = 'hadis_az_cache';
-  var azCache = {};
-  try { azCache = JSON.parse(localStorage.getItem(AZ_CACHE_KEY) || '{}'); } catch(e) { azCache = {}; }
-  function saveAzCache(){
-    try { localStorage.setItem(AZ_CACHE_KEY, JSON.stringify(azCache)); } catch(e) {}
+  function applyStaticI18n(){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent = L(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.setAttribute('placeholder', L(el.getAttribute('data-i18n-ph'))); });
+    document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.setAttribute('title', L(el.getAttribute('data-i18n-title'))); });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function(el){ el.setAttribute('aria-label', L(el.getAttribute('data-i18n-aria'))); });
+    var lb = document.getElementById('langBtn');
+    if (lb) {
+      lb.textContent = curLang() === 'ru' ? 'RU' : (curLang() === 'ar' ? 'AR' : 'FA');
+      lb.setAttribute('aria-label', L('langButtonAria'));
+    }
+    document.title = (uiLang() === 'ar' ? 'مكتبة الأحاديث' : (uiLang() === 'fa' ? 'کتابخانهٔ احادیث' : 'Библиотека хадисов')) + ' | ShiaIsnad';
+    var md = document.getElementById('pageDescription');
+    if (md) md.setAttribute('content', uiLang() === 'ar'
+      ? 'مكتبة الأحاديث — الكافي وغيرها من المصادر الشيعية'
+      : (uiLang() === 'fa' ? 'کتابخانهٔ احادیث — الکافی و دیگر منابع شیعی' : 'Библиотека хадисов — Аль-Кафи и другие шиитские источники'));
   }
 
-  async function translateHadithsBatch(items){
-    if (!items.length) return;
-    var list = items.map(function(it, idx){ return (idx + 1) + '. ' + it.text; }).join('\n\n');
-    var prompt = 'Siz hədis elmləri üzrə mütəxəssis alimsiniz. Aşağıdakı hədis mətnlərini rus dilindən Azərbaycan dilinə dəqiq, hədis elminə uyğun akademik üslubda tərcümə edin. Mətnlərin sırasını və sayını dəyişməyin, hər birini ayrıca tərcümə edin.\n\nYalnız etibarlı JSON massivi ilə cavab verin, başqa heç nə yazmayın:\n[{"id":1,"text":"tərcümə mətni"},...]\n\nMətnlər:\n' + list;
+  // ── Запросы к воркеру с таймаутом (чат и интернет-поиск) ──
+  async function postAi(body, extraHeaders, timeoutMs){
+    var controller = new AbortController();
+    var timer = setTimeout(function(){ controller.abort(); }, timeoutMs || 60000);
     try {
-      var res = await fetch('/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Translate': '1' },
-        body: JSON.stringify({ max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
-      });
-      if (!res.ok) return;
-      var data = await res.json();
-      var raw = (data && data.content && data.content[0] && data.content[0].text)
-        || (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)
-        || '';
-      var cleaned = String(raw).replace(/```json|```/g, '').trim();
-      var start = cleaned.indexOf('[');
-      var end = cleaned.lastIndexOf(']');
-      if (start !== -1 && end !== -1) cleaned = cleaned.slice(start, end + 1);
-      var parsed = JSON.parse(cleaned);
-      parsed.forEach(function(item){
-        var it = items[item.id - 1];
-        if (it && item.text) azCache[it.key] = item.text;
-      });
-      saveAzCache();
-    } catch(e) {
-      console.warn('AZ hadith translate error:', e && e.message ? e.message : e);
+      var headers = Object.assign({ 'Content-Type': 'application/json' }, extraHeaders || {});
+      var res = await fetch('/ai/chat', { method: 'POST', headers: headers, body: JSON.stringify(body), signal: controller.signal });
+      var data = await res.json().catch(function(){ return {}; });
+      var reply = (data && data.content && data.content[0] && data.content[0].text) ||
+        (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+      return { ok: res.ok, reply: String(reply || '').trim(), error: data && data.error };
+    } catch (e) {
+      return { ok: false, reply: '', error: e && e.name === 'AbortError' ? L('timeout') : L('netError') };
+    } finally {
+      clearTimeout(timer);
     }
   }
 
-  async function translateAndFillHadiths(pending){
-    var BATCH = 12;
-    for (var i = 0; i < pending.length; i += BATCH) {
-      if (state.lang !== 'az' || state.view !== 'hadiths') break;
-      var chunk = pending.slice(i, i + BATCH);
-      await translateHadithsBatch(chunk);
-      chunk.forEach(function(it){
-        if (azCache[it.key]) {
-          var el = mainArea.querySelector('.hadith-card[data-hkey="' + it.key + '"] .hadith-text');
-          if (el) { el.textContent = azCache[it.key]; el.classList.remove('hd-loading'); }
-        }
-      });
-    }
+  // Указание языка для системных промптов ИИ (язык сайта учитывается и в хадисах)
+  function langDirective(){
+    var l=curLang();
+    if(l==='ar') return '\n\nЯЗЫК ОТВЕТА: арабский (العربية), если пользователь явно не пишет на другом языке. Тексты хадисов из блока выше переводи на арабский, а ссылку на источник (книга, глава, номер) сохраняй без изменений.';
+    if(l==='fa') return '\n\nЯЗЫК ОТВЕТА: персидский (فارسی), если пользователь явно не пишет на другом языке. Тексты хадисов из блока выше переводи на персидский, а ссылку на источник (книга, глава, номер) сохраняй без изменений.';
+    return '';
   }
+
+  // Арабский запрос → русский эквивалент (тексты хадисов в базе русские). Результат кэшируется в Translator.
+  function hasArabic(t){ return /[\u0600-\u06FF]/.test(t || ''); }
+  async function russianQuery(q){
+    if (!hasArabic(q)) return '';
+    try { var r = await Translator.translate(q, 'ru'); return r && r !== q ? r : ''; } catch (e) { return ''; }
+  }
+
+  // Порядок отображения перевода хадисов: оригинал (h.text) НИКОГДА не перезаписывается,
+  // перевод хранится отдельно в Translator-кэше (оригинал+язык → перевод).
+  var viewTexts = {};   // hkey -> { orig, tr }
 
   // booksIndexReadyPromise разрешается, когда загружен лёгкий список книг
   // (метаданные, без текстов хадисов) — этого достаточно для показа списка книг.
@@ -388,7 +483,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
       booksIndex = json;
       render();
     }).catch(function(err){
-      mainArea.innerHTML = '<div class="state-msg">Не удалось загрузить список книг.<br>' + (err && err.message ? err.message : '') + '</div>';
+      mainArea.innerHTML = '<div class="state-msg">' + L('booksFail') + '<br>' + (err && err.message ? err.message : '') + '</div>';
     });
   });
 
@@ -414,9 +509,9 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   // спиннер, качает только эту книгу и затем вызывает колбэк (обычно render).
   function openBook(id, cb){
     if (bookCache[id]) { cb(); return; }
-    mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>Загрузка книги…</div>';
+    mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>' + L('loadingBook') + '</div>';
     fetchBook(id).then(function(){ cb(); }).catch(function(err){
-      mainArea.innerHTML = '<div class="state-msg">Не удалось загрузить книгу.<br>' + (err && err.message ? err.message : '') + '</div>';
+      mainArea.innerHTML = '<div class="state-msg">' + L('bookFail') + '<br>' + (err && err.message ? err.message : '') + '</div>';
     });
   }
 
@@ -495,7 +590,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     });
   }
 
-  // ── ИИ-чат: строго по локальному hadis_data.json, без веба и без риджаля ──
+  // ── ИИ-чат: строго по локальному локальная библиотека, без веба и без риджаля ──
   function getFlatHadith(){
     if (flatHadithCache) return flatHadithCache;
     flatHadithCache = [];
@@ -506,6 +601,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
         (ch.h || []).forEach(function(h){
           if (!h || !h.text) return;
           var item = {
+            bookId: book.id,
             bookTitle: book.title || '',
             chapterN: ch.n,
             chapterName: ch.name || '',
@@ -553,25 +649,25 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
     return (
       'Ты — узкоспециализированный ИИ-ассистент раздела «Библиотека хадисов» проекта ShiaIsnad ' +
-      '(страница /hadis). Твой ЕДИНСТВЕННЫЙ источник данных — локальный файл hadis_data.json, ' +
+      '(страница /hadis). Твой основной источник данных — локальная библиотека хадисов, ' +
       'загруженный на этой странице: ' + flat.length + ' хадисов из книг: ' + (books.join(', ') || '—') + '.\n\n' +
       'СТРОГИЕ ПРАВИЛА (нарушать запрещено):\n' +
       '✓ Отвечай ТОЛЬКО на основе блока «НАЙДЕНО В ЛОКАЛЬНОЙ БАЗЕ» ниже — это реальные фрагменты, ' +
-      'найденные по запросу пользователя в hadis_data.json.\n' +
+      'найденные по запросу пользователя в локальной библиотеке.\n' +
       '✗ ЗАПРЕЩЕНО искать в интернете, использовать знания модели о хадисах вне этого блока, ' +
       'выдумывать текст, номер хадиса, главу или книгу, которых нет ниже.\n' +
       '✗ ЗАПРЕЩЕНО отвечать на вопросы не о хадисах из этой библиотеки: оценка передатчиков/риджаль, ' +
-      'фикх и фетвы, общие исламские вопросы, любые посторонние темы — на них коротко и дружелюбно ' +
+      'общие исламские вопросы и любые посторонние темы — на них коротко и дружелюбно ' +
       'скажи, что этот чат ограничен только текстами хадисов из локальной библиотеки, и предложи ' +
       'общий ИИ-чат на shiaisnad.ru для таких вопросов.\n' +
       '✓ Ссылайся на источник в формате «Книга, глава X, №Y» — только из блока ниже.\n' +
       '✓ Пиши на языке вопроса пользователя. Коротко и по делу (обычно 3–8 предложений), подробнее — ' +
-      'только если прямо просят.\n\n' +
+      'только если прямо просят.' + langDirective() + '\n\n' +
       matchesBlock
     );
   }
 
-  // Когда локальная база (hadis_data.json) ничего не нашла по запросу,
+  // Когда локальная база (локальная библиотека ничего не нашла по запросу,
   // строгий режим больше не глушит ответ фразой "ничего не нашлось" —
   // вместо этого запрос уходит БЕЗ заголовка X-Hadith-Strict, и воркер сам
   // ищет хадис в интернете (shiaisnad.ru, arsh313.com и другие шиитские
@@ -579,12 +675,12 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   function buildWebHadithSystemPrompt(){
     return (
       'Ты — ассистент раздела «Библиотека хадисов» проекта ShiaIsnad (страница /hadis). ' +
-      'В локальной библиотеке (hadis_data.json) подходящего хадиса по запросу пользователя не нашлось. ' +
+      'В локальной библиотеке подходящего хадиса по запросу пользователя не нашлось. ' +
       'Используй серверные источники из интернета (shiaisnad.ru, arsh313.com и другие шиитские сайты и ' +
       'форумы), если они подмешаны в этот системный промпт ниже, чтобы найти нужный хадис или слова учёных. ' +
       'Обязательно укажи, из какого источника взят ответ. Если надёжного источника не нашлось — прямо ' +
       'скажи об этом и предложи переформулировать запрос; не выдумывай текст, номер хадиса или книгу. ' +
-      'Пиши на языке вопроса пользователя, коротко и по делу.'
+      'Пиши на языке вопроса пользователя, коротко и по делу.' + langDirective()
     );
   }
 
@@ -593,44 +689,48 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     if (el) el.scrollTop = el.scrollHeight;
   }
 
+  // Лёгкий Markdown для ответов ИИ: **жирный** (текст экранируется до разметки)
+  function chatHtml(text){
+    return esc(text).replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  }
+
   function renderChatMessages(){
     var el = document.getElementById('chatMsgs');
     if (!el) return;
     if (!chatHistory.length) {
-      el.innerHTML = '<div class="chat-bubble ai">Спрашивайте о любом хадисе — сначала ищу в этой библиотеке, а если там ничего нет, ищу в интернете (shiaisnad.ru, arsh313.com и другие шиитские сайты) и указываю источник.</div>';
+      el.innerHTML = '<div class="chat-bubble ai" dir="auto">' + esc(L('chatWelcome')) + '</div>';
       return;
     }
     el.innerHTML = chatHistory.map(function(m){
       var cls = 'chat-bubble ' + (m.role === 'user' ? 'user' : 'ai') + (m.thinking ? ' thinking' : '') + (m.err ? ' err' : '');
-      return '<div class="' + cls + '">' + esc(m.content) + '</div>';
+      return '<div class="' + cls + '" dir="auto">' + chatHtml(m.thinking ? L('thinking') : m.content) + '</div>';
     }).join('');
     scrollChatToBottom();
   }
 
   function renderChat(){
     // Открытие чата — сигнал, что скоро понадобится полная база; запускаем
-    // её фоновую догрузку заранее (не дожидаясь), чтобы к моменту, когда
-    // пользователь допишет вопрос, она уже была готова.
+    // её фоновую догрузку заранее, чтобы к моменту вопроса она уже была готова.
     ensureAllBooksLoaded().then(function(){
-      if (state.view === 'chat') {
-        hdSub.textContent = 'Строго по локальной библиотеке (' + getFlatHadith().length + ')';
-      }
+      if (state.view === 'chat') hdSub.textContent = L('chatSub') + ' (' + getFlatHadith().length + ')';
     });
     var totalKnown = (booksIndex || []).reduce(function(sum, b){ return sum + b.hadithCount; }, 0);
-    hdTitle.textContent = 'ИИ-чат по хадисам';
-    hdSub.textContent = 'Строго по локальной библиотеке (' + totalKnown + ')';
-    setCrumb([{ label: 'Хадисы', action: 'books' }, { label: 'ИИ-чат' }]);
+    hdTitle.textContent = L('chatTitle');
+    hdSub.textContent = L('chatSub') + ' (' + totalKnown + ')';
+    setCrumb([{ label: L('tabHadis'), action: 'books' }, { label: L('tabChat') }]);
     mainArea.innerHTML =
       '<div class="chat-wrap"><div class="chat-msgs" id="chatMsgs"></div>' +
-      '<div class="chat-hint">Ищет сначала в локальной библиотеке, затем — если нужно — в интернете. Не по риджалю и не по фикху.</div></div>';
+      '<div class="chat-hint">' + esc(L('chatHint')) + '</div></div>';
     renderChatMessages();
   }
 
   async function sendChatMessage(){
+    if (chatBusy) return;                                   // защита от двойной отправки (Enter + клик)
     var input = document.getElementById('chatInput');
     var sendBtn = document.getElementById('chatSendBtn');
     var text = (input.value || '').trim();
     if (!text) return;
+    chatBusy = true;
 
     input.value = '';
     input.style.height = 'auto';
@@ -638,51 +738,40 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
     chatHistory.push({ role: 'user', content: text });
     var thinkingIdx = chatHistory.length;
-    chatHistory.push({ role: 'assistant', content: 'Ищу в локальной библиотеке…', thinking: true });
+    chatHistory.push({ role: 'assistant', content: '', thinking: true });
     renderChatMessages();
-
-    // Дожидаемся полной загрузки ВСЕХ книг (запускается лениво прямо здесь,
-    // если ещё не начиналась) — иначе поиск ниже мог бы ошибочно вернуть
-    // «ничего не найдено» просто потому, что докачаны не все книги.
-    try { await ensureAllBooksLoaded(); } catch (e) {}
-
-    var matches = findLocalHadith(text, 6);
-    var hasLocalMatches = matches.length > 0;
-    // Есть локальные совпадения → строгий режим (только hadis_data.json, без
-    // веба). Совпадений нет → заголовок X-Hadith-Strict не отправляется,
-    // и воркер сам ищет хадис в интернете (см. worker.js: collectSourceContext
-    // пропускается только когда X-Hadith-Strict реально установлен).
-    var systemText = hasLocalMatches ? buildStrictHadithSystemPrompt(matches) : buildWebHadithSystemPrompt();
-    var apiMessages = chatHistory
-      .filter(function(m){ return !m.thinking; })
-      .slice(-12)
-      .map(function(m){ return { role: m.role, content: m.content }; });
 
     try {
-      var headers = { 'Content-Type': 'application/json' };
-      if (hasLocalMatches) headers['X-Hadith-Strict'] = '1';
-      var res = await fetch('/ai/chat', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ max_tokens: 900, temperature: 0.3, system: systemText, messages: apiMessages }),
-      });
-      var data = await res.json().catch(function(){ return {}; });
-      var reply =
-        (data && data.content && data.content[0] && data.content[0].text) ||
-        (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
-        '';
-      reply = String(reply || '').trim();
-      if (!res.ok || !reply) {
-        chatHistory[thinkingIdx] = { role: 'assistant', content: (data && data.error) || 'Не удалось получить ответ. Попробуйте ещё раз.', err: true };
+      // Дожидаемся полной загрузки ВСЕХ книг (лениво), иначе поиск мог бы ошибочно
+      // ничего не найти просто потому, что докачаны не все книги.
+      try { await ensureAllBooksLoaded(); } catch (e) {}
+
+      // Арабский вопрос: тексты хадисов в базе русские → ищем и по русскому эквиваленту запроса.
+      var ruQ = await russianQuery(text);
+      var matches = findLocalHadith(ruQ ? (text + ' ' + ruQ) : text, 6);
+      var hasLocalMatches = matches.length > 0;
+      // Есть локальные совпадения → строгий режим (X-Hadith-Strict: только локальная база).
+      // Нет → воркер сам ищет источники в интернете (collectSourceContext).
+      var systemText = hasLocalMatches ? buildStrictHadithSystemPrompt(matches) : buildWebHadithSystemPrompt();
+      var apiMessages = chatHistory
+        .filter(function(m){ return !m.thinking && m.content && !m.err; })
+        .slice(-12)
+        .map(function(m){ return { role: m.role, content: m.content }; });
+
+      var r = await postAi({ max_tokens: 900, temperature: 0.3, system: systemText, messages: apiMessages },
+        hasLocalMatches ? { 'X-Hadith-Strict': '1' } : {}, 60000);
+      if (!r.ok || !r.reply) {
+        chatHistory[thinkingIdx] = { role: 'assistant', content: r.error || L('noAnswer'), err: true };
       } else {
-        chatHistory[thinkingIdx] = { role: 'assistant', content: reply };
+        chatHistory[thinkingIdx] = { role: 'assistant', content: r.reply };
       }
     } catch (e) {
-      chatHistory[thinkingIdx] = { role: 'assistant', content: 'Ошибка сети. Попробуйте ещё раз.', err: true };
+      chatHistory[thinkingIdx] = { role: 'assistant', content: L('netError'), err: true };
+    } finally {
+      chatBusy = false;
+      sendBtn.disabled = false;
+      if (state.view === 'chat') renderChatMessages();
     }
-
-    sendBtn.disabled = false;
-    renderChatMessages();
   }
 
   function render(){
@@ -705,21 +794,23 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   }
 
   function renderBooks(){
+    var target = translateTarget();
     var totalBooks = booksIndex.length;
     var totalH = booksIndex.reduce(function(sum, b){ return sum + b.hadithCount; }, 0);
-    hdTitle.textContent = 'Библиотека хадисов';
-    hdSub.textContent = totalH + ' ' + pluralize(totalH,'хадис','хадиса','хадисов') + ' · ' + totalBooks + ' ' + pluralize(totalBooks,'книга','книги','книг');
-    setCrumb([{label:'Все книги'}]);
+    hdTitle.textContent = L('library');
+    hdSub.textContent = totalH + ' ' + plural(totalH,'hadith') + ' · ' + totalBooks + ' ' + plural(totalBooks,'book');
+    setCrumb([{label:L('allBooks')}]);
     var html = '';
     booksIndex.forEach(function(book){
       html += '<div class="book-card" data-book="' + book.id + '">' +
         '<div class="book-num">' + book.id + '</div>' +
-        '<div class="book-info"><div class="book-title">' + esc(book.title) + '</div>' +
-        '<div class="book-meta">' + book.chaptersCount + ' ' + pluralize(book.chaptersCount,'глава','главы','глав') + ' · ' + book.hadithCount + ' ' + pluralize(book.hadithCount,'хадис','хадиса','хадисов') + '</div></div>' +
+        '<div class="book-info"><div class="book-title" dir="auto"' + (target && uiLang()==='fa' && Translator.cached(book.title || '', 'fa') === null ? ' data-tr="' + esc(book.title || '') + '"' : '') + '>' + esc(bookTitle(book)) + '</div>' +
+        '<div class="book-meta">' + book.chaptersCount + ' ' + plural(book.chaptersCount,'chapter') + ' · ' + book.hadithCount + ' ' + plural(book.hadithCount,'hadith') + '</div></div>' +
         '<div class="book-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>' +
       '</div>';
     });
     mainArea.innerHTML = html;
+    if (target && mainArea.querySelector('[data-tr]')) fillTranslations(mainArea, target);
     mainArea.querySelectorAll('.book-card').forEach(function(el){
       el.addEventListener('click', function(){
         var id = parseInt(el.getAttribute('data-book'), 10);
@@ -732,11 +823,12 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     });
   }
 
-  function pluralize(n, one, few, many){
-    var mod10 = n % 10, mod100 = n % 100;
-    if (mod10 === 1 && mod100 !== 11) return one;
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
-    return many;
+  // Заполняет элементы [data-tr] переводом лениво (кэш «оригинал+язык → перевод»); оригинал в данных не меняется.
+  function fillTranslations(root, target){
+    var token = state.view + '|' + state.bookId + '|' + state.chapterN;
+    Translator.fillLazy(root, target, {
+      shouldStop: function(){ return (state.view + '|' + state.bookId + '|' + state.chapterN) !== token || translateTarget() !== target; }
+    });
   }
 
   function getBook(id){
@@ -746,17 +838,24 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   function renderChapters(){
     var book = getBook(state.bookId);
     if (!book) { state.view = 'books'; return render(); }
-    hdTitle.textContent = 'Книга ' + book.id;
-    hdSub.textContent = book.title;
-    setCrumb([{label:'Все книги', action:'books'}, {label:'Книга ' + book.id}]);
-    var html = '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin:4px 0 14px;line-height:1.3;">' + esc(book.title) + '</div>';
+    var target = translateTarget();
+    var titleLine = bookTitle(book);
+    hdTitle.textContent = L('book') + ' ' + book.id;
+    hdSub.textContent = titleLine;
+    setCrumb([{label:L('allBooks'), action:'books'}, {label:L('book') + ' ' + book.id}]);
+    var html = '<div dir="auto" style="font-family:var(--font-display);font-size:18px;font-weight:700;margin:4px 0 14px;line-height:1.3;">' + esc(titleLine) + '</div>';
     book.chapters.forEach(function(ch){
+      var name = ch.name || (L('chapter') + ' ' + ch.n);
+      var cat = ch.category || '';
+      var nameAttr = '', catAttr = '';
+      if (target && ch.name) { var c1 = Translator.cached(ch.name, target); if (c1 !== null) name = c1; else nameAttr = ' data-tr="' + esc(ch.name) + '"'; }
+      if (target && cat) { var c2 = Translator.cached(cat, target); if (c2 !== null) cat = c2; else catAttr = ' data-tr="' + esc(ch.category) + '"'; }
       html += '<div class="chapter-card" data-ch="' + ch.n + '">' +
         '<div class="chapter-num">' + ch.n + '</div>' +
         '<div class="chapter-info">' +
-        '<div class="chapter-category">' + esc(ch.category || '') + '</div>' +
-        '<div class="chapter-title">' + esc(ch.name || ('Глава ' + ch.n)) + '</div>' +
-        '<div class="chapter-meta">' + ch.h.length + ' ' + pluralize(ch.h.length,'хадис','хадиса','хадисов') + '</div></div>' +
+        '<div class="chapter-category" dir="auto"' + catAttr + '>' + esc(cat) + '</div>' +
+        '<div class="chapter-title" dir="auto"' + nameAttr + '>' + esc(name) + '</div>' +
+        '<div class="chapter-meta">' + ch.h.length + ' ' + plural(ch.h.length,'hadith') + '</div></div>' +
       '</div>';
     });
     mainArea.innerHTML = html;
@@ -767,6 +866,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
         render();
       });
     });
+    if (target && mainArea.querySelector('[data-tr]')) fillTranslations(mainArea, target);
   }
 
   function renderHadiths(){
@@ -774,92 +874,129 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     if (!book) { state.view = 'books'; return render(); }
     var ch = book.chapters.find(function(c){ return c.n === state.chapterN; });
     if (!ch) { state.view = 'chapters'; return render(); }
-    hdTitle.textContent = 'Глава ' + ch.n;
-    hdSub.textContent = book.title;
-    setCrumb([{label:'Все книги', action:'books'}, {label:'Книга ' + book.id, action:'chapters'}, {label:'Глава ' + ch.n}]);
+    var target = translateTarget();
+    hdTitle.textContent = L('chapter') + ' ' + ch.n;
+    hdSub.textContent = bookTitle(book);
+    setCrumb([{label:L('allBooks'), action:'books'}, {label:L('book') + ' ' + book.id, action:'chapters'}, {label:L('chapter') + ' ' + ch.n}]);
+    var chName = ch.name || '', chCat = ch.category || '', chNameAttr = '', chCatAttr = '';
+    if (target && chName) { var t1 = Translator.cached(chName, target); if (t1 !== null) chName = t1; else chNameAttr = ' data-tr="' + esc(ch.name) + '"'; }
+    if (target && chCat) { var t2 = Translator.cached(chCat, target); if (t2 !== null) chCat = t2; else chCatAttr = ' data-tr="' + esc(ch.category) + '"'; }
     var html = '<div style="margin:4px 0 14px;">' +
-      '<div class="chapter-category" style="margin-bottom:4px;">' + esc(ch.category || '') + '</div>' +
-      '<div style="font-family:var(--font-serif-body);font-size:16px;font-weight:600;color:var(--text-2);">' + esc(ch.name || '') + '</div></div>';
-    var isAz = state.lang === 'az';
-    var pending = [];
+      '<div class="chapter-category" dir="auto" style="margin-bottom:4px;"' + chCatAttr + '>' + esc(chCat) + '</div>' +
+      '<div dir="auto" style="font-family:var(--font-serif-body);font-size:16px;font-weight:600;color:var(--text-2);"' + chNameAttr + '>' + esc(chName) + '</div></div>';
+    viewTexts = {};
     ch.h.forEach(function(h, i){
       var key = book.id + '_' + ch.n + '_' + i;
-      var text = h.text;
-      var loadingCls = '';
-      if (isAz) {
-        if (azCache[key]) {
-          text = azCache[key];
-        } else {
-          text = 'Tərcümə yüklənir…';
-          loadingCls = ' hd-loading';
-          pending.push({ key: key, text: h.text });
-        }
-      }
+      var orig = h.text || '';
       var sourceNo = (h && h.id !== undefined && h.id !== null) ? h.id : (i + 1);
-      html += '<div class="hadith-card" data-hkey="' + key + '"><span class="hadith-num">ХАДИС №' + esc(sourceNo) + '</span><div class="hadith-text' + loadingCls + '">' + esc(text) + '</div></div>';
+      // Арабский режим: если в данных есть настоящий арабский оригинал (arabicText,
+      // книги 9–13) — показываем его напрямую и НЕ отправляем на перевод.
+      var directAr = (target === 'ar' && h.arabicText) ? String(h.arabicText) : null;
+      var tr = directAr !== null ? directAr : (target ? Translator.cached(orig, target) : null);
+      viewTexts[key] = { orig: orig, tr: tr, showTr: !!target };
+      var shown = (target && tr !== null) ? tr : orig;
+      var pendingAttr = (target && tr === null) ? ' data-tr="' + esc(orig) + '"' : '';
+      var noteTxt = directAr !== null ? L('arabicOriginal') : (tr !== null ? L('machineTr') : L('trWait'));
+      html += '<div class="hadith-card" data-hkey="' + key + '"><span class="hadith-num">' + L('hadithWord') + ' №' + esc(sourceNo) + '</span>' +
+        '<div class="hadith-text' + (pendingAttr ? ' hd-loading' : '') + '" dir="auto"' + pendingAttr + '>' + esc(shown) + '</div>' +
+        (target ? '<div class="tr-row"><span class="tr-note">' + noteTxt + '</span><button class="tr-toggle" type="button">' + (tr !== null ? L('showOrig') : '') + '</button></div>' : '') +
+        '</div>';
     });
     mainArea.innerHTML = html;
 
-    if (isAz && pending.length) translateAndFillHadiths(pending);
+    if (target) {
+      var token = state.bookId + '|' + state.chapterN;
+      Translator.fillLazy(mainArea, target, {
+        shouldStop: function(){ return state.view !== 'hadiths' || (state.bookId + '|' + state.chapterN) !== token || translateTarget() !== target; },
+        onItem: function(n, tr){
+          var card = n.closest('.hadith-card'); if (!card) return;
+          var v = viewTexts[card.getAttribute('data-hkey')]; if (v) { v.tr = tr; v.showTr = true; }
+          var row = card.querySelector('.tr-row');
+          if (row) { row.querySelector('.tr-note').textContent = L('machineTr'); row.querySelector('.tr-toggle').textContent = L('showOrig'); }
+        },
+        onFail: function(n){
+          n.classList.remove('hd-loading');
+          var card = n.closest('.hadith-card'); var row = card && card.querySelector('.tr-row');
+          if (row) row.querySelector('.tr-note').textContent = L('trFail');
+        }
+      });
+    }
   }
 
+  // Переключатель «оригинал / перевод» (делегирование, один обработчик на страницу)
+  mainArea.addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest('.tr-toggle');
+    if (!btn) return;
+    var card = btn.closest('.hadith-card'); if (!card) return;
+    var v = viewTexts[card.getAttribute('data-hkey')]; if (!v || v.tr === null) return;
+    v.showTr = !v.showTr;
+    card.querySelector('.hadith-text').textContent = v.showTr ? v.tr : v.orig;
+    btn.textContent = v.showTr ? L('showOrig') : L('showTr');
+    // Для «прямого арабского» (arabicText) «оригинал» — это русский текст базы, и наоборот
+  });
+
   function renderSearch(){
-    hdTitle.textContent = 'Поиск';
+    hdTitle.textContent = L('search');
     hdSub.textContent = '«' + state.query + '»';
 
-    // Полнотекстовый поиск требует всех книг сразу — если ещё не всё
-    // загружено, показываем спиннер и дозагружаем базу в фоне (запускается
-    // лениво, один раз), а затем перерисовываем результаты.
+    // Полнотекстовый поиск требует всех книг сразу — если ещё не всё загружено,
+    // показываем спиннер и дозагружаем базу в фоне (один раз), затем перерисовываем.
     if (!allBooksLoaded) {
-      mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>Загрузка базы для поиска…</div>';
-      ensureAllBooksLoaded().then(function(){
-        if (state.query) render();
-      });
+      mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>' + L('loadingSearch') + '</div>';
+      ensureAllBooksLoaded().then(function(){ if (state.query) render(); });
       return;
     }
 
-    // Поиск по словам с нормализацией (ё/е, арабские варианты написания) и
-    // ранжированием по числу совпавших слов — раньше требовалось точное
-    // вхождение всей фразы целиком в исходном написании, из-за чего
-    // многословные или чуть иначе написанные запросы ничего не находили.
-    var words = searchWords(state.query);
+    // Арабский запрос: ищем и по русскому переводу запроса (перевод кэшируется).
+    var q = state.query;
+    var ru = '';
+    if (hasArabic(q)) {
+      var cachedRu = Translator.cached(q, 'ru');
+      if (cachedRu === null) {
+        mainArea.innerHTML = '<div class="state-msg"><div class="spinner"></div>' + L('translatingQuery') + '</div>';
+        russianQuery(q).then(function(){ if (state.query === q && state.view !== 'chat') render(); });
+        return;
+      }
+      ru = cachedRu !== q ? cachedRu : '';
+    }
+
+    var searchQ = ru ? (q + ' ' + ru) : q;
+    var words = searchWords(searchQ);
     var scored = [];
     if (words.length) {
-      (booksIndex || []).forEach(function(meta){
-        var book = bookCache[meta.id];
-        if (!book) return;
-        book.chapters.forEach(function(ch){
-          ch.h.forEach(function(h){
-            var hay = normalizeSearchText(h.text);
-            var score = 0;
-            words.forEach(function(w){ if (hay.indexOf(w) !== -1) score++; });
-            if (score > 0) scored.push({book: book, ch: ch, h: h, score: score});
-          });
-        });
+      // getFlatHadith() хранит предпосчитанные нормализованные тексты — быстрее, чем нормализация на каждый символ.
+      getFlatHadith().forEach(function(item){
+        var hay = item._blob;
+        var score = 0;
+        words.forEach(function(w){ if (hay.indexOf(w) !== -1) score++; });
+        if (score > 0) scored.push({ item: item, score: score });
       });
       scored.sort(function(a, b){
-        return (b.score - a.score) || (a.book.id - b.book.id) || (a.ch.n - b.ch.n) || ((a.h.id || 0) - (b.h.id || 0));
+        return (b.score - a.score) || (a.item.bookId - b.item.bookId) || (a.item.chapterN - b.item.chapterN) || ((a.item.hadithId || 0) - (b.item.hadithId || 0));
       });
     }
     var results = scored;
-    setCrumb([{label:'Все книги', action:'books'}, {label:'Результаты: ' + results.length}]);
+    setCrumb([{label:L('allBooks'), action:'books'}, {label:L('results') + ': ' + results.length}]);
 
     var html = '';
     if (!results.length) {
-      html += '<div class="state-msg">Ничего не найдено по запросу «' + esc(state.query) + '» в локальной библиотеке.</div>' +
-        '<div style="padding:0 16px 16px;"><button class="btn-online-search" id="btnOnlineHadithSearch">Искать в интернете</button></div>' +
+      html += '<div class="state-msg">' + esc(L('nothing')) + ' «' + esc(q) + '» ' + esc(L('inLocal')) + '</div>' +
+        '<div style="padding:0 16px 16px;"><button class="btn-online-search" id="btnOnlineHadithSearch">' + esc(L('webSearch')) + '</button></div>' +
         '<div id="onlineSearchResult"></div>';
     } else {
       results.slice(0, 300).forEach(function(r){
-        html += '<div class="hadith-card" data-book="' + r.book.id + '" data-ch="' + r.ch.n + '" style="cursor:pointer;">' +
-          '<div class="result-path">' + esc(r.book.title) + ' · ' + esc(r.ch.category || '') + ' · Глава ' + r.ch.n + ' · №' + esc(r.h.id) + '</div>' +
-          '<div class="hadith-text">' + highlight(r.h.text, state.query) + '</div>' +
+        var it = r.item;
+        var meta = (booksIndex || []).filter(function(m){ return m.id === it.bookId; })[0];
+        var title = meta ? bookTitle(meta) : it.bookTitle;
+        html += '<div class="hadith-card" data-book="' + it.bookId + '" data-ch="' + it.chapterN + '" style="cursor:pointer;">' +
+          '<div class="result-path" dir="auto">' + esc(title) + (it.category ? ' · ' + esc(it.category) : '') + ' · ' + esc(L('chapter')) + ' ' + it.chapterN + ' · №' + esc(it.hadithId) + '</div>' +
+          '<div class="hadith-text" dir="auto">' + highlight(it.text, searchQ) + '</div>' +
         '</div>';
       });
       if (results.length > 300) {
-        html += '<div class="state-msg">Показаны первые 300 из ' + results.length + ' результатов. Уточните запрос.</div>';
+        html += '<div class="state-msg">' + esc(L('first300').replace('{n}', results.length)) + '</div>';
       }
-      html += '<div style="padding:0 16px 16px;"><button class="btn-online-search" id="btnOnlineHadithSearch">Также искать в интернете</button></div>' +
+      html += '<div style="padding:0 16px 16px;"><button class="btn-online-search" id="btnOnlineHadithSearch">' + esc(L('alsoWeb')) + '</button></div>' +
         '<div id="onlineSearchResult"></div>';
     }
     mainArea.innerHTML = html;
@@ -880,7 +1017,7 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
 
   // Поиск хадиса в интернете (shiaisnad.ru, arsh313.com и другие шиитские
   // сайты/форумы — см. worker.js) — используется, когда локальная база
-  // (hadis_data.json) не содержит нужного хадиса или для расширенной
+  // локальная библиотека не содержит нужного хадиса или для расширенной
   // проверки формулировки. В отличие от строгого ИИ-чата на этой странице,
   // здесь заголовок X-Hadith-Strict НЕ отправляется, поэтому воркер сам
   // ищет источники в интернете и подмешивает их в системный промпт.
@@ -889,35 +1026,21 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     var btn = document.getElementById('btnOnlineHadithSearch');
     if (!box || !query) return;
     if (btn) btn.disabled = true;
-    box.innerHTML = '<div class="state-msg"><div class="spinner"></div>Ищу в интернете…</div>';
+    box.innerHTML = '<div class="state-msg"><div class="spinner"></div>' + esc(L('searchingWeb')) + '</div>';
     var systemText =
       'Ты — ассистент библиотеки хадисов ShiaIsnad. Пользователь искал хадис по запросу «' + query + '», ' +
-      'но в локальной базе (hadis_data.json) подходящего текста не нашлось (или недостаточно). ' +
+      'но в локальной библиотеке подходящего текста не нашлось (или недостаточно). ' +
       'Используй серверные источники (shiaisnad.ru, arsh313.com и другие шиитские сайты/форумы), ' +
       'если они подмешаны ниже, чтобы найти этот хадис. Обязательно укажи книгу/источник и, если есть, ' +
-      'номер хадиса или главу. Если ничего надёжного не найдено — прямо скажи об этом, не выдумывай текст.';
-    try {
-      var res = await fetch('/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ max_tokens: 900, temperature: 0.3, system: systemText, messages: [{ role: 'user', content: query }] })
-      });
-      var data = await res.json().catch(function(){ return {}; });
-      var reply =
-        (data && data.content && data.content[0] && data.content[0].text) ||
-        (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
-        '';
-      reply = String(reply || '').trim();
-      if (!res.ok || !reply) {
-        box.innerHTML = '<div class="state-msg">' + esc((data && data.error) || 'Не удалось выполнить поиск в интернете. Попробуйте ещё раз.') + '</div>';
-      } else {
-        box.innerHTML = '<div class="hadith-card"><div class="result-path">Результат поиска в интернете</div><div class="hadith-text">' + esc(reply) + '</div></div>';
-      }
-    } catch (e) {
-      box.innerHTML = '<div class="state-msg">Ошибка сети. Попробуйте ещё раз.</div>';
-    } finally {
-      if (btn) btn.disabled = false;
+      'номер хадиса или главу. Если ничего надёжного не найдено — прямо скажи об этом, не выдумывай текст.' + langDirective();
+    var r = await postAi({ max_tokens: 900, temperature: 0.3, system: systemText, messages: [{ role: 'user', content: query }] }, {}, 60000);
+    if (!document.body.contains(box)) { if (btn) btn.disabled = false; return; }
+    if (!r.ok || !r.reply) {
+      box.innerHTML = '<div class="state-msg">' + esc(r.error || L('webFail')) + '</div>';
+    } else {
+      box.innerHTML = '<div class="hadith-card"><div class="result-path">' + esc(L('webResult')) + '</div><div class="hadith-text" dir="auto">' + chatHtml(r.reply) + '</div></div>';
     }
+    if (btn) btn.disabled = false;
   }
 
   // Search bar toggle
@@ -927,15 +1050,15 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
     searchBar.classList.toggle('open');
     if (searchBar.classList.contains('open')) {
       searchInput.focus();
-      ensureAllBooksLoaded(); // прогреваем базу заранее, пока пользователь печатает
     }
   });
   var searchTimer;
   searchInput.addEventListener('input', function(){
     clearTimeout(searchTimer);
     var v = searchInput.value.trim();
-    searchTimer = setTimeout(function(){
+    searchTimer = setTimeout(async function(){
       state.query = v.length >= 2 ? v : '';
+      if(state.query){ try{ await ensureAllBooksLoaded(); }catch(e){} }
       render();
     }, 250);
   });
@@ -959,12 +1082,24 @@ main{position:relative;z-index:1;padding:10px 14px calc(var(--tabbar-h) + 24px);
   var chatSendBtn = document.getElementById('chatSendBtn');
   chatSendBtn.addEventListener('click', sendChatMessage);
   chatInput.addEventListener('keydown', function(e){
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChatMessage(); }
   });
   chatInput.addEventListener('input', function(){
     chatInput.style.height = 'auto';
     chatInput.style.height = Math.min(chatInput.scrollHeight, 110) + 'px';
   });
+
+  // Переключатель языка (RU → AR → FA → RU) — меняет ОБЩИЙ язык сайта
+  document.getElementById('langBtn').addEventListener('click', function(){
+    if (window.SiteLang) { var l=curLang(); SiteLang.set(l==='ru' ? 'ar' : (l==='ar' ? 'fa' : 'ru')); }
+  });
+  // Язык изменился (здесь, на главной или в другой вкладке): перерисовываем интерфейс, оригиналы хадисов не затрагиваются
+  window.addEventListener('sitelangchange', function(){
+    applyStaticI18n();
+    flatHadithCache = null;
+    if (booksIndex) render();
+  });
+  applyStaticI18n();
 
   // Scroll-to-top FAB
   var fab = document.getElementById('fabTop');
