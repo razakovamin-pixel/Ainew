@@ -7,29 +7,34 @@
  *   - приоритет ShiaIsnad и локальных источников;
  *   - больше бесплатных источников и форумов;
  *   - более аккуратное извлечение текста из HTML;
- *   - endpoints /ai/search, /ai/open, /health;
+ *   - endpoints /ai/chat, /health;
  *   - поддержка нескольких вариантов поискового запроса.
  *
- * Env:
+ * Env (основной ИИ — чат, ответы по риджалю/хадисам):
  *   AI_API_KEY        — Secret
- *   AI_BASE_URL       — Variable (например: https://smartapi.shop/backend)
- *   AI_MODEL          — Variable
- *   TRANSLATE_MODEL    — Secret/Variable, optional. Отдельная (обычно более
- *                        быстрая/дешёвая) модель специально для перевода
- *                        интерфейса/карточек/хадисов (запросы с заголовком
- *                        X-Translate: 1). Если не задана — используется
- *                        TRANSLATE_MODEL_AI (старое имя, для обратной
- *                        совместимости), а если и его нет — жёстко заданная
- *                        по умолчанию модель deepseek-v4-flash (самая
- *                        быстрая/дешёвая из доступных), а не AI_MODEL.
- *   TRANSLATE_MODEL_AI — устаревшее имя того же секрета, оставлено для
- *                        совместимости со старыми деплоями.
- *   AI_TIMEOUT_MS — optional, default 58000
- *   AI_PATH      — optional, default /v1/messages
+ *   AI_BASE_URL       — Variable/Secret (например: https://smartapi.shop/backend)
+ *   AI_MODEL          — Variable/Secret
+ *   AI_PATH           — optional, default /v1/messages
+ *   AI_TIMEOUT_MS     — optional, default 58000
+ *
+ * Env (ПЕРЕВОДЧИК — полностью отдельный от основного ИИ; запросы с
+ * заголовком X-Translate: 1). Никогда не берёт AI_BASE_URL / AI_API_KEY /
+ * AI_MODEL «по умолчанию» — если не настроен, перевод возвращает 503, а
+ * основной ИИ продолжает работать как обычно (и наоборот):
+ *   TRANSLATE_API_KEY  — Secret
+ *   TRANSLATE_BASE_URL — Variable/Secret
+ *   TRANSLATE_MODEL    — Variable/Secret
+ *   TRANSLATE_PATH     — optional, default /v1/messages
+ *   TRANSLATE_TIMEOUT_MS — optional, default 58000
+ *
+ * Старое имя TRANSLATE_MODEL_AI больше не используется.
  */
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 20;
+// Раздельные лимиты: чат ИИ и перевод считаются в независимых «корзинах»,
+// поэтому массовый перевод глав не выбивает лимит чата (и наоборот).
+const RATE_LIMIT_MAX_REQUESTS = { ai: 20, translate: 90 };
+const RATE_BUCKETS_MAX_KEYS = 5000;
 const USER_AGENT =
   'Mozilla/5.0 (compatible; IlmAlRijalBot/3.0; +https://shiaisnad.ru)';
 
@@ -42,13 +47,6 @@ const DDG_BROWSER_USER_AGENT =
 
 const DEFAULT_AI_PATH = '/v1/messages';
 const DEFAULT_TIMEOUT_MS = 58_000;
-// Быстрая модель для перевода интерфейса/карточек/биографий по умолчанию —
-// используется автоматически, если секреты TRANSLATE_MODEL и
-// TRANSLATE_MODEL_AI не заданы. Deepseek V4 Flash — самая быстрая и самая
-// дешёвая модель из доступного списка (×0.60), это и есть выбор "самая
-// быстрая модель" для перевода. Переопределяется через
-// `wrangler secret put TRANSLATE_MODEL`.
-const DEFAULT_TRANSLATE_MODEL = 'deepseek-v4-flash';
 const MAX_UPSTREAM_TIMEOUT_MS = 120_000;
 const MAX_PAYLOAD_BYTES = 200_000;
 const MAX_MODEL_TOKENS = 8000;
@@ -233,13 +231,44 @@ const SOURCE_PRIORITY = {
 const rateBuckets = new Map();
 const memoryCache = new Map();
 
-function corsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
-  };
+// ── CORS ──────────────────────────────────────────────────────────────────
+// Сайт ходит в /ai/chat по относительному пути (same-origin), поэтому CORS ему
+// не нужен. Разрешены: собственный origin Worker'а (прод, workers.dev, wrangler
+// dev), основной домен проекта и необязательные дополнительные origin'ы из
+// переменной ALLOWED_ORIGINS (через запятую, например "https://www.shiaisnad.ru").
+// Запрос с неизвестным Origin на /ai/chat отклоняется (403) до обращения к ИИ.
+// Запрос без Origin (curl, серверные клиенты) обрабатывается как раньше.
+const PRODUCTION_ORIGINS = ['https://shiaisnad.ru'];
+
+function resolveCors(request, env) {
+  const origin = request.headers.get('origin');
+  if (!origin) return { present: false, allowed: true, origin: null };
+  let allowed = PRODUCTION_ORIGINS.includes(origin);
+  if (!allowed) {
+    try { allowed = new URL(request.url).origin === origin; } catch (_) {}
+  }
+  if (!allowed && env && typeof env.ALLOWED_ORIGINS === 'string') {
+    allowed = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean).includes(origin);
+  }
+  return { present: true, allowed, origin };
+}
+
+function corsHeaders(cors) {
+  const headers = { Vary: 'Origin' };
+  if (cors && cors.present && cors.allowed) {
+    headers['Access-Control-Allow-Origin'] = cors.origin;
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
+    headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Translate, X-Hadith-Strict';
+    headers['Access-Control-Max-Age'] = '86400';
+  }
+  return headers;
+}
+
+// Единственная точка, где CORS-заголовки добавляются к ответам API.
+function withCors(response, cors) {
+  const headers = new Headers(response.headers);
+  for (const [k, v] of Object.entries(corsHeaders(cors))) headers.set(k, v);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
 function json(data, status = 200) {
@@ -247,18 +276,57 @@ function json(data, status = 200) {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      ...corsHeaders(),
     },
   });
 }
 
-function isRateLimited(ip) {
+let lastRatePrune = 0;
+
+// Удаляет из rateBuckets записи, у которых не осталось запросов в текущем окне,
+// чтобы Map не рос бесконечно (по одному ключу на каждый IP + тип запроса).
+function pruneRateBuckets(now) {
+  if (now - lastRatePrune < RATE_LIMIT_WINDOW_MS && rateBuckets.size < RATE_BUCKETS_MAX_KEYS) return;
+  lastRatePrune = now;
+  for (const [key, bucket] of rateBuckets) {
+    const last = bucket.length ? bucket[bucket.length - 1] : 0;
+    if (now - last >= RATE_LIMIT_WINDOW_MS) rateBuckets.delete(key);
+  }
+  // Защита от переполнения при всплеске уникальных IP: выбрасываем самые старые.
+  if (rateBuckets.size >= RATE_BUCKETS_MAX_KEYS) {
+    const overflow = rateBuckets.size - RATE_BUCKETS_MAX_KEYS + 1;
+    let i = 0;
+    for (const key of rateBuckets.keys()) {
+      rateBuckets.delete(key);
+      if (++i >= overflow) break;
+    }
+  }
+}
+
+// kind: 'ai' (чат) | 'translate' (перевод). Лимиты и корзины раздельные.
+function isRateLimited(ip, kind = 'ai') {
   const now = Date.now();
-  const bucket = rateBuckets.get(ip) || [];
+  pruneRateBuckets(now);
+  const key = `${kind}|${ip}`;
+  const bucket = rateBuckets.get(key) || [];
   const recent = bucket.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
   recent.push(now);
-  rateBuckets.set(ip, recent);
-  return recent.length > RATE_LIMIT_MAX_REQUESTS;
+  rateBuckets.set(key, recent);
+  return recent.length > (RATE_LIMIT_MAX_REQUESTS[kind] || RATE_LIMIT_MAX_REQUESTS.ai);
+}
+
+// Глобальный лимит: Map выше живёт только внутри одного экземпляра (isolate) Worker'а
+// и НЕ является глобальным ограничением. Для настоящего лимита подключите Workers
+// Rate Limiting binding (RATE_LIMITER_AI / RATE_LIMITER_TRANSLATE — см. wrangler.toml).
+// Если binding не настроен или недоступен, остаётся локальный лимит выше.
+async function isRateLimitedGlobal(env, ip, kind) {
+  const binding = kind === 'translate' ? env.RATE_LIMITER_TRANSLATE : env.RATE_LIMITER_AI;
+  if (binding && typeof binding.limit === 'function') {
+    try {
+      const { success } = await binding.limit({ key: `${kind}|${ip}` });
+      if (!success) return true;
+    } catch (_) { /* binding недоступен — работает локальный лимит */ }
+  }
+  return isRateLimited(ip, kind);
 }
 
 function clamp(n, min, max) {
@@ -780,196 +848,107 @@ function buildSourceContext(sources) {
   ].join('\n\n');
 }
 
-// ── Хадисный поиск: СТРОГО по приоритету shiaisnad.ru → arsh313.com ─────
-// Раньше все хадисные хосты (shiaisnad.ru + ~10 других) уходили одним
-// OR'нутым запросом в DuckDuckGo. На практике это означало, что при
-// малейшей проблеме с shiaisnad.ru (сайт недоступен, DDG ничего не
-// проиндексировал по конкретному запросу) результат просто терялся среди
-// остальных хостов — либо наоборот, other-host darkhorses забивали
-// релевантный shiaisnad.ru. Это и есть тот самый "баг с поиском": для
-// хадисных вопросов не было гарантии, что shiaisnad.ru реально проверяется
-// первым и что при его неудаче происходит осмысленный переход на запасной
-// источник.
+// ── Интернет-поиск (HadisX и чат ИИ) ─────────────────────────────────
+// Простая линейная логика вместо прежнего каскада хост-за-хостом:
 //
-// Теперь для хадисных вопросов — отдельный, последовательный каскад:
-//   1) ищем ТОЛЬКО на shiaisnad.ru;
-//   2) если пусто — ищем ТОЛЬКО на arsh313.com (раздел /hadiths/);
-//   3) если и там пусто — падаем в общий многохостовый поиск (как раньше).
-async function searchSingleHostHadith(host, queryVariants, pushSource, seen) {
-  const variants = queryVariants.slice(0, 2);
-  if (variants.length === 0) return false;
+//   вопрос → нужен ли веб-поиск? → 1–2 поисковых запроса → ОДИН запрос
+//   к DuckDuckGo на вариант с объединённым фильтром site:(a OR b OR …) →
+//   дедупликация ссылок → открытие ≤ MAX_SOURCES_PER_ANSWER страниц →
+//   контекст для модели.
+//
+// Всего ≤ 2 (поиск) × 2 (html+lite) + 4 (страницы) = ≤ 8 подзапросов на
+// сообщение (раньше каскад мог сделать 30+ и упереться в лимит Cloudflare,
+// из-за чего до самого ИИ дело не доходило — "502 Upstream request
+// failed"). Любая ошибка поиска = пустой контекст: ИИ всё равно отвечает.
+const SEARCH_DEADLINE_MS = 14_000;
 
-  const tasks = variants.map((q) =>
-    searchDuckDuckGo(q, host, SEARCH_LIMIT).catch(() => []),
-  );
-  const results = (await Promise.all(tasks)).flat();
-  results.sort((a, b) => (b.score || 0) - (a.score || 0));
+const GREETING_RE =
+  /^(привет|здравствуй|салам|ас-салам|ассалам|спасибо|благодар|ок|окей|хорошо|понятно|да|нет|hi|hello|thanks|مرحبا|السلام|شكرا)[\s!.,?)]*$/i;
 
-  const unique = [];
-  for (const item of results) {
-    if (!item?.url || seen.has(item.url)) continue;
-    unique.push(item);
-    if (unique.length >= MAX_SOURCES_PER_ANSWER) break;
-  }
-  if (unique.length === 0) return false;
-
-  const opened = await Promise.all(
-    unique.map((item) => openAllowedUrl(item.url, item.title).catch(() => null)),
-  );
-
-  let added = 0;
-  for (const item of opened) {
-    if (item && pushSource(item)) added++;
-  }
-  return added > 0;
+// Нужен ли вообще интернет-поиск для этого сообщения.
+function needsWebSearch(text) {
+  const t = normalizeText(text).trim();
+  if (t.length < 6) return false;
+  if (GREETING_RE.test(t)) return false;
+  if (extractUrls(t).length > 0) return true;
+  if (isHadithQuery(t) || inferHosts(t).length > 0) return true;
+  // общий вопрос: минимум 3 слова или знак вопроса
+  return t.split(/\s+/).length >= 3 || /[?؟]/.test(t);
 }
 
-// Приоритетные хосты для строгого хадисного каскада — ищутся ОДНОВРЕМЕННО
-// (не по очереди), так что добавление ещё двух источников (помимо
-// shiaisnad.ru и arsh313.com) расширяет покрытие хадисов/слов учёных, не
-// увеличивая задержку: итоговый порядок всё равно определяется score в
-// collectSourceContext.
-const HADITH_CASCADE_HOSTS = [
-  'shiaisnad.ru',
-  'arsh313.com',
-  'al-mostafa.com',
-  'thaqalayn.net',
-];
-
-async function searchHadithCascade(queryVariants, pushSource, seen) {
-  const hits = await Promise.all(
-    HADITH_CASCADE_HOSTS.map((host) =>
-      searchSingleHostHadith(host, queryVariants, pushSource, seen).catch(() => false),
-    ),
-  );
-  return hits.some(Boolean);
+function withDeadline(promise, ms, fallback) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 async function collectSourceContext(userText) {
   const rawText = normalizeText(userText);
-  if (!rawText) return '';
+  if (!needsWebSearch(rawText)) return '';
 
   const cacheKey = `ctx:${rawText}`;
   const cachedMem = cacheGet(cacheKey);
   if (cachedMem) return cachedMem;
 
-  const directUrls = extractUrls(rawText);
-  const queryVariants = buildSearchQueries(rawText);
+  const run = async () => {
+    const sources = [];
+    const seen = new Set();
+    const push = (src) => {
+      if (!src?.url || seen.has(src.url)) return;
+      seen.add(src.url);
+      sources.push(src);
+    };
 
-  const sources = [];
-  const seen = new Set();
+    // 1) Ссылки, которые пользователь прислал сам (только разрешённые хосты).
+    const direct = extractUrls(rawText)
+      .filter((u) => {
+        try { return isAllowedHost(new URL(u).hostname); } catch { return false; }
+      })
+      .slice(0, MAX_SOURCES_PER_ANSWER);
+    const openedDirect = await Promise.all(
+      direct.map((u) => openAllowedUrl(u).catch(() => null)),
+    );
+    openedDirect.forEach(push);
 
-  const pushSource = (src) => {
-    if (!src?.url || seen.has(src.url)) return false;
-    seen.add(src.url);
-    sources.push(src);
-    return true;
+    // 2) Поиск — только если прямых ссылок не хватило.
+    if (sources.length < MAX_SOURCES_PER_ANSWER) {
+      const variants = buildSearchQueries(rawText).slice(0, 2);
+      const inferred = inferHosts(rawText);
+      const hosts = (inferred.length ? inferred : DEFAULT_HADITH_HOSTS).slice(0, 8);
+      const siteFilter =
+        hosts.length > 1
+          ? '(' + hosts.map((h) => `site:${h}`).join(' OR ') + ')'
+          : `site:${hosts[0]}`;
+
+      const found = (
+        await Promise.all(
+          variants.map((q) =>
+            searchDuckDuckGo(`${siteFilter} ${q}`, null, SEARCH_LIMIT * 2).catch(() => []),
+          ),
+        )
+      ).flat();
+      found.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+      const toOpen = [];
+      for (const item of found) {
+        if (!item?.url || seen.has(item.url) || toOpen.some((x) => x.url === item.url)) continue;
+        toOpen.push(item);
+        if (toOpen.length >= MAX_SOURCES_PER_ANSWER - sources.length) break;
+      }
+      const opened = await Promise.all(
+        toOpen.map((item) => openAllowedUrl(item.url, item.title).catch(() => null)),
+      );
+      opened.forEach(push);
+    }
+
+    sources.sort((a, b) => (b.score || 0) - (a.score || 0));
+    return buildSourceContext(sources.slice(0, MAX_SOURCES_PER_ANSWER));
   };
 
-  // Прямые ссылки в сообщении пользователя открываем параллельно, а не по
-  // очереди — это не меняет результат (все URL всё равно нужно открыть),
-  // но заметно сокращает задержку, когда пользователь прислал несколько
-  // ссылок сразу.
-  if (directUrls.length > 0) {
-    const openedDirect = await Promise.all(
-      directUrls.slice(0, MAX_SOURCES_PER_ANSWER).map((url) =>
-        openAllowedUrl(url).catch(() => null),
-      ),
-    );
-    for (const opened of openedDirect) {
-      if (opened) pushSource(opened);
-    }
-  }
-
-  if (sources.length < MAX_SOURCES_PER_ANSWER) {
-    const hadithQuery = isHadithQuery(rawText);
-
-    // Хадисный вопрос → сначала строгий каскад shiaisnad.ru → arsh313.com.
-    // Если он реально что-то нашёл — общий многохостовый поиск ниже
-    // пропускается (нет смысла тратить на него подзапросный бюджет).
-    let hadithCascadeHit = false;
-    if (hadithQuery) {
-      try {
-        hadithCascadeHit = await searchHadithCascade(queryVariants, pushSource, seen);
-      } catch {
-        hadithCascadeHit = false;
-      }
-    }
-
-    if (!hadithCascadeHit && sources.length < MAX_SOURCES_PER_ANSWER) {
-    const hostPlan = inferHosts(rawText);
-    const hosts = (hostPlan.length ? hostPlan : DEFAULT_HADITH_HOSTS).slice(
-      0,
-      8,
-    );
-
-    // ── Subrequest budget guard ──────────────────────────────────
-    // Cloudflare caps the number of fetch() subrequests a single Worker
-    // invocation may issue (as low as 50 on some plans). The previous
-    // version looped `for (host of hosts) for (q of queryVariants)`,
-    // firing one searchDuckDuckGo() call PER HOST — up to 11 hosts ×
-    // 5 query variants = 55 calls, each doing up to 2 fetches (primary
-    // + lite.duckduckgo.com fallback) = up to ~110 fetch subrequests
-    // for search alone, plus up to 8 more to open result pages.
-    // Once that budget is exhausted, every fetch() after it — including
-    // the real call to the AI provider below — throws immediately,
-    // which is exactly what produced "502 Upstream request failed" on
-    // every chat message.
-    //
-    // Fix: combine all candidate hosts into ONE DuckDuckGo query per
-    // query variant using an OR'd site: filter, and cap the number of
-    // variants actually sent over the network. This turns "hosts ×
-    // variants" fetches into just "variants" fetches (≤ 2), leaving
-    // plenty of headroom for the upstream AI request.
-    const siteFilter =
-      hosts.length > 1
-        ? '(' + hosts.map((h) => `site:${h}`).join(' OR ') + ')'
-        : hosts[0]
-          ? `site:${hosts[0]}`
-          : '';
-
-    const searchVariants = queryVariants.slice(0, 2);
-    const searchTasks = searchVariants.map((q) =>
-      searchDuckDuckGo(
-        siteFilter ? `${siteFilter} ${q}` : q,
-        null,
-        SEARCH_LIMIT * hosts.length,
-      ).catch(() => []),
-    );
-
-    const searchResults = (await Promise.all(searchTasks)).flat();
-
-    searchResults.sort(
-      (a, b) =>
-        (b.score || 0) - (a.score || 0) ||
-        String(a.title || '').localeCompare(String(b.title || '')),
-    );
-
-    const uniqueResults = [];
-    for (const item of searchResults) {
-      if (!item?.url) continue;
-      if (seen.has(item.url)) continue;
-      uniqueResults.push(item);
-      seen.add(item.url);
-      if (uniqueResults.length >= 12) break;
-    }
-
-    const opened = await Promise.all(
-      uniqueResults.slice(0, MAX_SOURCES_PER_ANSWER).map((item) =>
-        openAllowedUrl(item.url, item.title).catch(() => null),
-      ),
-    );
-
-    for (const item of opened) {
-      if (item) pushSource(item);
-      if (sources.length >= MAX_SOURCES_PER_ANSWER) break;
-    }
-    }
-  }
-
-  sources.sort((a, b) => (b.score || 0) - (a.score || 0));
-
-  const context = buildSourceContext(sources.slice(0, MAX_SOURCES_PER_ANSWER));
+  // Общий дедлайн: если поиск завис — отвечаем без него, а не ждём таймаут ИИ.
+  const context = await withDeadline(run().catch(() => ''), SEARCH_DEADLINE_MS, '');
   if (context) cacheSet(cacheKey, context, MEMORY_CTX_TTL_MS);
   return context;
 }
@@ -996,10 +975,34 @@ function mergeSystemText(originalSystem, injectedContext) {
   return base || extra || '';
 }
 
-function upstreamPath(env) {
-  const value = normalizeText(env.AI_PATH || DEFAULT_AI_PATH).trim();
+function upstreamPath(rawPath) {
+  const value = normalizeText(rawPath || DEFAULT_AI_PATH).trim();
   if (!value.startsWith('/')) return DEFAULT_AI_PATH;
   return value;
+}
+
+// Две независимые конфигурации апстрима: основной ИИ и переводчик.
+// Общих значений у них нет — ошибка/отсутствие настроек одного сервиса
+// не затрагивает другой.
+function resolveUpstream(env, isTranslate) {
+  if (isTranslate) {
+    return {
+      kind: 'translate',
+      apiKey: env.TRANSLATE_API_KEY,
+      baseUrl: env.TRANSLATE_BASE_URL,
+      model: env.TRANSLATE_MODEL,
+      path: env.TRANSLATE_PATH,
+      timeout: env.TRANSLATE_TIMEOUT_MS,
+    };
+  }
+  return {
+    kind: 'ai',
+    apiKey: env.AI_API_KEY,
+    baseUrl: env.AI_BASE_URL,
+    model: env.AI_MODEL,
+    path: env.AI_PATH,
+    timeout: env.AI_TIMEOUT_MS,
+  };
 }
 
 // Удаляет из JSON-ответа ИИ-провайдера любые поля, по которым можно узнать,
@@ -1026,12 +1029,25 @@ function stripProviderInfo(rawText) {
 }
 
 async function handleChat(request, env) {
-  if (!env.AI_API_KEY || !env.AI_BASE_URL || !env.AI_MODEL) {
-    return json({ error: 'AI is not configured on the server' }, 503);
+  // Заголовки в Fetch API регистронезависимы. X-Translate: 1 → ТОЛЬКО
+  // TRANSLATE_* (resolveUpstream), AI_* для перевода не используются никогда.
+  const wantsTranslateModel = request.headers.get('x-translate') === '1';
+
+  const upstreamCfg = resolveUpstream(env, wantsTranslateModel);
+  if (!upstreamCfg.apiKey || !upstreamCfg.baseUrl || !upstreamCfg.model) {
+    return json(
+      wantsTranslateModel
+        ? {
+            error: 'Translator is not configured on the server: set TRANSLATE_API_KEY, TRANSLATE_BASE_URL and TRANSLATE_MODEL',
+            code: 'TRANSLATE_NOT_CONFIGURED',
+          }
+        : { error: 'AI is not configured on the server', code: 'AI_NOT_CONFIGURED' },
+      503,
+    );
   }
 
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-  if (isRateLimited(ip)) {
+  if (await isRateLimitedGlobal(env, ip, wantsTranslateModel ? 'translate' : 'ai')) {
     return json({ error: 'Rate limit exceeded' }, 429);
   }
 
@@ -1063,10 +1079,6 @@ async function handleChat(request, env) {
 
   const lastUserText = getLastUserText(safePayload.messages);
 
-  const wantsTranslateModel =
-    request.headers.get('x-translate') === '1' ||
-    request.headers.get('X-Translate') === '1';
-
   // Строгий режим "только локальная база хадисов" — используется чатом на
   // странице /hadis (см. public/hadis/index.html). Там система уже сама
   // передаёт найденные фрагменты из hadis_data.json прямо в system-промпте,
@@ -1082,9 +1094,7 @@ async function handleChat(request, env) {
   // текст и никакого поиска не требует. Пропускаем поиск для них так же,
   // как и для строгого режима хадисов — это и есть основной выигрыш в
   // скорости, а не только выбор модели.
-  const strictLocalHadith =
-    request.headers.get('x-hadith-strict') === '1' ||
-    request.headers.get('X-Hadith-Strict') === '1';
+  const strictLocalHadith = request.headers.get('x-hadith-strict') === '1';
 
   const skipSourceSearch = strictLocalHadith || wantsTranslateModel;
 
@@ -1096,26 +1106,18 @@ async function handleChat(request, env) {
     safePayload.system = mergeSystemText(safePayload.system, sourceContext);
   }
 
-  // Модель для перевода: сначала явный секрет TRANSLATE_MODEL (простое имя,
-  // как просили), затем — старое имя TRANSLATE_MODEL_AI для обратной
-  // совместимости, и только потом жёстко заданная по умолчанию самая
-  // быстрая модель (DEFAULT_TRANSLATE_MODEL), а не общая AI_MODEL — так
-  // перевод всегда идёт быстрой моделью, даже если секрет не настраивали.
-  safePayload.model =
-    (wantsTranslateModel &&
-      (env.TRANSLATE_MODEL || env.TRANSLATE_MODEL_AI || DEFAULT_TRANSLATE_MODEL)) ||
-    env.AI_MODEL;
+  safePayload.model = upstreamCfg.model;
 
   let targetUrl;
   try {
-    targetUrl = new URL(upstreamPath(env), env.AI_BASE_URL).toString();
+    targetUrl = new URL(upstreamPath(upstreamCfg.path), upstreamCfg.baseUrl).toString();
   } catch {
-    return json({ error: 'AI backend misconfigured' }, 503);
+    return json({ error: upstreamCfg.kind === 'translate' ? 'Translator backend misconfigured' : 'AI backend misconfigured' }, 503);
   }
 
   const controller = new AbortController();
   const timeoutMs = clamp(
-    Number(env.AI_TIMEOUT_MS || DEFAULT_TIMEOUT_MS),
+    Number(upstreamCfg.timeout || DEFAULT_TIMEOUT_MS),
     10_000,
     MAX_UPSTREAM_TIMEOUT_MS,
   );
@@ -1126,7 +1128,7 @@ async function handleChat(request, env) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': env.AI_API_KEY,
+        'x-api-key': upstreamCfg.apiKey,
         Accept: 'application/json',
       },
       body: JSON.stringify(safePayload),
@@ -1146,7 +1148,6 @@ async function handleChat(request, env) {
         'Content-Type':
           upstream.headers.get('content-type') ||
           'application/json; charset=utf-8',
-        ...corsHeaders(),
       },
     });
   } catch (e) {
@@ -1159,66 +1160,15 @@ async function handleChat(request, env) {
   }
 }
 
-async function handleSearch(request) {
-  const url = new URL(request.url);
-  let query = url.searchParams.get('q') || '';
-  let host = url.searchParams.get('host') || '';
-  let limit = Number(url.searchParams.get('limit') || SEARCH_LIMIT);
-
-  if (request.method === 'POST') {
-    const body = await readJsonBody(request);
-    if (body && typeof body === 'object') {
-      query = normalizeText(body.query || query);
-      host = normalizeText(body.host || host);
-      limit = Number(body.limit || limit);
-    }
-  }
-
-  query = stripCommandWords(query);
-  host = host.trim().toLowerCase();
-  limit = clamp(Number.isFinite(limit) ? limit : SEARCH_LIMIT, 1, 5);
-
-  if (!query) {
-    return json({ error: 'query is required' }, 400);
-  }
-
-  if (host && !isAllowedHost(host)) {
-    return json({ error: 'host is not allowed' }, 400);
-  }
-
-  const results = await searchDuckDuckGo(query, host || undefined, limit);
-  return json({ query, host: host || null, results });
-}
-
-async function handleOpen(request) {
-  const url = new URL(request.url);
-  let target = url.searchParams.get('url') || '';
-
-  if (request.method === 'POST') {
-    const body = await readJsonBody(request);
-    if (body && typeof body === 'object') {
-      target = normalizeText(body.url || target);
-    }
-  }
-
-  if (!target) {
-    return json({ error: 'url is required' }, 400);
-  }
-
-  const opened = await openAllowedUrl(target);
-  if (!opened) {
-    return json({ error: 'url is not allowed or cannot be opened' }, 400);
-  }
-
-  return json(opened);
-}
-
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    const cors = resolveCors(request, env);
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders() });
+      if (!cors.allowed) return new Response(null, { status: 403, headers: corsHeaders(cors) });
+      return new Response(null, { status: 204, headers: corsHeaders(cors) });
     }
 
 
@@ -1247,32 +1197,22 @@ export default {
     }
 
     if (url.pathname === '/ai/chat') {
+      if (!cors.allowed) {
+        return withCors(json({ error: 'Origin not allowed' }, 403), cors);
+      }
       if (request.method !== 'POST') {
-        return json({ error: 'Method not allowed' }, 405);
+        return withCors(json({ error: 'Method not allowed' }, 405), cors);
       }
-      return handleChat(request, env, ctx);
-    }
-
-    if (url.pathname === '/ai/search' || url.pathname === '/api/search') {
-      if (request.method !== 'GET' && request.method !== 'POST') {
-        return json({ error: 'Method not allowed' }, 405);
-      }
-      return handleSearch(request);
-    }
-
-    if (url.pathname === '/ai/open' || url.pathname === '/api/open') {
-      if (request.method !== 'GET' && request.method !== 'POST') {
-        return json({ error: 'Method not allowed' }, 405);
-      }
-      return handleOpen(request);
+      return withCors(await handleChat(request, env, ctx), cors);
     }
 
     if (url.pathname === '/health') {
-      return json({
+      return withCors(json({
         ok: true,
         aiConfigured: Boolean(env.AI_API_KEY && env.AI_BASE_URL && env.AI_MODEL),
+        translateConfigured: Boolean(env.TRANSLATE_API_KEY && env.TRANSLATE_BASE_URL && env.TRANSLATE_MODEL),
         sources: [...ALLOWED_SOURCE_HOSTS],
-      });
+      }), cors);
     }
 
     if (env.ASSETS) {

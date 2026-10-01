@@ -1,0 +1,15 @@
+# Скопируйте в .dev.vars (файл в .gitignore) и заполните. НЕ коммитьте реальные ключи.
+
+# ── Основной ИИ (чат) ──
+AI_API_KEY=
+AI_BASE_URL=
+AI_MODEL=
+# AI_PATH=/v1/messages
+# AI_TIMEOUT_MS=58000
+
+# ── Переводчик (X-Translate: 1) — отдельный ключ/endpoint/модель ──
+TRANSLATE_API_KEY=
+TRANSLATE_BASE_URL=
+TRANSLATE_MODEL=
+# TRANSLATE_PATH=/v1/messages
+# TRANSLATE_TIMEOUT_MS=58000

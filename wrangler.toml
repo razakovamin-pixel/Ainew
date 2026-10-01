@@ -7,22 +7,50 @@ compatibility_date = "2025-01-01"
 directory = "./public"
 binding = "ASSETS"
 
-# Секреты и реальные значения НЕ прописывайте здесь. После деплоя:
+# ── Несекретные настройки (используются в worker.js) ──
+# Основной ИИ (чат): AI_PATH, AI_TIMEOUT_MS
+# Переводчик (X-Translate: 1): TRANSLATE_PATH, TRANSLATE_TIMEOUT_MS
+[vars]
+AI_PATH = "/v1/messages"
+AI_TIMEOUT_MS = "58000"
+TRANSLATE_PATH = "/v1/messages"
+TRANSLATE_TIMEOUT_MS = "58000"
+
+# Секреты и адреса/модели НЕ прописывайте здесь и никогда не кладите ключи
+# в HTML/JS. Задайте их командами wrangler secret put (или в панели Cloudflare):
+#
+# ── Основной ИИ (чат) ──
 #   wrangler secret put AI_API_KEY
 #   wrangler secret put AI_BASE_URL
 #   wrangler secret put AI_MODEL
-#   wrangler secret put TRANSLATE_MODEL
-# (все можно хранить как secrets, а не просто vars, если не хотите
-# светить даже провайдера и модель в конфиге репозитория)
 #
-# TRANSLATE_MODEL — отдельная (обычно более быстрая/дешёвая) модель
-# специально для перевода интерфейса, карточек передатчиков, статусов
-# и хадисов на арабский (и другие) языки. Используется только запросами
-# с заголовком X-Translate: 1.
-# Если секрет не задан — воркер попробует старое имя TRANSLATE_MODEL_AI,
-# а если и его нет — использует жёстко заданную по умолчанию модель
-# deepseek-v4-flash (самая быстрая и самая дешёвая из доступного списка,
-# ×0.60) — так перевод всегда идёт быстрой моделью "из коробки".
-# Чтобы выбрать другую модель — задайте секрет явно, например:
+# ── Переводчик (запросы с заголовком X-Translate: 1) ──
+# Полностью отдельная конфигурация: свой endpoint, своя модель, свой ключ.
+# AI_* для перевода НЕ используются ни при каких условиях. Если TRANSLATE_*
+# не заданы — перевод отвечает 503 (TRANSLATE_NOT_CONFIGURED), а основной
+# чат работает как обычно (и наоборот).
+#   wrangler secret put TRANSLATE_API_KEY
+#   wrangler secret put TRANSLATE_BASE_URL
 #   wrangler secret put TRANSLATE_MODEL
-#   > deepseek-v4-flash
+#
+# Проверка: GET /health -> { aiConfigured, translateConfigured }
+#
+# Локальная разработка: скопируйте .dev.vars.example в .dev.vars (он в
+# .gitignore) и подставьте реальные значения.
+
+# ── Защита /ai/chat ──
+# CORS: разрешён собственный origin Worker'а и https://shiaisnad.ru (см. worker.js).
+# Дополнительные origin'ы (например www-версия) можно добавить переменной:
+#   ALLOWED_ORIGINS = "https://www.shiaisnad.ru"
+#
+# Глобальный rate limit. Счётчик в памяти Worker'а (worker.js) работает только
+# внутри одного экземпляра и не является глобальным ограничением. Для настоящего
+# лимита создайте Rate Limiting binding'и в Cloudflare и назовите их строго
+# RATE_LIMITER_AI (чат) и RATE_LIMITER_TRANSLATE (перевод) — worker.js подхватит
+# их автоматически (env.RATE_LIMITER_AI.limit({ key })). Актуальный синтаксис
+# конфигурации binding'а проверьте в документации Cloudflare Workers
+# «Rate Limiting» для вашей версии wrangler; здесь он намеренно не прописан,
+# чтобы не ломать деплой. Пока binding'ов нет, действует локальный лимит
+# (чат — 20 запросов/мин, перевод — 90 запросов/мин на IP на экземпляр).
+# Альтернатива без кода: правило Rate limiting в панели Cloudflare
+# (Security → WAF → Rate limiting rules) для пути /ai/chat.
