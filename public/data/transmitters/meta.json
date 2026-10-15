@@ -1,1 +1,1 @@
-{"total": 10305, "chunkSize": 1000, "chunks": 11}
+{"version":6,"total":9388,"chunkSize":1000,"chunks":10,"ranges":[{"firstId":0,"lastId":999,"count":1000},{"firstId":1000,"lastId":1999,"count":1000},{"firstId":2000,"lastId":2999,"count":1000},{"firstId":3000,"lastId":4809,"count":1000},{"firstId":4810,"lastId":5810,"count":1000},{"firstId":5811,"lastId":6811,"count":1000},{"firstId":6812,"lastId":7811,"count":1000},{"firstId":7812,"lastId":8820,"count":1000},{"firstId":8821,"lastId":9820,"count":1000},{"firstId":9821,"lastId":10304,"count":388}]}
